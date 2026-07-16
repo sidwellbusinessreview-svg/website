@@ -1,5 +1,25 @@
 # Project status
 
+## Phase 05 local content validation
+
+- **Completed:** July 16, 2026
+- Added Zod runtime schemas for site settings, articles, authors, issues, categories, images, and every current structured body block.
+- TypeScript domain types are inferred from the runtime schemas and re-exported through the existing content boundary.
+- Added cross-document validation for duplicate slugs, missing references, dates, required fields, alt text, invalid featured ranks, and multiple published lead articles.
+- Added explicit `draft` and `published` article status handling; public access functions exclude drafts.
+- Added deterministic publication-date and slug sorting, ranked pinned selection, and ordered issue filtering.
+- Added `npm run validate:content` and included it in `npm run verify`.
+- Added content-validation fixtures covering every valid block, every current relationship class, long headlines, multiple authors, optional values, missing values, drafts, pinned rank behavior, and same-date ordering.
+- Unknown renderer blocks now warn in development and render nothing in production; raw untrusted HTML is never rendered.
+- Added `docs/CONTENT_AUTHORING_RULES.md` and documented actual validation in `docs/CONTENT_MODEL.md`.
+
+### Validation boundaries and deferred work
+
+- The local model still uses slug references and embedded image URLs; stable IDs and reusable CMS assets remain future migration work.
+- Categories are now validated records, but public category filtering and routes remain deferred.
+- Current local articles all default to `published` unless explicitly marked `draft`; the CMS will require broader review and scheduled states.
+- Current rules allow exactly one published pinned lead. Expanding homepage placements requires a documented rule and validator change.
+
 ## Phase 04 automated tests and CI
 
 - **Completed:** July 16, 2026

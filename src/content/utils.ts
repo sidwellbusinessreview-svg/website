@@ -1,7 +1,26 @@
 import type { Article } from "./types";
 
 export function selectLeadArticle(articles: Article[]): Article | undefined {
-  return articles.find((article) => article.pinned) ?? articles[0];
+  return (
+    articles
+      .filter((article) => article.pinned)
+      .sort(
+        (a, b) =>
+          (a.featuredRank ?? Number.MAX_SAFE_INTEGER) -
+            (b.featuredRank ?? Number.MAX_SAFE_INTEGER) ||
+          a.slug.localeCompare(b.slug),
+      )[0] ?? articles[0]
+  );
+}
+
+export function getPublicArticles(articles: Article[]): Article[] {
+  return articles
+    .filter((article) => article.status === "published")
+    .sort((a, b) => {
+      const dateDifference =
+        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+      return dateDifference || a.slug.localeCompare(b.slug);
+    });
 }
 
 export function findDuplicateSlugs(

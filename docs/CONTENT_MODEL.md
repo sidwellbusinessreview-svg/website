@@ -187,3 +187,56 @@ The current TypeScript model already supports articles, authors, issues, fixed c
 - No table or chart-image block
 
 These mismatches are migration tasks. They should be introduced with validation and adapter work in the planned content-model and CMS phases, not through a broad Phase 03 renderer rewrite.
+
+## Implemented local runtime validation
+
+The current local provider now validates content with Zod before access functions return it.
+
+Implemented schemas:
+
+- Site settings
+- Articles
+- Authors
+- Issues
+- Controlled categories
+- Every current structured body block
+- Featured and inline image metadata
+
+Implemented field rules include:
+
+- Lowercase URL-safe slugs
+- Headline, summary, biography, and descriptive text length limits
+- Valid `YYYY-MM-DD` calendar dates
+- Positive reading times, issue numbers, and featured ranks
+- Required author lists and non-empty article bodies
+- Required featured and inline image alt text
+- Safe HTTP/HTTPS image and link URLs
+- Caption and credit values attached only to image objects
+- Valid heading levels and non-empty lists
+- `draft` or `published` article status
+- Featured rank allowed only for pinned articles
+
+Implemented cross-document rules include:
+
+- Unique article, author, issue, and category slugs
+- Existing author, issue, category, and issue-article references
+- No future publication date for a published article
+- At most one published pinned lead
+- No duplicate active featured ranks
+
+Public access behavior:
+
+- Draft articles are excluded from public lookup and listing functions.
+- Article ordering is publication date descending, then slug ascending for deterministic same-date results.
+- Issue article ordering follows the issue’s explicit article list while excluding nonpublic articles.
+- Pages continue using the content-access layer rather than raw data.
+
+Validation failures throw `ContentValidationError` with readable field paths during development, builds, tests, and the standalone validation command. In production, invalid content prevents a successful build or provider initialization; public pages do not render raw schema details. Unknown renderer blocks warn in development and render nothing safely in production. Raw untrusted HTML is never rendered.
+
+Run:
+
+```bash
+npm run validate:content
+```
+
+Authoring guidance is maintained in `docs/CONTENT_AUTHORING_RULES.md`.

@@ -1,9 +1,13 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ArticleContentBlock } from "@/content";
 import { ArticleBody } from "./article-body";
 
 describe("ArticleBody", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllEnvs();
+  });
   it.each([
     ["paragraph", { type: "paragraph", text: "Paragraph copy" }, "Paragraph copy"],
     ["level-two heading", { type: "heading", level: 2, text: "Section heading" }, "Section heading"],
@@ -62,15 +66,32 @@ describe("ArticleBody", () => {
     expect(container.querySelector("figcaption")).not.toBeInTheDocument();
   });
 
-  it("fails explicitly for an unknown block", () => {
-    expect(() =>
-      render(
-        <ArticleBody
-          blocks={
-            [{ type: "unknown", text: "Unsafe content" }] as unknown as ArticleContentBlock[]
-          }
-        />,
-      ),
-    ).toThrow(/Unsupported article block/);
+  it("warns and renders nothing for an unknown block", () => {
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const { container } = render(
+      <ArticleBody
+        blocks={
+          [{ type: "unknown", html: "<script>unsafe()</script>" }] as unknown as ArticleContentBlock[]
+        }
+      />,
+    );
+    expect(warning).toHaveBeenCalledWith("Unsupported article block", "unknown");
+    expect(container).not.toHaveTextContent("unsafe");
+    expect(container.querySelector("script")).not.toBeInTheDocument();
+  });
+
+  it("silently renders nothing for an unknown production block", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const { container } = render(
+      <ArticleBody
+        blocks={
+          [{ type: "unknown", html: "<strong>unsafe</strong>" }] as unknown as ArticleContentBlock[]
+        }
+      />,
+    );
+    expect(warning).not.toHaveBeenCalled();
+    expect(container).not.toHaveTextContent("unsafe");
+    expect(container.querySelector("strong")).not.toBeInTheDocument();
   });
 });

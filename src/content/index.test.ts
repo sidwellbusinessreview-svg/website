@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   findDuplicateSlugs,
+  getPublicArticles,
   getArticleBySlug,
   getArticles,
   getArticlesByAuthor,
@@ -69,6 +70,8 @@ describe("content utilities", () => {
     issueSlug: "winter-2025",
     publishedAt: "2026-01-01",
     readTime: 3,
+    status: "published",
+    pinned: false,
     featuredImage: { src: "https://example.com/image.jpg", alt: "Test" },
     content: [{ type: "paragraph", text: "Test content." }],
     ...overrides,
@@ -82,6 +85,14 @@ describe("content utilities", () => {
     expect(selectLeadArticle(articles)?.slug).toBe("pinned");
   });
 
+  it("orders pinned articles by featured rank", () => {
+    const articles = [
+      makeArticle({ slug: "rank-two", pinned: true, featuredRank: 2 }),
+      makeArticle({ slug: "rank-one", pinned: true, featuredRank: 1 }),
+    ];
+    expect(selectLeadArticle(articles)?.slug).toBe("rank-one");
+  });
+
   it("falls back to the first article when none is pinned", () => {
     const articles = [
       makeArticle({ slug: "first" }),
@@ -92,6 +103,27 @@ describe("content utilities", () => {
 
   it("returns undefined for an empty article list", () => {
     expect(selectLeadArticle([])).toBeUndefined();
+  });
+
+  it("excludes drafts from public articles", () => {
+    const articles = [
+      makeArticle({ slug: "published", status: "published" }),
+      makeArticle({ slug: "draft", status: "draft" }),
+    ];
+    expect(getPublicArticles(articles).map(({ slug }) => slug)).toEqual([
+      "published",
+    ]);
+  });
+
+  it("sorts same-date articles deterministically by slug", () => {
+    const articles = [
+      makeArticle({ slug: "zebra", publishedAt: "2026-01-01" }),
+      makeArticle({ slug: "alpha", publishedAt: "2026-01-01" }),
+    ];
+    expect(getPublicArticles(articles).map(({ slug }) => slug)).toEqual([
+      "alpha",
+      "zebra",
+    ]);
   });
 
   it("detects duplicate slugs once in sorted order", () => {

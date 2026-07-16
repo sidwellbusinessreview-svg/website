@@ -13,6 +13,8 @@ const article: Article = {
   issueSlug: "winter-2025",
   publishedAt: "2026-01-26",
   readTime: 5,
+  status: "published",
+  pinned: false,
   featuredImage: {
     src: "https://example.com/image.jpg",
     alt: "A test image",

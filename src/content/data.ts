@@ -1,4 +1,4 @@
-import type { Article, Author, Issue } from "./types";
+import type { ArticleInput, Author, CategoryRecord, Issue } from "./types";
 
 const photos = {
   city: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1800&q=85",
@@ -46,6 +46,15 @@ export const authors: Author[] = [
   },
 ];
 
+export const categories: CategoryRecord[] = [
+  { slug: "markets", name: "Markets", description: "Markets, investing, and finance." },
+  { slug: "economics", name: "Economics", description: "Economic systems, labor, and public choices." },
+  { slug: "technology", name: "Technology", description: "Technology, innovation, and digital business." },
+  { slug: "entrepreneurship", name: "Entrepreneurship", description: "Founders, ventures, and small businesses." },
+  { slug: "policy", name: "Policy", description: "Public policy and institutional decision-making." },
+  { slug: "campus", name: "Campus", description: "Business and economics within the school community." },
+];
+
 const opening = [
   {
     type: "paragraph" as const,
@@ -62,7 +71,7 @@ const opening = [
   },
 ];
 
-export const articles: Article[] = [
+export const articles: ArticleInput[] = [
   {
     slug: "the-new-economics-of-school-lunch",
     title: "The New Economics of School Lunch",
