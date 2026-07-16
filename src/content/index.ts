@@ -2,6 +2,7 @@ import { articles, authors, issues } from "./data";
 import type { Article, Author, Category, Issue } from "./types";
 
 export type { Article, ArticleContentBlock, Author, Category, Issue } from "./types";
+export { findDuplicateSlugs, selectLeadArticle } from "./utils";
 
 export async function getArticles(): Promise<Article[]> {
   return [...articles].sort(
@@ -45,4 +46,9 @@ export async function getArticlesByIssue(issueSlug: string): Promise<Article[]> 
 
 export async function getCategories(): Promise<Category[]> {
   return [...new Set(articles.map((article) => article.category))];
+}
+
+export async function getArticlesByCategory(category: Category): Promise<Article[]> {
+  const allArticles = await getArticles();
+  return allArticles.filter((article) => article.category === category);
 }

@@ -8,6 +8,7 @@
   --color-rule: #c9c8c0;
   --color-accent: #9e3324;
   --color-accent-dark: #702116;
+  --color-accent-on-dark: #f19a8c;
   --color-focus: #1261a0;
   --font-display: "Iowan Old Style", "Baskerville", "Times New Roman", serif;
   --font-body: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
@@ -80,6 +81,7 @@ a:hover { color: var(--color-accent); }
 .text-link { font-size: .77rem; font-weight: 750; letter-spacing: .03em; text-decoration: none; text-transform: uppercase; }
 .article-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
 .ink-section { background: var(--color-ink); color: var(--color-paper); padding-block: var(--space-6); }
+.ink-section .eyebrow { color: var(--color-accent-on-dark); }
 .statement-grid { display: grid; grid-template-columns: .45fr 1.7fr .85fr; gap: var(--space-5); align-items: start; }
 .statement-grid blockquote { margin: 0; font-family: var(--font-display); font-size: clamp(2.5rem, 5vw, 5rem); letter-spacing: -.04em; line-height: .98; }
 .statement-grid > div { font-family: var(--font-display); font-size: 1.15rem; }

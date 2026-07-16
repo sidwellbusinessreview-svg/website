@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
 import { IssueCard } from "@/components/issue-card";
-import { getArticles, getAuthors, getIssues } from "@/content";
+import { getArticles, getAuthors, getIssues, selectLeadArticle } from "@/content";
 
 export default async function HomePage() {
   const [articles, authors, issues] = await Promise.all([getArticles(), getAuthors(), getIssues()]);
-  const lead = articles.find((article) => article.pinned) ?? articles[0];
+  const lead = selectLeadArticle(articles);
+  if (!lead) return null;
   const remaining = articles.filter((article) => article.slug !== lead.slug);
   return (
     <>

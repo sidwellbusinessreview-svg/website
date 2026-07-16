@@ -32,13 +32,13 @@ Do not run `npm audit fix --force`. Review advisories and proposed dependency ch
 
 ## Quality checks
 
-Run all commands before handing off code or configuration changes and fix all errors:
+Run the fast verification command before handing off code or configuration changes and fix all errors:
 
 ```bash
-npm run lint
-npm run typecheck
-npm run build
+npm run verify
 ```
+
+Run `npm run test:e2e` for changes affecting routes, navigation, layout, rendering, accessibility, interactive behavior, or browser configuration. Run focused browser tests when the full suite is unnecessary, but report exactly what was omitted.
 
 Use semantic HTML, meaningful alt text, keyboard-visible focus states, and sufficient contrast. Avoid flashy motion and decorative effects that weaken the publication tone.
 

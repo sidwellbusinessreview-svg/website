@@ -1,5 +1,26 @@
 # Project status
 
+## Phase 04 automated tests and CI
+
+- **Completed:** July 16, 2026
+- Added Vitest with V8 coverage and Testing Library for content and focused React tests.
+- Added Playwright with Chromium browser coverage and `@axe-core/playwright` accessibility assertions.
+- Added unit coverage for content lookup, ordering, filtering, pinned-lead selection, empty/invalid results, and duplicate slug detection.
+- Added renderer coverage for every current structured body block, optional image metadata, multiple authors, missing optional subtitle behavior, and explicit unknown-block failure.
+- Added end-to-end coverage for public routes, primary navigation, custom 404 behavior, mobile overflow, keyboard skip navigation, and axe scans.
+- Added GitHub Actions checks for pull requests and pushes to `main`, using Node from `.nvmrc`, `npm ci`, fast checks, production build, Chromium tests, and failure artifacts.
+- Added `npm run verify` as the single fast blocking command; full browser tests remain separate because they download/start a browser and server.
+- Added `TESTING.md` and updated `AGENTS.md` with required future verification behavior.
+- Corrected the homepage dark-section accent contrast after the axe baseline identified a WCAG AA failure.
+
+### Testing notes
+
+- The testing packages were selected against Node 24 and React 19 compatibility rather than copied from older Next.js examples.
+- `selectLeadArticle`, `findDuplicateSlugs`, and `getArticlesByCategory` are small pure/provider utilities added to make existing editorial behavior directly testable.
+- Unknown article body blocks now throw an explicit error instead of failing ambiguously.
+- Browser tests currently target Chromium with one worker against a production build. Concurrent Next.js development-mode compilation produced unreliable manifest errors during the initial browser run.
+- Additional browser engines can be added after the baseline suite proves stable in CI.
+
 ## Phase 03 product and content contract
 
 - **Completed:** July 16, 2026

@@ -2,6 +2,10 @@ import Image from "next/image";
 import type { ArticleContentBlock } from "@/content";
 import { ImageCaption } from "./image-caption";
 
+function assertNever(block: never): never {
+  throw new Error(`Unsupported article block: ${JSON.stringify(block)}`);
+}
+
 export function ArticleBody({ blocks }: { blocks: ArticleContentBlock[] }) {
   return (
     <div className="article-body">
@@ -35,6 +39,8 @@ export function ArticleBody({ blocks }: { blocks: ArticleContentBlock[] }) {
             return <hr key={key} />;
           case "link":
             return <p key={key}>{block.text} <a href={block.href} target="_blank" rel="noreferrer">{block.label} <span aria-hidden="true">↗</span></a></p>;
+          default:
+            return assertNever(block);
         }
       })}
     </div>
