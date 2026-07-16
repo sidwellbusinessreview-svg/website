@@ -1,5 +1,33 @@
 # Project status
 
+## Phase 03 product and content contract
+
+- **Completed:** July 16, 2026
+- Added `docs/PRODUCT_REQUIREMENTS.md` covering audience, workflow, roles, launch/future scope, page requirements, editorial rules, accessibility, security, CMS, handoff, and definition of done.
+- Added `docs/CONTENT_MODEL.md` as a framework-independent contract for settings, articles, authors, issues, categories, tags, static pages, image assets, and structured body blocks.
+- Added `docs/ROUTE_CONTRACT.md` mapping every current public route to content-access functions and expected empty, loading, error, not-found, and metadata behavior.
+- Recorded the provider-independent contract and adapter boundary in ADR-009.
+- No routes, reusable components, sample data, visual behavior, dependency versions, or TypeScript runtime contracts changed.
+
+### Deferred contract mismatches
+
+- Add stable IDs and provider-to-domain mapping for every content entity.
+- Separate article subtitle and summary; migrate the current `dek`.
+- Make issue association optional and resolve authors, issues, categories, and tags through references.
+- Add category and tag entities plus functional category filtering and future taxonomy routes.
+- Add article status, updated date, featured rank, SEO overrides, and timezone-aware publication timestamps.
+- Filter all public access functions to published, eligible content before CMS launch.
+- Replace embedded image URLs with reusable image assets, dimensions, rights notes, and contextual alt/caption/credit data.
+- Add author portraits, active/alumni state, and masthead display ordering.
+- Add issue publication status/date, controlled accent tokens, and optional cover assets.
+- Decide whether About and Masthead become CMS-managed static pages.
+- Add stable body-block IDs and safe rich-text marks.
+- Add accessible table or chart-image support only when a real editorial need exists.
+- Add explicit empty states and provider-backed loading/error boundaries.
+- Remove the homepage’s hardcoded season label and make low-content homepage behavior safe.
+- Implement actual category-query behavior; current `/latest?category=...` links do not filter.
+- Add canonical, social, article, update-date, and SEO override metadata.
+
 ## Phase 02 governance
 
 - **Completed:** July 16, 2026
