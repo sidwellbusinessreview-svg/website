@@ -7,13 +7,13 @@ export function SiteHeader() {
     <header className="site-header">
       <div className="utility-bar">
         <div className="container utility-bar__inner">
-          <span>{siteConfig.school}</span>
+          <span>{siteConfig.affiliation}</span>
           <span>{siteConfig.location}</span>
         </div>
       </div>
       <div className="container masthead">
         <p className="masthead__tagline">{siteConfig.tagline}</p>
-        <SiteLogo />
+        <SiteLogo priority />
         <Link className="search-link" href="/search">
           Search <span aria-hidden="true">↗</span>
         </Link>

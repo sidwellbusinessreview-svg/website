@@ -217,9 +217,11 @@ describe("cross-document validation", () => {
   it("validates site settings", () => {
     expectProblem(
       (source) => {
-        (source.siteSettings as { email: string }).email = "not-an-email";
+        (
+          source.siteSettings as { contact: { email: string } }
+        ).contact.email = "not-an-email";
       },
-      /siteSettings\.email/,
+      /siteSettings\.contact\.email/,
     );
   });
 

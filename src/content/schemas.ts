@@ -170,8 +170,26 @@ export const siteSettingsSchema = z.object({
   name: z.string().trim().min(1).max(100),
   shortName: z.string().trim().min(1).max(20),
   description: z.string().trim().min(20).max(300),
+  affiliation: z.string().trim().min(1).max(160),
   tagline: z.string().trim().min(1).max(160),
-  email: z.email(),
+  contact: z.object({
+    label: z.string().trim().min(1).max(80),
+    email: z.email(),
+  }),
+  socialLinks: z.array(
+    z.object({
+      label: z.string().trim().min(1).max(40),
+      href: httpUrlSchema,
+    }),
+  ),
+  logo: z.object({
+    mode: z.enum(["text", "image"]),
+    textWordmark: z.string().trim().min(1).max(100),
+    imageSrc: z.string().regex(/^\/[a-z0-9/_.-]+$/i),
+    imageAlt: z.string().trim().min(1).max(120),
+    imageWidth: z.number().int().positive(),
+    imageHeight: z.number().int().positive(),
+  }),
   school: z.string().trim().min(1).max(120),
   location: z.string().trim().min(1).max(120),
   navigation: z

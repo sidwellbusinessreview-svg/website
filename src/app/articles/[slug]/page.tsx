@@ -23,7 +23,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const allAuthors = await getAuthors();
   const authors = allAuthors.filter((author) => article.authorSlugs.includes(author.slug));
   return (
-    <article>
+    <article data-print-url={`/articles/${article.slug}`}>
       <header className="container article-header">
         <Link className="category-link" href="/latest">{article.category}</Link>
         <h1>{article.title}</h1>

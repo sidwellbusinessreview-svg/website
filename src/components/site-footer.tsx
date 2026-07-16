@@ -18,8 +18,15 @@ export function SiteFooter() {
         </div>
         <div>
           <p className="eyebrow">Contact</p>
-          <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
-          <p>{siteConfig.school}</p>
+          <a href={`mailto:${siteConfig.contact.email}`}>
+            {siteConfig.contact.label}
+          </a>
+          <p>{siteConfig.affiliation}</p>
+          {siteConfig.socialLinks.map((link) => (
+            <a key={link.href} href={link.href} rel="noreferrer">
+              {link.label}
+            </a>
+          ))}
         </div>
       </div>
       <div className="container footer-bottom">

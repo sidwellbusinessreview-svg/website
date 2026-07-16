@@ -1,6 +1,14 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+const viewports = [
+  { name: "mobile-320", width: 320, height: 800 },
+  { name: "mobile-375", width: 375, height: 812 },
+  { name: "tablet-768", width: 768, height: 1024 },
+  { name: "laptop-1024", width: 1024, height: 900 },
+  { name: "desktop-1440", width: 1440, height: 1000 },
+] as const;
+
 test("homepage loads and main navigation works", async ({ page }) => {
   await page.goto("/");
   await expect(
@@ -75,6 +83,69 @@ test("mobile layout has no obvious horizontal overflow", async ({ page }) => {
   expect(hasOverflow).toBe(false);
 });
 
+for (const viewport of viewports) {
+  test(`homepage and article fit at ${viewport.name}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    for (const route of [
+      "/",
+      "/articles/semiconductors-and-the-geography-of-risk",
+    ]) {
+      await page.goto(route);
+      const dimensions = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+        overflowingElements: [...document.querySelectorAll<HTMLElement>("body *")]
+          .filter((element) => {
+            const rect = element.getBoundingClientRect();
+            return rect.left < -1 || rect.right > document.documentElement.clientWidth + 1;
+          })
+          .slice(0, 8)
+          .map((element) => ({
+            selector: `${element.tagName.toLowerCase()}.${element.className}`,
+            left: Math.round(element.getBoundingClientRect().left),
+            right: Math.round(element.getBoundingClientRect().right),
+          })),
+      }));
+      expect(
+        dimensions.scrollWidth,
+        `${route} overflowed at ${viewport.name}: ${JSON.stringify(dimensions.overflowingElements)}`,
+      ).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+      await expect(page.locator("main")).toBeVisible();
+      await expect(page.locator("footer")).toBeVisible();
+    }
+  });
+}
+
+test("captures targeted homepage and article screenshots", async ({
+  page,
+}, testInfo) => {
+  const captures = [
+    { route: "/", name: "homepage-desktop", width: 1440, height: 1000 },
+    {
+      route: "/articles/semiconductors-and-the-geography-of-risk",
+      name: "article-desktop",
+      width: 1440,
+      height: 1000,
+    },
+    { route: "/", name: "homepage-mobile", width: 375, height: 812 },
+    {
+      route: "/articles/semiconductors-and-the-geography-of-risk",
+      name: "article-mobile",
+      width: 375,
+      height: 812,
+    },
+  ];
+
+  for (const capture of captures) {
+    await page.setViewportSize(capture);
+    await page.goto(capture.route);
+    await page.screenshot({
+      path: testInfo.outputPath(`${capture.name}.png`),
+      fullPage: true,
+    });
+  }
+});
+
 test("keyboard navigation exposes the skip link and moves to main content", async ({
   page,
 }) => {
@@ -84,6 +155,18 @@ test("keyboard navigation exposes the skip link and moves to main content", asyn
   await expect(skipLink).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/#main-content$/);
+});
+
+test("article print layout keeps editorial content and hides navigation", async ({
+  page,
+}) => {
+  await page.goto("/articles/the-new-economics-of-school-lunch");
+  await page.emulateMedia({ media: "print" });
+  await expect(page.getByRole("navigation", { name: "Primary navigation" })).toBeHidden();
+  await expect(
+    page.getByRole("heading", { name: "The New Economics of School Lunch" }),
+  ).toBeVisible();
+  await expect(page.getByText("Every lunch menu reflects")).toBeVisible();
 });
 
 for (const route of ["/", "/articles/the-new-economics-of-school-lunch"]) {

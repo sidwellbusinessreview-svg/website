@@ -1,5 +1,27 @@
 # Project status
 
+## Phase 06 design-system audit
+
+- **Completed:** July 16, 2026
+- Expanded the centralized site configuration with affiliation, structured contact data, social placeholders, logo mode, image metadata, and a text-wordmark fallback.
+- Refined `SiteLogo` into a reusable text/image API supporting horizontal or square assets without changing the current text wordmark.
+- Expanded global design tokens for color, typography, line height, spacing, widths, borders, shadows, radii, and touch targets.
+- Improved long-headline, long-name, navigation, form-control, article-card, logo, footer, and 320-pixel layout resilience.
+- Added minimal article print styling that removes site chrome while retaining title, metadata, body, images, captions, credits, links, and article-path context.
+- Expanded browser coverage across 320, 375, 768, 1024, and 1440 pixels, plus print behavior and targeted desktop/mobile screenshots.
+- Added `docs/BRANDING.md` for publication text, logo, color, font, spacing, and testing updates.
+
+### Design problems found and addressed
+
+- Branding configuration lacked affiliation, social placeholders, and a future image-logo contract.
+- The original wordmark API assumed text and did not constrain square or horizontal image dimensions.
+- Repeated visual values remained outside the token system.
+- Navigation and controls did not consistently guarantee recommended touch-target height.
+- The smallest breakpoint began at 650 pixels and did not explicitly protect 320-pixel layouts.
+- Long headlines and names needed stronger wrapping safeguards.
+- Article print output included site navigation and lacked URL context.
+- Responsive browser coverage checked only one mobile width and did not preserve visual artifacts.
+
 ## Phase 05 local content validation
 
 - **Completed:** July 16, 2026
