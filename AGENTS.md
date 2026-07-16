@@ -6,31 +6,45 @@ This is the Sidwell Business Review Phase 1 website. It uses Next.js App Router,
 
 ## Before editing
 
-1. Read `README.md` and `PROJECT_STATUS.md`.
-2. Inspect `git status` and preserve unrelated user changes.
-3. Keep the publication serious, editorial, accessible, responsive, and restrained.
+1. Confirm the repository path, inspect the current branch and `git status`, and preserve unrelated user changes.
+2. Read `README.md`, `PROJECT_STATUS.md`, `docs/DECISIONS.md`, and task-relevant documentation before editing.
+3. Inspect the relevant routes, components, content types, and existing patterns before proposing or implementing changes.
+4. Keep the publication serious, editorial, accessible, responsive, and restrained.
 
 ## Architecture rules
 
 - Keep site-wide identity in `src/config/site.ts`.
 - Keep design values centralized in CSS variables in `src/app/globals.css`.
 - Keep raw sample data inside `src/content/data.ts`.
-- Pages and general components must use the access functions exported by `src/content/index.ts`, not import raw arrays.
+- Preserve the content-provider boundary: pages and general components must use the access functions exported by `src/content/index.ts`, not import raw arrays or couple themselves directly to a future CMS.
 - Maintain the typed block model in `src/content/types.ts` when adding article formats.
 - Reuse existing components before creating route-specific duplicates.
 - Keep `SiteLogo` replaceable so an image logo can be introduced later.
+- Do not change Next.js, React, TypeScript, Tailwind, or other framework versions without recording the reason and consequences in `docs/DECISIONS.md`.
 
 ## Scope limits
 
 Do not introduce a CMS, database, authentication, analytics, paid service, or administration interface unless a later phase explicitly requests it. Do not turn the search placeholder into a third-party integration without approval.
 
+Never commit secrets. Do not add real tokens, passwords, private keys, private identifiers, or populated environment files. Use `.env.example` for documented placeholder names only.
+
+Do not run `npm audit fix --force`. Review advisories and proposed dependency changes deliberately.
+
 ## Quality checks
 
-Run both commands before handing off changes and fix all errors:
+Run all commands before handing off code or configuration changes and fix all errors:
 
 ```bash
 npm run lint
+npm run typecheck
 npm run build
 ```
 
 Use semantic HTML, meaningful alt text, keyboard-visible focus states, and sufficient contrast. Avoid flashy motion and decorative effects that weaken the publication tone.
+
+Before completion:
+
+- Update `PROJECT_STATUS.md` with completed work, remaining work, and important decisions or risks.
+- Report every changed file.
+- Report unresolved warnings, security concerns, manual checks, and architecture risks.
+- Do not commit unless the user explicitly asks.

@@ -2,25 +2,50 @@
 
 Phase 1 prototype for the official website of the Sidwell Business Review, a student-run business publication at Sidwell Friends School.
 
+## Repository location
+
+The expected local repository path is:
+
+```text
+/Users/Evan/Documents/GitHub/website
+```
+
+Before running commands, confirm your terminal is inside that folder. The GitHub repository is the shared source of truth; do not create a second Next.js project inside this repository.
+
 ## Getting started
 
-You need a current Node.js installation and npm.
+The project pins Node.js major version 24 in `.nvmrc`. Next.js 16.2.10 requires Node.js 20.9 or newer, and Node 24 is also the version that successfully completed the project baseline checks.
 
 ```bash
-npm install
+nvm install
+nvm use
+npm ci
+cp .env.example .env.local
 npm run dev
 ```
 
 Then open [http://localhost:3000](http://localhost:3000). The development server automatically refreshes when files change.
 
+The environment file contains no required values in the current local-content phase. Keep placeholders blank until a documented feature needs them. Never commit `.env.local` or real secrets.
+
 ## Validation
 
 ```bash
 npm run lint
+npm run typecheck
 npm run build
 ```
 
-`npm run lint` checks the code for common errors. `npm run build` creates and validates the production version. To run that production build locally, use `npm start` after a successful build.
+`npm run lint` checks the code for common errors. `npm run typecheck` validates TypeScript without creating files. `npm run build` creates and validates the production version. To run that production build locally, use `npm start` after a successful build.
+
+## Understanding the different copies
+
+- **Local copy:** The files on your computer and the site served by `npm run dev`. Local work is private until it is committed and pushed.
+- **GitHub copy:** The committed repository shared with collaborators. A commit records changes locally; a push sends those commits to GitHub.
+- **Preview copy:** A temporary hosted version created from a branch or pull request once preview hosting is configured. It lets reviewers test changes without affecting the public site.
+- **Production copy:** The official public website built from the approved production branch and production environment settings. Production should change only through the reviewed deployment process.
+
+Never assume that saving a file updates GitHub or production. Those are separate steps.
 
 ## Important folders
 
@@ -29,6 +54,7 @@ npm run build
 - `src/content/` contains typed sample content and the content-access layer.
 - `src/config/site.ts` contains the publication name, description, tagline, navigation, and contact information.
 - `public/` is for static files such as a future image logo, local photography, and publication assets.
+- `docs/` contains baseline records, architecture decisions, account-ownership guidance, and the phased development plan.
 
 ## Changing content
 
@@ -45,3 +71,5 @@ Pages call functions such as `getArticles`, `getArticleBySlug`, `getIssues`, and
 ## Current scope
 
 This phase is a static, responsive publication prototype. It intentionally has no CMS, database, login system, analytics, or administration interface. Search is a clearly labeled placeholder ready for a later search service.
+
+Project security and contribution expectations are documented in `SECURITY.md` and `CONTRIBUTING.md`.

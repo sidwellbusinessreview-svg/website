@@ -1,5 +1,22 @@
 # Project status
 
+## Phase 02 governance
+
+- **Completed:** July 16, 2026
+- Added a Node 24 development pin after confirming Next.js requires Node 20.9+ and the successful baseline environment uses Node 24.14.0.
+- Added safe environment-variable documentation for planned Sanity, preview, revalidation, and canonical-site settings. These variables are unused until later phases.
+- Expanded ignore rules for secrets, build output, coverage, Playwright artifacts, generated test output, and operating-system files.
+- Added security reporting, contribution workflow, architecture decisions, and service-account ownership documentation.
+- Added `npm run typecheck` and made lint, typecheck, and production build the required verification set.
+- No dependency versions, routes, application components, content behavior, or visual styles changed.
+
+### Current governance risks
+
+- The publication Gmail administrative address, recovery setup, and named account owners must be recorded outside this public repository.
+- Preview and production hosting are not configured yet.
+- Planned CMS variables are placeholders only; no CMS is connected.
+- The existing moderate transitive PostCSS advisories remain under review. Do not use `npm audit fix --force`.
+
 ## Baseline verification
 
 - **Verified:** July 16, 2026

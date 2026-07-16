@@ -12,6 +12,11 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/.playwright/
+/junit.xml
 
 # next.js
 /.next/
@@ -30,8 +35,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# environment files; the documented placeholder file is intentionally tracked
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +45,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# operating systems and editors
+Thumbs.db
+Desktop.ini
+._*
+.idea/
+.vscode/
