@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
 import { getArticles, getAuthors, getCategories } from "@/content";
+import { createPageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = { title: "Latest Articles" };
+export const metadata: Metadata = createPageMetadata({
+  title: "Latest Articles",
+  description: "Read the newest reporting and analysis from Sidwell Business Review.",
+  path: "/latest",
+});
 
 export default async function LatestPage() {
   const [articles, authors, categories] = await Promise.all([getArticles(), getAuthors(), getCategories()]);
@@ -15,7 +21,11 @@ export default async function LatestPage() {
       </header>
       <div className="category-list" aria-label="Article categories">
         <span>All</span>
-        {categories.map((category) => <span key={category}>{category}</span>)}
+        {categories.map((category) => (
+          <Link key={category} href={`/archive?category=${encodeURIComponent(category)}`}>
+            {category}
+          </Link>
+        ))}
       </div>
       <div className="article-list">
         {articles.map((article) => (

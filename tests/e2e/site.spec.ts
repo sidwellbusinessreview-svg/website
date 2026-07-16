@@ -62,7 +62,33 @@ test("about and masthead routes load", async ({ page }) => {
 test("search route loads", async ({ page }) => {
   await page.goto("/search");
   await expect(page.getByRole("heading", { name: "Search" })).toBeVisible();
-  await expect(page.getByLabel("Search the Review")).toBeDisabled();
+  const search = page.getByLabel("Search the Review");
+  await search.fill("Federal Reserve");
+  await page.getByRole("button", { name: "Search" }).click();
+  await expect(page).toHaveURL(/\/search\?q=Federal\+Reserve$/);
+  await expect(
+    page.getByRole("heading", { name: "Reading the Fed Without Reading Tea Leaves" }),
+  ).toBeVisible();
+});
+
+test("search displays a no-results state", async ({ page }) => {
+  await page.goto("/search?q=volcanology");
+  await expect(
+    page.getByRole("heading", { name: "No results for “volcanology”" }),
+  ).toBeVisible();
+});
+
+test("archive filters published articles", async ({ page }) => {
+  await page.goto("/archive");
+  await page.getByLabel("Category").selectOption("Markets");
+  await page.getByRole("button", { name: "Apply filters" }).click();
+  await expect(page).toHaveURL(/category=Markets/);
+  await expect(
+    page.getByRole("heading", { name: "Reading the Fed Without Reading Tea Leaves" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Small Businesses, Big Rates" }),
+  ).toHaveCount(0);
 });
 
 test("invalid route shows the custom not-found page", async ({ page }) => {

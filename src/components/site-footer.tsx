@@ -14,7 +14,7 @@ export function SiteFooter() {
           <p className="eyebrow">Publication</p>
           <Link href="/about">About</Link>
           <Link href="/masthead">Masthead</Link>
-          <Link href="/issues">Archive</Link>
+          <Link href="/archive">Archive</Link>
         </div>
         <div>
           <p className="eyebrow">Contact</p>

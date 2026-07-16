@@ -1,4 +1,5 @@
 import type { Article, Author, Category, Issue } from "./types";
+import { searchPublicArticles, type SearchResult } from "./search";
 import { validatedContent } from "./validation";
 
 export type {
@@ -10,6 +11,7 @@ export type {
   Issue,
   SiteSettings,
 } from "./types";
+export type { SearchResult } from "./search";
 export { findDuplicateSlugs, getPublicArticles, selectLeadArticle } from "./utils";
 import { getPublicArticles } from "./utils";
 
@@ -64,4 +66,46 @@ export async function getCategories(): Promise<Category[]> {
 export async function getArticlesByCategory(category: Category): Promise<Article[]> {
   const allArticles = await getArticles();
   return allArticles.filter((article) => article.category === category);
+}
+
+export async function searchArticles(query: string): Promise<SearchResult[]> {
+  const [articles, authors, issues] = await Promise.all([
+    getArticles(),
+    getAuthors(),
+    getIssues(),
+  ]);
+  return searchPublicArticles(articles, authors, issues, query);
+}
+
+export async function getCurrentIssue(): Promise<Issue | undefined> {
+  return (await getIssues())[0];
+}
+
+export interface ArchiveFilters {
+  schoolYear?: string;
+  issue?: string;
+  category?: string;
+  author?: string;
+}
+
+export function getSchoolYear(publishedAt: string): string {
+  const date = new Date(`${publishedAt}T12:00:00Z`);
+  const year = date.getUTCFullYear();
+  const startYear = date.getUTCMonth() >= 6 ? year : year - 1;
+  return `${startYear}-${startYear + 1}`;
+}
+
+export async function getArchiveArticles(
+  filters: ArchiveFilters = {},
+): Promise<Article[]> {
+  const articles = await getArticles();
+  return articles.filter((article) => {
+    if (filters.schoolYear && getSchoolYear(article.publishedAt) !== filters.schoolYear) {
+      return false;
+    }
+    if (filters.issue && article.issueSlug !== filters.issue) return false;
+    if (filters.category && article.category !== filters.category) return false;
+    if (filters.author && !article.authorSlugs.includes(filters.author)) return false;
+    return true;
+  });
 }

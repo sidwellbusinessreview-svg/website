@@ -3,6 +3,7 @@ import {
   findDuplicateSlugs,
   getPublicArticles,
   getArticleBySlug,
+  getArchiveArticles,
   getArticles,
   getArticlesByAuthor,
   getArticlesByCategory,
@@ -58,6 +59,19 @@ describe("content access", () => {
     const articles = await getArticlesByCategory("Markets");
     expect(articles.map((article) => article.slug)).toEqual(["reading-the-fed"]);
   });
+
+  it("filters the archive by issue, category, and author", async () => {
+    const articles = await getArchiveArticles({
+      issue: "winter-2025",
+      category: "Markets",
+      author: "maya-chen",
+    });
+    expect(articles.map(({ slug }) => slug)).toEqual(["reading-the-fed"]);
+  });
+
+  it("returns an empty archive result for unmatched filters", async () => {
+    await expect(getArchiveArticles({ issue: "not-an-issue" })).resolves.toEqual([]);
+  });
 });
 
 describe("content utilities", () => {
@@ -66,6 +80,7 @@ describe("content utilities", () => {
     title: "Default article",
     dek: "A test summary.",
     category: "Markets",
+    tags: [],
     authorSlugs: ["maya-chen"],
     issueSlug: "winter-2025",
     publishedAt: "2026-01-01",

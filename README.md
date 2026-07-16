@@ -70,6 +70,6 @@ Pages call functions such as `getArticles`, `getArticleBySlug`, `getIssues`, and
 
 ## Current scope
 
-This phase is a static, responsive publication prototype. It intentionally has no CMS, database, login system, analytics, or administration interface. Search is a clearly labeled placeholder ready for a later search service.
+This phase is a static, responsive publication prototype. It intentionally has no CMS, database, login system, analytics, or administration interface. Search and archive filtering work against validated local content through the same provider boundary a later CMS can replace.
 
 Project security and contribution expectations are documented in `SECURITY.md` and `CONTRIBUTING.md`.

@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { createPageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = { title: "About" };
+export const metadata: Metadata = createPageMetadata({
+  title: "About",
+  description: "Learn about the mission, standards, and student leadership of Sidwell Business Review.",
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (

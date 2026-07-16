@@ -23,7 +23,7 @@ export function ArticleCard({
         />
       </Link>
       <div className="article-card__body">
-        <Link className="category-link" href={`/latest?category=${article.category}`}>
+        <Link className="category-link" href={`/archive?category=${encodeURIComponent(article.category)}`}>
           {article.category}
         </Link>
         <h2>

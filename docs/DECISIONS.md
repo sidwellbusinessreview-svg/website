@@ -85,3 +85,11 @@ This file records durable technical and operational decisions. Add a dated entry
 - **Context:** The current TypeScript model is intentionally small, while the launch product requires editorial status, taxonomy entities, reusable assets, SEO fields, and CMS workflow metadata.
 - **Decision:** `docs/CONTENT_MODEL.md` defines the provider-independent target contract. Local data and the future CMS must map into application-domain types through the content-access layer rather than exposing provider-native records to routes and general components.
 - **Consequences:** Contract fields may be introduced incrementally with validation and adapters. Documentation of a field does not mean it is already implemented, and CMS migration must not bypass the existing provider boundary.
+
+### ADR-010: Keep search and discovery provider-independent
+
+- **Status:** Accepted
+- **Date:** 2026-07-16
+- **Context:** Search must work with local data now while remaining replaceable by CMS-backed or hosted search later.
+- **Decision:** Expose search and archive filtering through the content-access layer, and generate sitemap and RSS entries only from public content-access functions.
+- **Consequences:** Routes never index raw sample arrays. A future provider may replace ranking and retrieval while preserving public-only results and the page-facing contracts.

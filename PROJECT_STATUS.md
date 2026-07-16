@@ -1,5 +1,25 @@
 # Project status
 
+## Phase 07 search, archive, and discovery
+
+- **Completed:** July 16, 2026
+- Replaced the search placeholder with case-insensitive weighted search across titles, summaries, authors, categories, tags, issues, and structured body text.
+- Kept search behind the content-access layer and excluded drafts from all public results.
+- Added `/archive` with combinable school-year, issue, category, and author filters, stable newest-first ordering, URL-reflected state, and empty states.
+- Added article tags to the validated local contract and sample content.
+- Hardened homepage lead fallback, deterministic secondary order, current-issue labeling, archive links, and no-content behavior.
+- Distinguished current and past issues and added issue/author empty states.
+- Added configurable canonical URLs, Open Graph and social metadata, article metadata, organization/article/breadcrumb JSON-LD, `robots.txt`, `sitemap.xml`, and RSS at `/feed.xml`.
+- Added automated search, archive, metadata, sitemap, RSS, and browser-route coverage.
+- Added `docs/SEO_AND_DISCOVERY.md` and updated the route contract and architecture decisions.
+
+### Phase 07 limits and follow-up
+
+- Search ranking is intentionally simple and local; a CMS or hosted index may replace it behind `searchArticles`.
+- Dedicated category and tag landing pages remain future work; archive query filters provide stable discovery now.
+- Pagination is not needed for the expected 30–50 article launch archive and should be added only when content volume justifies it.
+- The final production origin and social preview image remain deployment/brand decisions.
+
 ## Phase 06 design-system audit
 
 - **Completed:** July 16, 2026
@@ -136,14 +156,14 @@
 - Global design variables control color, type, spacing, and content widths.
 - `SiteLogo` is a text wordmark component today and is isolated for a later image-logo replacement.
 - Remote Unsplash sample photographs are configured through Next Image; production editorial assets should eventually be owned and stored by the publication.
-- Search remains nonfunctional by design in Phase 1.
+- Search and archive discovery use public local content through provider-independent access functions.
 
 ## Remaining for later phases
 
 - Final brand identity, official logo, and selected typefaces
 - Real editorial content, photography permissions, and publication workflow
 - CMS selection and migration adapter
-- Functional full-text search
+- CMS-backed or hosted search only if local ranking no longer meets archive scale
 - Newsletter or submission workflows
 - Analytics and privacy decisions
 - Domain, deployment, social previews, sitemap review, and launch QA

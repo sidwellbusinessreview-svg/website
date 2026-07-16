@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthorInfo } from "@/components/author-info";
 import { getAuthors } from "@/content";
+import { createPageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = { title: "Authors" };
+export const metadata: Metadata = createPageMetadata({
+  title: "Authors",
+  description: "Meet the student writers and editors of Sidwell Business Review.",
+  path: "/authors",
+});
 
 export default async function AuthorsPage() {
   const authors = await getAuthors();

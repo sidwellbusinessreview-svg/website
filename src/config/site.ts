@@ -23,8 +23,10 @@ export const siteConfig = {
   },
   school: "Sidwell Friends School",
   location: "Washington, D.C.",
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   navigation: [
     { label: "Latest", href: "/latest" },
+    { label: "Archive", href: "/archive" },
     { label: "Issues", href: "/issues" },
     { label: "Authors", href: "/authors" },
     { label: "About", href: "/about" },

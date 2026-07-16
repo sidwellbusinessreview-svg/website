@@ -9,6 +9,7 @@ const article: Article = {
   title: "A Test Article",
   dek: "A summary that does not require an optional subtitle.",
   category: "Markets",
+  tags: [],
   authorSlugs: ["maya-chen", "jonah-patel"],
   issueSlug: "winter-2025",
   publishedAt: "2026-01-26",

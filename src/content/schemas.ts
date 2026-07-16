@@ -117,6 +117,7 @@ export const articleSchema = z
     title: z.string().trim().min(5).max(180),
     dek: z.string().trim().min(20).max(320),
     category: categoryNameSchema,
+    tags: z.array(z.string().trim().min(1).max(60)).default([]),
     authorSlugs: z.array(slugSchema).min(1).refine(
       (values) => new Set(values).size === values.length,
       "authors must not be duplicated",
@@ -192,6 +193,7 @@ export const siteSettingsSchema = z.object({
   }),
   school: z.string().trim().min(1).max(120),
   location: z.string().trim().min(1).max(120),
+  siteUrl: z.url(),
   navigation: z
     .array(
       z.object({
