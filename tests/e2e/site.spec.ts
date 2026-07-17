@@ -59,6 +59,19 @@ test("about and masthead routes load", async ({ page }) => {
   await expect(page.getByText("Faculty adviser")).toBeVisible();
 });
 
+for (const studioRoute of ["/studio", "/studio/structure"] as const) {
+  test(`${studioRoute} is handled by the optional Studio catch-all`, async ({ page }) => {
+    const response = await page.goto(studioRoute);
+    expect(response?.status()).toBe(200);
+
+    const title = await page.title();
+    expect(title).toBe("Sidwell Business Review Studio | Sidwell Business Review");
+    const robots = await page.locator('meta[name="robots"]').getAttribute("content");
+    expect(robots).toContain("noindex");
+    await expect(page.locator("html")).not.toContainText("setuprequired");
+  });
+}
+
 test("search route loads", async ({ page }) => {
   await page.goto("/search");
   await expect(page.getByRole("heading", { name: "Search" })).toBeVisible();

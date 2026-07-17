@@ -101,3 +101,11 @@ This file records durable technical and operational decisions. Add a dated entry
 - **Context:** Frontend hardening is complete and Phase 09 requires a final CMS choice. Sanity, Payload, and Decap were compared against the publication's structured content, preview, editor, continuity, cost, policy, export, and operating requirements. No required-functionality, sustainable-cost, continuity, Next.js-compatibility, exportability, editor-usability, or known school-policy blocker to Sanity was found.
 - **Decision:** Use a separately deployed Sanity Studio whose source lives in this repository, with editorial content in Sanity Content Lake. The public application will read through a Sanity adapter behind the existing content-access layer. Use explicit local/Sanity provider selection during migration, authenticated Draft Mode for preview, Sanity image delivery, and verified webhook-driven revalidation. Obtain school approval and confirm the seat/role plan before adding real student data or accounts.
 - **Consequences:** Phases 10–14 implement the design in `docs/CMS_DECISION.md`. No CMS package, credential, or frontend behavior changes in Phase 09. Granular editor roles or private datasets may require a paid plan; Payload is the documented fallback if policy requires school-controlled hosting. A different CMS requires a superseding ADR with a concrete blocker.
+
+### ADR-012: Embed Sanity Studio at `/studio`
+
+- **Status:** Accepted
+- **Date:** 2026-07-17
+- **Context:** Phase 10 requires the editorial Studio at a stable application route. Current official `next-sanity` guidance supports an App Router optional catch-all route, static Studio shell, noindex metadata, and Sanity-managed authentication.
+- **Decision:** Embed Studio at `/studio` in the existing Next.js application instead of deploying a separate Studio. Keep it out of public navigation, disallow it in `robots.txt`, retain Sanity's noindex metadata, and render safe setup guidance when public configuration is absent.
+- **Consequences:** This supersedes only ADR-011's separate-Studio hosting detail. Content remains in Content Lake, public pages retain the content-provider boundary and local source, and Sanity authentication—not application authentication—controls editing. Trusted Studio origins require tightly scoped credentialed CORS entries.

@@ -17,6 +17,8 @@ This is the Sidwell Business Review Phase 1 website. It uses Next.js App Router,
 - Keep design values centralized in CSS variables in `src/app/globals.css`.
 - Keep raw sample data inside `src/content/data.ts`.
 - Preserve the content-provider boundary: pages and general components must use the access functions exported by `src/content/index.ts`, not import raw arrays or couple themselves directly to a future CMS.
+- Keep Sanity integration code in `src/sanity/`, Studio configuration in `sanity.config.ts`, and the embedded Studio at `/studio`. Public routes must remain on the local provider until the documented provider cutover phase.
+- Public Sanity clients must never include tokens. Draft/read tokens are server-only and must not be imported by client components or `sanity.config.ts`.
 - Maintain the typed block model in `src/content/types.ts` when adding article formats.
 - Reuse existing components before creating route-specific duplicates.
 - Keep `SiteLogo` replaceable so an image logo can be introduced later.
@@ -27,6 +29,8 @@ This is the Sidwell Business Review Phase 1 website. It uses Next.js App Router,
 Do not introduce a CMS, database, authentication, analytics, paid service, or administration interface unless a later phase explicitly requests it. Do not turn the search placeholder into a third-party integration without approval.
 
 Never commit secrets. Do not add real tokens, passwords, private keys, private identifiers, or populated environment files. Use `.env.example` for documented placeholder names only.
+
+Do not ask users to paste tokens into Codex or print environment values. Check only whether required variables are present. Preserve the safe no-environment Studio setup state and run `npm run sanity:check` only when approved local public variables are available.
 
 Do not run `npm audit fix --force`. Review advisories and proposed dependency changes deliberately.
 

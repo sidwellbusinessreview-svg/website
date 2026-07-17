@@ -1,5 +1,23 @@
 # Project status
 
+## Phase 10 Sanity foundation
+
+- **Completed:** July 17, 2026
+- Added current Sanity 6 and `next-sanity` 13 dependencies compatible with Next.js 16, React 19, and Node 24.
+- Embedded the Sanity Studio shell at `/studio` using the official App Router optional catch-all pattern, Sanity authentication, static route generation, noindex metadata, and an explicit robots exclusion.
+- Added all-or-none public environment validation. Missing variables preserve local-content mode and show setup guidance; partial or malformed configuration fails clearly.
+- Added a published, CDN-backed public Sanity client with no token or write capability, plus `npm run sanity:check` for manual token-free connectivity testing.
+- Added the Studio/CLI configuration, an empty deliberate schema registration point, setup documentation, configuration/client tests, and a browser test for the unconfigured Studio route.
+- Public routes and the content-access provider remain unchanged and use local data.
+- Corrected the embedded Studio environment bridge so Next.js statically inlines each `NEXT_PUBLIC_SANITY_*` value into the client configuration; removed the `setuprequired` placeholder path and verified `/studio` plus nested Studio routes with the configured local project.
+
+### Phase 10 risks and follow-up
+
+- An ignored `.env.local` now supplies the approved public Sanity configuration, and the live Studio reaches that project. CORS approval, project membership, and authentication remain human-administered steps in `docs/SANITY_SETUP.md`.
+- The schema registry is intentionally empty. Phase 11 must implement contract-aligned schemas, GROQ projections, provider adapters, validation, caching/revalidation, and parity tests before any public content cutover.
+- Embedded Studio replaces Phase 09's separate-Studio hosting detail; ADR-012 records the narrowed architecture change.
+- Dependency installation reports 15 moderate advisories and deprecated transitive UUID releases. The audit's proposed fixes include incompatible downgrades of current Next/Sanity integrations, so no automatic fix was applied; review upstream releases without using `npm audit fix --force`.
+
 ## Phase 09 CMS decision and implementation design
 
 - **Completed:** July 17, 2026

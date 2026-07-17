@@ -26,7 +26,19 @@ npm run dev
 
 Then open [http://localhost:3000](http://localhost:3000). The development server automatically refreshes when files change.
 
-The environment file contains no required values in the current local-content phase. Keep placeholders blank until a documented feature needs them. Never commit `.env.local` or real secrets.
+The environment file may remain blank to use the current local-content mode. Phase 10 adds an optional embedded Sanity Studio; follow `docs/SANITY_SETUP.md` when an approved project is ready. Never commit `.env.local` or real secrets.
+
+## Sanity Studio foundation
+
+The optional editorial Studio is mounted at [http://localhost:3000/studio](http://localhost:3000/studio) and is intentionally absent from public navigation. Without Sanity environment values it shows safe setup guidance; public pages continue using local content. With an approved project configured, Sanity authentication restricts editing to invited project members.
+
+Run the token-free connectivity check after configuring `.env.local`:
+
+```bash
+npm run sanity:check
+```
+
+Studio configuration lives in `sanity.config.ts`, CLI configuration in `sanity.cli.ts`, and integration code in `src/sanity/`. No CMS provider supplies public pages yet.
 
 ## Validation
 
@@ -52,6 +64,7 @@ Never assume that saving a file updates GitHub or production. Those are separate
 - `src/app/` contains public pages, the root layout, global styles, and the custom not-found page.
 - `src/components/` contains reusable publication components such as the header, footer, logo, article cards, metadata, author information, issue cards, captions, and article-body renderer.
 - `src/content/` contains typed sample content and the content-access layer.
+- `src/sanity/` contains environment validation, the token-free public client, health check, Studio setup state, and the future schema registration point.
 - `src/config/site.ts` contains the publication name, description, tagline, navigation, and contact information.
 - `public/` is for static files such as a future image logo, local photography, and publication assets.
 - `docs/` contains baseline records, architecture decisions, account-ownership guidance, and the phased development plan.
@@ -70,6 +83,6 @@ Pages call functions such as `getArticles`, `getArticleBySlug`, `getIssues`, and
 
 ## Current scope
 
-This phase is a static, responsive publication prototype. It intentionally has no CMS, database, login system, analytics, or administration interface. Search and archive filtering work against validated local content through the same provider boundary a later CMS can replace.
+This phase remains a local-content publication prototype with an embedded Sanity Studio foundation. The Studio uses Sanity authentication but does not yet supply public content. Search and archive filtering continue to work against validated local content through the provider boundary.
 
 Project security and contribution expectations are documented in `SECURITY.md` and `CONTRIBUTING.md`.
