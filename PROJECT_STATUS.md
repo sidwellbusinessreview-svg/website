@@ -1,5 +1,22 @@
 # Project status
 
+## Phase 09 CMS decision and implementation design
+
+- **Completed:** July 17, 2026
+- Selected Sanity Studio plus Sanity Content Lake after a requirements-weighted comparison with Payload and Decap.
+- Recorded the complete architecture, content and Portable Text mappings, access model, environment/secret boundaries, migration, rollback/export plan, costs, acceptance gates, and exact Phases 10–14 in `docs/CMS_DECISION.md`.
+- Confirmed that the public application will keep its provider-independent content-access boundary; a Sanity adapter will map and validate records before routes receive them.
+- Chose a separately deployed Studio whose source will live in this repository, two public datasets (`development` and `production`), authenticated Draft Mode, Sanity image delivery, and verified webhook-driven revalidation.
+- Added ADR-011 as the final CMS architecture decision. Phase 09 added no packages, secrets, CMS project, or frontend behavior.
+
+### Phase 09 gates and risks
+
+- School approval for Sanity, public published content, student bylines/biographies, data ownership, and retention must be recorded before Phase 10 credentials or real content.
+- Confirm the current plan, seat count, and role requirements. The free plan's limited role granularity may require a small trusted Admin group or an approved paid plan; shared credentials are prohibited.
+- Record the publication Gmail owner/recovery setup and invited administrators outside the repository, then test account handoff.
+- Verify a dataset export and restore into a disposable dataset before production cutover.
+- Local content remains authoritative until provider parity and pilot acceptance. Production must never silently fall back to stale sample content.
+
 ## Phase 08 accessibility, performance, and resilience audit
 
 - **Completed:** July 17, 2026

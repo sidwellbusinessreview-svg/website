@@ -93,3 +93,11 @@ This file records durable technical and operational decisions. Add a dated entry
 - **Context:** Search must work with local data now while remaining replaceable by CMS-backed or hosted search later.
 - **Decision:** Expose search and archive filtering through the content-access layer, and generate sitemap and RSS entries only from public content-access functions.
 - **Consequences:** Routes never index raw sample arrays. A future provider may replace ranking and retrieval while preserving public-only results and the page-facing contracts.
+
+### ADR-011: Select Sanity Studio and Sanity Content Lake
+
+- **Status:** Accepted
+- **Date:** 2026-07-17
+- **Context:** Frontend hardening is complete and Phase 09 requires a final CMS choice. Sanity, Payload, and Decap were compared against the publication's structured content, preview, editor, continuity, cost, policy, export, and operating requirements. No required-functionality, sustainable-cost, continuity, Next.js-compatibility, exportability, editor-usability, or known school-policy blocker to Sanity was found.
+- **Decision:** Use a separately deployed Sanity Studio whose source lives in this repository, with editorial content in Sanity Content Lake. The public application will read through a Sanity adapter behind the existing content-access layer. Use explicit local/Sanity provider selection during migration, authenticated Draft Mode for preview, Sanity image delivery, and verified webhook-driven revalidation. Obtain school approval and confirm the seat/role plan before adding real student data or accounts.
+- **Consequences:** Phases 10–14 implement the design in `docs/CMS_DECISION.md`. No CMS package, credential, or frontend behavior changes in Phase 09. Granular editor roles or private datasets may require a paid plan; Payload is the documented fallback if policy requires school-controlled hosting. A different CMS requires a superseding ADR with a concrete blocker.
