@@ -15,7 +15,7 @@ test("homepage loads and main navigation works", async ({ page }) => {
     page.getByRole("link", { name: "Sidwell Business Review home" }).first(),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "The New Economics of School Lunch" }),
+    page.getByRole("heading", { name: "The New Economics of School Lunch", level: 1 }),
   ).toBeVisible();
 
   await page.getByRole("navigation", { name: "Primary navigation" })
@@ -64,7 +64,7 @@ test("search route loads", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Search" })).toBeVisible();
   const search = page.getByLabel("Search the Review");
   await search.fill("Federal Reserve");
-  await page.getByRole("button", { name: "Search" }).click();
+  await search.press("Enter");
   await expect(page).toHaveURL(/\/search\?q=Federal\+Reserve$/);
   await expect(
     page.getByRole("heading", { name: "Reading the Fed Without Reading Tea Leaves" }),
@@ -183,6 +183,26 @@ test("keyboard navigation exposes the skip link and moves to main content", asyn
   await expect(page).toHaveURL(/#main-content$/);
 });
 
+test("mobile navigation opens from the keyboard and exposes its links", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/");
+  const summary = page.locator("summary");
+  await expect(summary).toBeVisible();
+  await summary.press("Enter");
+  const mobileNavigation = page.getByRole("navigation", { name: "Mobile navigation" });
+  await expect(mobileNavigation).toBeVisible();
+  await page.keyboard.press("Tab");
+  await expect(mobileNavigation.getByRole("link", { name: "Latest" })).toBeFocused();
+});
+
+test("article images have non-empty alternative text", async ({ page }) => {
+  await page.goto("/articles/what-metro-ridership-can-tell-us");
+  const invalidImages = await page.locator("img").evaluateAll((images) =>
+    images.filter((image) => !image.hasAttribute("alt") || image.getAttribute("alt")?.trim() === "").length,
+  );
+  expect(invalidImages).toBe(0);
+});
+
 test("article print layout keeps editorial content and hides navigation", async ({
   page,
 }) => {
@@ -195,16 +215,21 @@ test("article print layout keeps editorial content and hides navigation", async 
   await expect(page.getByText("Every lunch menu reflects")).toBeVisible();
 });
 
-for (const route of ["/", "/articles/the-new-economics-of-school-lunch"]) {
-  test(`has no serious or critical axe violations on ${route}`, async ({ page }) => {
+for (const route of [
+  "/",
+  "/articles/the-new-economics-of-school-lunch",
+  "/search?q=Federal%20Reserve",
+  "/issues/spring-2026",
+  "/authors/maya-chen",
+  "/about",
+  "/masthead",
+  "/archive",
+]) {
+  test(`has no automated axe violations on ${route}`, async ({ page }) => {
     await page.goto(route);
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       .analyze();
-    const blocking = results.violations.filter(
-      (violation) =>
-        violation.impact === "serious" || violation.impact === "critical",
-    );
-    expect(blocking).toEqual([]);
+    expect(results.violations).toEqual([]);
   });
 }

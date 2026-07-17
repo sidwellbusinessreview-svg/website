@@ -27,6 +27,17 @@ export function SiteHeader() {
           ))}
         </div>
       </nav>
+      <details className="mobile-nav">
+        <summary>Menu</summary>
+        <nav aria-label="Mobile navigation">
+          {siteConfig.navigation.map((item) => (
+            <Link key={item.href} href={item.href}>
+              {item.label}
+            </Link>
+          ))}
+          <Link href="/search">Search</Link>
+        </nav>
+      </details>
     </header>
   );
 }

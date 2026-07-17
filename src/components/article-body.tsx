@@ -34,7 +34,7 @@ export function ArticleBody({ blocks }: { blocks: ArticleContentBlock[] }) {
           case "divider":
             return <hr key={key} />;
           case "link":
-            return <p key={key}>{block.text} <a href={block.href} target="_blank" rel="noreferrer">{block.label} <span aria-hidden="true">↗</span></a></p>;
+            return <p key={key}>{block.text} <a href={block.href} target="_blank" rel="noopener noreferrer">{block.label} <span aria-hidden="true">↗</span><span className="sr-only"> (opens in a new tab)</span></a></p>;
           default: {
             const unsupported = block as { type?: unknown };
             if (process.env.NODE_ENV !== "production") {

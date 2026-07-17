@@ -37,7 +37,6 @@ The product contract anticipates, but the current application does not yet provi
 - A dedicated `/categories/[slug]` route
 - A dedicated `/tags/[slug]` route
 - A CMS preview route or authenticated draft mode
-- Dedicated loading and error files for provider-backed routes
 
 Adding these routes requires a later scoped phase and must preserve existing URLs.
 
@@ -47,7 +46,6 @@ Adding these routes requires a later scoped phase and must preserve existing URL
 - Pagination is intentionally omitted while the expected archive remains approximately 30–50 articles.
 - Dynamic pages gather related authors separately instead of receiving resolved domain relationships.
 - Article metadata cannot use SEO overrides, update dates, or canonical information.
-- No route-level `loading.tsx` or `error.tsx` exists.
-- The local provider has no failure mode, so error behavior remains contractual rather than implemented.
+- Global accessible loading and error boundaries now provide safe fallback behavior. Provider-specific retry, logging, and degraded-cache policies remain a CMS-phase responsibility.
 
 These are deferred hardening tasks. Phase 03 does not redesign pages or introduce a remote provider.

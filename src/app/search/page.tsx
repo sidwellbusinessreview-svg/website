@@ -54,6 +54,13 @@ export default async function SearchPage({
           <button type="submit">Search</button>
         </div>
       </form>
+      {query && (
+        <p className="sr-only" role="status" aria-live="polite">
+          {results.length === 0
+            ? `No search results found for ${query}.`
+            : `${results.length} search ${results.length === 1 ? "result" : "results"} found for ${query}.`}
+        </p>
+      )}
 
       {!query ? (
         <div className="empty-state">
@@ -67,7 +74,7 @@ export default async function SearchPage({
           </Link>
         </div>
       ) : results.length === 0 ? (
-        <div className="empty-state" aria-live="polite">
+        <div className="empty-state">
           <h2>No results for “{query}”</h2>
           <p>Try a broader term, check the spelling, or browse the archive.</p>
           <Link className="text-link" href="/archive">
@@ -90,6 +97,7 @@ export default async function SearchPage({
                 authors={authors.filter((author) =>
                   article.authorSlugs.includes(author.slug),
                 )}
+                headingLevel={3}
               />
             ))}
           </div>

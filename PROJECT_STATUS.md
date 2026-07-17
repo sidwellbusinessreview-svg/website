@@ -1,5 +1,24 @@
 # Project status
 
+## Phase 08 accessibility, performance, and resilience audit
+
+- **Completed:** July 17, 2026
+- Expanded axe coverage from two routes to homepage, article, search, issue, author, About, Masthead, and archive pages; all automated WCAG A/AA checks pass.
+- Added a native keyboard-accessible mobile navigation menu without adding a client-side menu bundle.
+- Added the missing homepage level-one heading and corrected nested article and issue card heading levels while preserving their visual styling.
+- Added search-result status announcements, explicit new-tab link announcements, and safe `noopener noreferrer` behavior.
+- Added global accessible loading and error boundaries; public errors expose no provider message or stack trace.
+- Added tests for keyboard mobile navigation, non-empty image alternatives, external-link safety, loading announcements, and safe error recovery.
+- Migrated likely LCP images from deprecated Next.js `priority` to the Next.js 16 `preload` API while retaining lazy loading below the fold.
+- Added `docs/ACCESSIBILITY.md` and `docs/PERFORMANCE.md` with author, developer, manual-test, image, bundle, and regression guidance.
+
+### Phase 08 audit results and limits
+
+- Automated checks pass, but manual VoiceOver/NVDA, forced-colors, zoom/reflow, speech-input, real-device, and editorial alt-text quality review remain required before launch.
+- Lighthouse is not installed; the equivalent local production audit used build/route output, chunk inspection, console errors, image loading, and layout-shift entries without adding dependencies or manipulating tests.
+- The local provider cannot simulate real CMS downtime. The global boundary is ready to catch provider failures, while provider-specific caching, logging, and retry policy remains for the CMS phase.
+- Prototype images remain hosted by Unsplash; production performance and resilience require rights-cleared publication-controlled assets.
+
 ## Phase 07 search, archive, and discovery
 
 - **Completed:** July 16, 2026

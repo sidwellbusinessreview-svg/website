@@ -109,6 +109,7 @@ export default async function ArchivePage({
               authors={authors.filter((author) =>
                 article.authorSlugs.includes(author.slug),
               )}
+              headingLevel={3}
             />
           ))}
         </div>

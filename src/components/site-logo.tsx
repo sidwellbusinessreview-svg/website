@@ -31,7 +31,7 @@ export function SiteLogo({
           alt={siteConfig.logo.imageAlt}
           width={siteConfig.logo.imageWidth}
           height={siteConfig.logo.imageHeight}
-          priority={priority}
+          preload={priority}
         />
       ) : (
         <span>{siteConfig.logo.textWordmark}</span>

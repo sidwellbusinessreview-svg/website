@@ -214,6 +214,16 @@ describe("cross-document validation", () => {
     );
   });
 
+  it("does not treat an empty alt attribute as valid decorative content", () => {
+    expect(
+      articleContentBlockSchema.safeParse({
+        type: "image",
+        src: "https://example.com/decorative.jpg",
+        alt: "",
+      }).success,
+    ).toBe(false);
+  });
+
   it("validates site settings", () => {
     expectProblem(
       (source) => {

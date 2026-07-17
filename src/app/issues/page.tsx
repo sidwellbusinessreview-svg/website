@@ -23,14 +23,14 @@ export default async function IssuesPage() {
           <div className="section-title-row">
             <h2 className="section-title">Current issue</h2>
           </div>
-          <IssueCard issue={issues[0]} />
+          <IssueCard issue={issues[0]} headingLevel={3} />
           {issues.length > 1 && (
             <>
               <div className="section-title-row issues-past-heading">
                 <h2 className="section-title">Past issues</h2>
               </div>
               <div className="issues-list">
-                {issues.slice(1).map((issue) => <IssueCard key={issue.slug} issue={issue} />)}
+                {issues.slice(1).map((issue) => <IssueCard key={issue.slug} issue={issue} headingLevel={3} />)}
               </div>
             </>
           )}

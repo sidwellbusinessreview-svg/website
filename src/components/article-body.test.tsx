@@ -31,6 +31,20 @@ describe("ArticleBody", () => {
     expect(container.querySelector("hr")).toBeInTheDocument();
   });
 
+  it("announces external links and applies safe new-tab attributes", () => {
+    render(
+      <ArticleBody blocks={[{
+        type: "link",
+        text: "Read the source.",
+        href: "https://example.com/report",
+        label: "Example report",
+      }]} />,
+    );
+    const link = screen.getByRole("link", { name: "Example report (opens in a new tab)" });
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
   it("renders an inline image with caption and credit", () => {
     render(
       <ArticleBody

@@ -32,7 +32,7 @@ export default async function HomePage() {
           </p>
           <span>Independent student analysis from Washington, D.C.</span>
         </div>
-        <ArticleCard article={lead} authors={authors.filter((a) => lead.authorSlugs.includes(a.slug))} featured />
+        <ArticleCard article={lead} authors={authors.filter((a) => lead.authorSlugs.includes(a.slug))} featured headingLevel={1} />
       </section>
       <section className="container section">
         <div className="section-title-row">
@@ -63,7 +63,7 @@ export default async function HomePage() {
               Browse the archive <span aria-hidden="true">→</span>
             </Link>
           </div>
-          <IssueCard issue={currentIssue} />
+          <IssueCard issue={currentIssue} headingLevel={3} />
         </section>
       )}
     </>
