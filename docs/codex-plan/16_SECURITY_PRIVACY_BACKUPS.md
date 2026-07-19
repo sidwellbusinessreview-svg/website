@@ -2,162 +2,371 @@
 
 ## Objective
 
-Protect student information, publication accounts, CMS content, and long-term access.
+Make the project safe enough for real student content and sustainable account ownership.
 
-The joint publication Gmail solves part of the continuity problem, but it must not become a single shared-password failure point.
+This phase does not launch the site.
 
-## Human account model
+## Account model
 
-Use the publication Gmail for:
+Publication Gmail:
 
-- Durable ownership
-- Billing notices
+- Durable service ownership
+- Billing and renewal notices
 - Recovery
 - Administrative records
 
-Use individual accounts for:
+Individual accounts:
 
-- GitHub organization membership
-- Sanity editor access
-- Vercel team access
+- GitHub membership
+- Sanity access
+- Vercel access
 
-Where a service does not support multiple members on the sustainable plan, document that limitation and maintain a secure transfer procedure.
+Do not share the publication Gmail password as the normal team-access method.
 
 ## Codex prompt
 
 ```text
-You are performing Phase 16 of the Sidwell Business Review website project.
+You are performing revised Phase 16 of the Sidwell Business Review website project.
 
 Before changing anything:
-1. Read SECURITY.md, ACCOUNT_OWNERSHIP_TEMPLATE.md, deployment documentation, and CMS documentation.
-2. Run npm run verify and npm run test:e2e.
-3. Show git status and stop if the repository is dirty.
-4. Inspect source and git history for accidental secrets using safe local methods.
-5. Do not display any real secret found. Report only file, category, and remediation.
-6. Do not collect additional student information.
 
-Perform a security and privacy hardening review.
+1. Read:
+   - SECURITY.md
+   - docs/ACCESS_CONTROL.md if present
+   - docs/ENVIRONMENTS.md
+   - docs/DEPLOYMENT.md
+   - docs/PREVIEW_WORKFLOW.md
+   - docs/ARCHIVE_MIGRATION.md
+   - docs/DATASET_AUDIT_AND_RESET.md
+   - PROJECT_STATUS.md
+2. Confirm Phase 15 is committed.
+3. Show git status.
+4. Run full verification.
+5. Do not expose real secrets.
+6. Do not collect new student data.
+7. Do not draft legally definitive policies without school review.
 
-Application security:
-- No write tokens in client code
+Perform security, privacy, access, and backup hardening.
+
+1. Secret audit.
+
+Inspect:
+
+- Tracked files
+- Git diff
+- Tests
+- Fixtures
+- Documentation
+- Screenshots
+- Client bundle configuration
+- Vercel variable names and scopes
+- Sanity configuration
+
+Confirm:
+
+- No API read token in client code
 - No preview secret in client code
-- Webhook secret verification
-- Safe redirect handling
-- External-link safety
-- No arbitrary HTML rendering
-- Content links sanitized or validated
+- No revalidation secret in client code
+- No Gmail credential
+- No backup code
+- No hardcoded project-specific secret
+- `.env.local` ignored
+- `.env.example` placeholders only
+
+If a secret is found:
+
+- Do not print it.
+- Report location and type.
+- Rotate it.
+- Remove it from active history according to the documented process.
+
+2. Token scope.
+
+Use minimum necessary access.
+
+Document:
+
+- Public token-free published reads
+- Server-only read token for drafts
+- Revalidation secret
+- Sanity CLI personal authentication
+- Rotation procedure
+- Revocation procedure
+- Owner
+
+Do not create a write token for the public application.
+
+3. Preview and webhook security.
+
+Audit:
+
+- Preview authorization
+- Safe redirects
+- Preview cookie
+- No draft caching into public output
+- Webhook verification
+- Webhook request size
+- Webhook method
 - Safe error messages
-- Reasonable security headers compatible with Studio and image delivery
-- Content Security Policy evaluated carefully rather than copied blindly
-- Studio not publicly linked or indexed
-- Rate or abuse considerations for search and public forms if any
-- No unnecessary form or tracking data
+- No arbitrary tag/path invalidation
+- Basic abuse resistance
+- Logs do not contain secrets or draft bodies
 
-Secret management:
-- .env.local ignored
-- .env.example contains placeholders only
-- Vercel sensitive variables correctly scoped
-- Sanity tokens use minimum required access
-- Token rotation process
-- Response plan for exposed credentials
-- No secrets in documentation, tests, fixtures, or screenshots
+4. Content safety.
 
-Account security:
-Create docs/ACCESS_CONTROL.md:
-- Publication Gmail ownership
-- Two-step verification
-- Recovery methods
-- Backup-code storage
-- Individual team accounts
-- Editor removal
-- Graduation transfer
-- Faculty adviser departure
-- Minimum two current administrators
-- Annual account review
+Audit:
+
+- No raw HTML rendering
+- Link validation
+- External link attributes
+- Portable Text behavior
+- Image-type enforcement
+- Image alt-text rules
+- Optional image behavior
+- No Contributor photos or personal contact data
+- No biographies
+- No hidden staff portraits
+- No unsupported file uploads
+
+5. Student privacy review.
+
+Create:
+
+docs/PRIVACY_REVIEW.md
+
+Cover:
+
+- Student names
+- Roles
+- Graduation years
+- Article bylines
+- Faculty adviser name
+- Image permissions
+- Article photographs
+- Contact information
+- Contact inbox
+- Analytics
+- Cookies
+- Preview cookies
+- Server logs
+- Removal requests
+- Corrections
+- School approval questions
+- Data minimization
+
+Mark unresolved school-policy questions clearly.
+
+Do not claim legal approval.
+
+6. Account access.
+
+Create or update:
+
+docs/ACCESS_CONTROL.md
+
+Require:
+
+- Two-step verification on publication Gmail
+- Current recovery information
+- Backup codes stored securely
+- At least two current administrators where service plan permits
+- Individual Sanity accounts
+- Individual GitHub accounts
+- Individual Vercel accounts
+- Faculty adviser access only when needed
+- Removal of departed editors
+- Annual review
+- Graduation handoff
+- Adviser departure procedure
 - No passwords in Google Docs or repository
 
-Privacy:
-Create docs/PRIVACY_REVIEW.md:
-- Student names
-- Graduation years
-- Headshots
-- Biographies
-- Contact information
-- Image permissions
-- Analytics decision
-- Contact forms
-- Cookies
-- Data minimization
-- School approval questions
-- Correction and removal process
+7. Dataset backup.
 
-Do not draft a legally definitive privacy policy without school review. Create a clearly labeled operational checklist and placeholder instead.
+Create a real Sanity export that includes:
 
-Backups:
-Create docs/BACKUPS.md:
-- GitHub repository recovery
-- Sanity dataset export
-- Image asset inclusion
-- Backup frequency
-- Before-import backups
-- Before-schema-migration backups
-- Storage location
-- Retention
-- Restore test
+- Published documents
+- Drafts
+- Assets
+
+Record:
+
+- Date
+- Dataset
+- Project
+- Purpose
+- File location
 - Owner
-- Handoff
+- Verification result
 
-Add safe scripts or documented commands for:
-- CMS export
-- Timestamped backup name
-- Optional validation of backup existence
-- No automatic upload to an unapproved third party
+Do not commit the backup archive.
 
-Dependency security:
-- Review current npm audit result.
+Add or improve safe scripts for:
+
+- Timestamped export
+- Backup verification
+- Restore rehearsal to a safe temporary dataset
+- Cleanup of old test datasets only after confirmation
+
+8. Restore rehearsal.
+
+Preferred:
+
+- Create a temporary restore-test dataset.
+- Import the backup.
+- Run dataset audit.
+- Run provider diagnostic against the temporary dataset if architecture supports safe configuration.
+- Delete the temporary dataset only after verification.
+
+If plan limits or safety prevent rehearsal:
+
+- Document the blocker.
+- Do not claim restore is tested.
+
+9. GitHub and deployment recovery.
+
+Document:
+
+- Clone repository
+- Restore environment variables
+- Redeploy previous commit
+- Promote previous deployment
+- Switch to local provider
+- Restore Sanity dataset
+- Reconnect webhook
+- Verify public site
+
+10. Dependency security.
+
+Run:
+
+- npm audit
+- Framework advisory review
+- Sanity package advisory review
+
+Rules:
+
 - Do not run npm audit fix --force.
-- Determine whether advisories are runtime-relevant.
-- Document accepted temporary risk and review date.
-- Upgrade only compatible patch/minor versions when justified and fully tested.
 - Do not downgrade Next.js.
+- Do not update major versions casually.
+- Classify advisories by actual runtime relevance.
+- Record accepted risk and review date.
+- Apply compatible updates only with full testing.
 
-Tests:
-- Secret exposure checks
+11. Security headers.
+
+Audit and implement only compatible headers.
+
+Consider:
+
+- Content Security Policy
+- Referrer Policy
+- X-Content-Type-Options
+- Frame behavior
+- Permissions Policy
+- HSTS only on deployed HTTPS production when appropriate
+
+Do not break:
+
+- Embedded Studio
+- Preview
+- Sanity image delivery
+- Vercel
+- Required external assets
+
+12. Tests.
+
+Test:
+
+- Secret exposure
 - Preview authorization
-- Webhook authorization
+- Redirect protection
 - Draft isolation
-- Security headers where implemented
-- No raw HTML injection
-- External-link behavior
-- Error response behavior
+- Webhook authorization
+- Unsupported file rejection
+- Raw HTML rejection
+- External links
+- Security headers
+- Safe errors
+- Backup script
+- Restore audit
+- Provider rollback
 
-Validation:
-- Run npm run verify.
-- Run npm run test:e2e.
-- Run production build.
-- Create a CMS export and verify the archive exists.
-- Perform a documented restore rehearsal using a safe non-production dataset if available, or document why deferred.
-- Update PROJECT_STATUS.md and DECISIONS.md.
+13. Documentation.
+
+Create or update:
+
+- docs/ACCESS_CONTROL.md
+- docs/PRIVACY_REVIEW.md
+- docs/BACKUPS.md
+- SECURITY.md
+- docs/ROLLBACK.md
+- AGENTS.md
+- PROJECT_STATUS.md
+
+14. Validation.
+
+Run:
+
+- Full unit tests
+- Public browser tests
+- CMS browser tests
+- Preview tests
+- Webhook tests
+- Dataset audit
+- Provider diagnostic
+- Backup export
+- Restore rehearsal or documented blocker
+- Production build
+- Secret scan
+- git diff --check
 
 Do not commit backup archives.
 Do not commit.
-Report findings by severity, fixes, deferred school-policy questions, changed files, and recommended commit message.
+
+Report:
+
+- Findings by severity
+- Secrets result
+- Token scope
+- Privacy questions
+- Account risks
+- Backup path and verification
+- Restore result
+- Dependency advisories
+- Security-header result
+- Every changed file
+- Recommended commit message
 ```
+
+## Human acceptance
+
+Confirm personally:
+
+- Publication Gmail has two-step verification.
+- Recovery methods are current.
+- Backup codes are stored securely.
+- At least one other trusted administrator has appropriate access where possible.
+- The Sanity export file exists.
+- The backup is not in GitHub.
+- Privacy questions are sent to the faculty adviser or school contact.
+- Image permissions are being tracked.
+- No student contact information is public unnecessarily.
 
 ## Stop conditions
 
-Do not launch if:
+Do not continue if:
 
-- Only one person can recover critical accounts
-- A secret is committed
-- Draft content is public
-- Image permissions are unresolved
-- Student contact information is exposed unnecessarily
-- No backup has ever been created
-- The faculty adviser or school has not reviewed required privacy questions
+- A secret is committed.
+- Only one person can recover critical services without a documented limitation.
+- Draft content leaks.
+- No backup exists.
+- Image permissions are unresolved for launch content.
+- Student personal contact information is exposed.
+- Preview or webhook authorization is weak.
+- Restore is claimed as tested when it was not.
 
 ## Commit
 
 ```text
-security: harden access privacy and backup procedures
+security: harden access privacy and backup controls
 ```

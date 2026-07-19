@@ -2,171 +2,347 @@
 
 ## Objective
 
-Prove that the website can be operated by future editors without relying on the original developer.
+Make the website operable by future student editors who did not build it.
 
-Documentation is part of the product.
+Documentation is part of the website product.
 
 ## Codex prompt
 
 ```text
-You are performing Phase 17 of the Sidwell Business Review website project.
+You are performing revised Phase 17 of the Sidwell Business Review website project.
 
 Before changing anything:
-1. Read all operational documentation.
-2. Run npm run verify and npm run test:e2e.
-3. Show git status and stop if the repository is dirty.
-4. Do not add new major features.
-5. Focus on editor usability, support, and succession.
 
-Create a complete handbook in docs/EDITOR_HANDBOOK.md for nontechnical editors.
+1. Read all current editorial, deployment, security, backup, and migration documentation.
+2. Confirm Phase 16 is committed.
+3. Show git status.
+4. Run full verification.
+5. Do not add major new features.
+6. Do not document removed concepts.
+7. Use plain language for nontechnical student editors.
 
-The handbook must explain, in numbered steps:
+Create a complete operational handbook.
 
-1. Account access
+1. Editor Handbook.
+
+Create:
+
+docs/EDITOR_HANDBOOK.md
+
+Include numbered instructions for:
+
+Account access:
 - Publication Gmail purpose
-- Individual Sanity login
-- GitHub and Vercel access for administrators
-- What to do when access fails
+- Individual Sanity sign-in
+- GitHub access for technical administrators
+- Vercel access for deployment administrators
+- Access failure
+- Adviser departure
+- Graduation handoff
 
-2. Article workflow
-- Receive final approved Google Doc
-- Create article draft
-- Select authors
-- Create a missing author
-- Select issue
-- Select category and tags
-- Enter title, subtitle, summary
-- Add featured image
-- Write alt text
-- Add caption and credit
-- Add body content
-- Add inline images
-- Add pull quote
-- Add callout
-- Check links
+Contributor workflow:
+- Create Contributor
+- Name and slug
+- Optional role
+- Optional graduation year
+- Publish Contributor
+- Archive Contributor
+- Restore Contributor
+- Reassign Articles
+- Delete unreferenced Contributor
+- Why normal departure uses Archive rather than Delete
+
+Article workflow:
+- Receive approved Google Doc
+- Create Article draft
+- Title
+- Slug
+- Subtitle
+- Summary
+- Contributors in byline order
+- Publication date
+- Optional featured image
+- Conditional alt text
+- Caption and credit
+- Body blocks
+- Links
+- Pull quote
+- Callout
+- Save
 - Preview
-- Obtain adviser approval
+- Adviser approval
 - Publish
 - Verify live site
 
-3. Corrections
-- Edit a published article
-- Record updated date where policy requires
-- Preview correction
-- Publish correction
-- Verify update
-- Handle major correction notice if publication policy later requires it
+Article correction:
+- Edit published Article
+- Understand unpublished changes
+- Preview changes
+- Publish changes
+- Discard changes
+- Updated date if policy requires
+- Verify public update
 
-4. Homepage
-- Pin lead story
-- Remove pin
-- Set featured order
-- Verify fallback behavior
+Article removal:
+- Unpublish
+- Republish
+- Delete draft permanently
+- Delete Article permanently
+- When not to delete
 
-5. Issues
-- Create issue
-- Add cover
-- Add introduction
-- Assign articles
-- Publish in stages or together according to available plan features
-- Verify issue page
+Homepage:
+- Pin Article
+- Unpin Article
+- Featured order
+- Newest-Article fallback
 
-6. Authors
-- Create profile
-- Add headshot
-- Graduation year
-- Biography
-- Role
-- Deactivate graduated contributors without deleting article history
+About:
+- Mission
+- Editors-in-Chief
+- Editors
+- Faculty Adviser
+- No photos or portraits
+- Contributor references
+- Update staff at leadership transition
 
-7. About and Masthead
-- Update leadership
-- Update adviser
-- Update mission
-- Avoid deleting historical authors
+Site Settings:
+- Publication name
+- Homepage tagline
+- Optional logo
+- Contact/social links
+- SEO defaults
+- What not to change casually
 
-8. Branding
-- Replace logo
-- Change publication text
-- Change colors and typography through code with Codex
-- Required tests after branding changes
+Search and Archive:
+- Verify Article appearance
+- Troubleshoot missing Article
+- Chronological archive
+- No Issues, Categories, or Tags
 
-9. Search and archive
-- Verify new article appears
-- Troubleshoot missing article
+Preview:
+- Open Preview
+- Preview draft-only Article
+- Preview unpublished changes
+- Exit Preview
+- Faculty adviser checklist
 
-10. Backups
-- Export before bulk imports
-- Confirm backup
+Publishing verification:
+- Article page
+- Homepage
+- Latest
+- Archive
+- Search
+- Contributor profile
+- Sitemap
+- Feed
+- Cache/revalidation behavior
+
+Migration:
+- Article inventory
+- Five-Article pilot
+- Import drafts
+- Review
+- Backup before batch import
+- Rollback batch
+
+Backups:
+- Create export
+- Verify export
 - Restore escalation
+- Never commit backup
 
-11. Account handoff
-- Invite new editor
-- Grant correct roles
-- Verify access
-- Remove graduating editor after transfer
-- Transfer billing and recovery
-- Update account register
-- Rotate shared credentials when necessary
-
-12. Emergency procedures
+Emergency:
+- Wrong Article published
 - Site down
 - Bad deployment
-- Incorrect article published
-- Secret exposed
+- Broken image
 - Account lost
-- Image takedown request
-- Adviser departure
+- Secret exposed
+- Image removal request
+- Contributor removal request
+- Webhook failure
+- Sanity outage
 
-Create docs/PUBLISHING_CHECKLIST.md as a one-page checklist.
-Create docs/GRADUATION_HANDOFF_CHECKLIST.md.
-Create docs/TROUBLESHOOTING.md.
-Create docs/ANNUAL_MAINTENANCE.md.
+2. Publishing checklist.
 
-Add a Studio help link or help document reference where practical, without exposing private internal information publicly.
+Create:
 
-Usability test plan:
-Create docs/NOVICE_EDITOR_TEST.md.
-It must instruct a student unfamiliar with the code to:
+docs/PUBLISHING_CHECKLIST.md
+
+One-page checklist:
+
+- Approved source
+- Contributor published
+- Title and slug
+- Summary
+- Date
+- Body
+- Links
+- Images permitted
+- Alt text
+- Caption/credit
+- Mobile preview
+- Adviser approval
+- Publish
+- Verify all public locations
+- No unpublished changes left accidentally
+
+3. Graduation handoff.
+
+Create:
+
+docs/GRADUATION_HANDOFF_CHECKLIST.md
+
+Include:
+
+- Incoming editors nominated
+- Accounts invited
+- Access verified
+- Publication Gmail recovery reviewed
+- Sanity roles
+- GitHub roles
+- Vercel roles
+- Domain/billing owner
+- Backup completed
+- Restore instructions reviewed
+- Test Article created and removed
+- Outgoing editor access removed after verification
+- Shared credentials rotated where necessary
+- Account register updated
+- Known limitations reviewed
+
+4. Troubleshooting.
+
+Create:
+
+docs/TROUBLESHOOTING.md
+
+Cover:
+
+- Article absent publicly
+- Contributor unavailable in selector
+- Archived Contributor
+- Article has unpublished changes
+- Preview unavailable
+- Webhook/revalidation delay
+- Search missing Article
+- Sitemap/feed missing Article
+- Image rejected
+- Invalid Article excluded
+- Provider mode wrong
+- Vercel preview differs from production
+- Sanity sign-in
+- Reference blocking deletion
+- Rollback to local content
+
+5. Annual maintenance.
+
+Create:
+
+docs/ANNUAL_MAINTENANCE.md
+
+Include:
+
+- Account review
+- Dependency review
+- Backup
+- Restore rehearsal
+- Editor access
+- Staff/About update
+- Broken links
+- Accessibility
+- Image permissions
+- Costs
+- Renewal dates
+- Analytics review
+- Documentation review
+
+6. Novice editor test.
+
+Create:
+
+docs/NOVICE_EDITOR_TEST.md
+
+A student unfamiliar with the project must complete without verbal coaching:
+
 - Sign in
-- Create a draft article
-- Add an image with caption and credit
-- Assign an issue and author
+- Create and publish Contributor
+- Create Article draft
+- Add two Contributors
+- Add optional image or leave image-free
 - Preview
-- Publish to a test environment or keep as draft
-- Find instructions without verbal help
-- Record confusion and time spent
+- Publish
+- Edit and publish changes
+- Unpublish and republish
+- Update About
+- Find troubleshooting
+- Exit safely
 
-Do not claim the handoff is complete until a novice test occurs.
+Record:
 
-Validation:
-- Run npm run verify.
-- Run npm run test:e2e.
-- Run build.
-- Check every handbook link.
-- Confirm screenshots or placeholders are clearly labeled.
-- Update PROJECT_STATUS.md.
+- Time
+- Confusion
+- Missed fields
+- Incorrect assumptions
+- Documentation failures
+- UI defects
+
+7. In-Studio help.
+
+Add a restrained help link or help panel pointing editors to:
+
+- Editor Handbook
+- Publishing Checklist
+- Troubleshooting
+
+Do not expose private operational information publicly.
+
+8. Tests and validation.
+
+Check:
+
+- Every documentation link
+- No removed concepts
+- Commands match package.json
+- Screenshots or placeholders are current
+- No secrets
+- Novice test instructions are executable
+- Full automated suite
+- Build
+- git diff --check
+
+Update PROJECT_STATUS.md.
 
 Do not commit.
-Report documents created, operational gaps found, changed files, and recommended commit message.
+
+Report:
+
+- Documents created
+- Outdated documentation removed
+- Novice test result
+- UI/documentation changes from novice test
+- Every changed file
+- Recommended commit message
 ```
 
 ## Human novice test
 
-Ask one editor who did not build the site to complete the test without you guiding every click.
+Ask another editor to complete `docs/NOVICE_EDITOR_TEST.md` without step-by-step coaching.
 
-Record:
+Do not pass the phase if:
 
-- Where they became confused
-- Terms they did not understand
-- Fields they skipped
-- Mistakes the interface allowed
-- Documentation they could not find
+- They cannot find Preview.
+- They publish a draft accidentally.
+- They cannot understand unpublished changes.
+- They cannot add Contributors.
+- They cannot verify the live Article.
+- They cannot find Unpublish.
+- They cannot recover from a simple error using documentation.
 
-Fix the system or handbook based on observed problems.
+Fix either the UI or documentation based on what actually happens.
 
 ## Commit
 
 ```text
-docs: add editor operations and leadership handoff system
+docs: complete editor handbook and leadership handoff
 ```
