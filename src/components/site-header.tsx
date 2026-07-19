@@ -11,8 +11,8 @@ export function SiteHeader() {
           <span>{siteConfig.location}</span>
         </div>
       </div>
-      <div className="container masthead">
-        <p className="masthead__tagline">{siteConfig.tagline}</p>
+      <div className="container wordmark-header">
+        <p className="wordmark-header__tagline">{siteConfig.tagline}</p>
         <SiteLogo priority />
         <Link className="search-link" href="/search">
           Search <span aria-hidden="true">↗</span>

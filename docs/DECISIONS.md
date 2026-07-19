@@ -109,3 +109,35 @@ This file records durable technical and operational decisions. Add a dated entry
 - **Context:** Phase 10 requires the editorial Studio at a stable application route. Current official `next-sanity` guidance supports an App Router optional catch-all route, static Studio shell, noindex metadata, and Sanity-managed authentication.
 - **Decision:** Embed Studio at `/studio` in the existing Next.js application instead of deploying a separate Studio. Keep it out of public navigation, disallow it in `robots.txt`, retain Sanity's noindex metadata, and render safe setup guidance when public configuration is absent.
 - **Consequences:** This supersedes only ADR-011's separate-Studio hosting detail. Content remains in Content Lake, public pages retain the content-provider boundary and local source, and Sanity authentication—not application authentication—controls editing. Trusted Studio origins require tightly scoped credentialed CORS entries.
+
+### ADR-013: Derive Sanity types and use native drafts
+
+- **Status:** Accepted
+- **Date:** 2026-07-17
+- **Context:** Phase 11 needs an editor-friendly schema without creating a second, incompatible hand-maintained CMS type system or duplicating workflow state.
+- **Decision:** Define provider schemas with current Sanity schema helpers, use Sanity's native draft/published document state, extract the schema with required-field enforcement, and generate provider types with Sanity TypeGen. Keep an explicit provider-to-domain adapter contract; do not expose generated records to routes.
+- **Consequences:** Schema changes require `npm run sanity:typegen`. The generated schema and types are reviewable build inputs, while Phase 12 must implement projections, runtime mapping, and provider parity before public content can switch to Sanity.
+
+### ADR-014: Simplify the launch editorial model
+
+- **Status:** Superseded in part by ADR-015
+- **Date:** 2026-07-17
+- **Context:** The initial Phase 11 schema added issues, categories, tags, biographies, and placement metadata beyond the publication's actual launch workflow.
+- **Decision:** Use Contributors, Articles, Masthead, About, and Site Settings only. Articles use date-only publication values and automatic SEO with optional title/description overrides. Remove issue/category/tag documents and public discovery behavior; keep `/authors/[slug]` as the compatibility URL for contributor profiles. ADR-015 later consolidates Masthead into About.
+- **Consequences:** The archive is chronological with school-year/contributor filters. An optional plain-text section or edition label requires demonstrated need and a future decision. Existing unseen draft records need export/review and explicit migration rather than destructive automatic cleanup.
+
+### ADR-015: Use actual document pairs for article state and consolidate staff into About
+
+- **Status:** Accepted
+- **Date:** 2026-07-17
+- **Context:** Perspective-flattened Studio lists can make a draft-only document appear published, and separate Masthead and Contributor biography content add editorial complexity without launch value.
+- **Decision:** Classify Articles from raw draft/published ID pairs as Draft only, Published, or Published with changes. Present explicit publish, publish-changes, discard-changes, and confirmation-protected unpublish actions. Remove duplication actions for core editorial documents. Put the staff roster in the About singleton and exclude Contributor biographies.
+- **Consequences:** The custom article state panes must query with the raw perspective. `/masthead` is retired, About owns staff roles, and any legacy Masthead or biography data requires export/review rather than automatic deletion.
+
+### ADR-016: Archive Contributors and require explicit dataset migrations
+
+- **Status:** Accepted
+- **Date:** 2026-07-17
+- **Context:** Removing a schema did not remove a legacy draft document, whose strong reference then correctly blocked Contributor deletion.
+- **Decision:** Treat schema removal and Content Lake migration as separate operations. Require raw audits, export-backed dry-run cleanup, explicit target/confirmation gates, regenerated types, and absence tests. Archive Contributors for normal offboarding; retain strong Article/About references and replace generic deletion with reference-aware workflows.
+- **Consequences:** Assets are preserved by default, published Articles never cascade-delete, compatibility aliases require a documented removal plan, and destructive commands never run automatically.

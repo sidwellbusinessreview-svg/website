@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
-import { getArticles, getAuthors, getCategories } from "@/content";
+import { getArticles, getContributors } from "@/content";
 import { createPageMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = createPageMetadata({
@@ -11,7 +10,7 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default async function LatestPage() {
-  const [articles, authors, categories] = await Promise.all([getArticles(), getAuthors(), getCategories()]);
+  const [articles, contributors] = await Promise.all([getArticles(), getContributors()]);
   return (
     <div className="container page-shell">
       <header className="page-header">
@@ -19,17 +18,9 @@ export default async function LatestPage() {
         <h1>Latest articles</h1>
         <p>New ideas, careful reporting, and student perspectives on the forces shaping business and economics.</p>
       </header>
-      <div className="category-list" aria-label="Article categories">
-        <span>All</span>
-        {categories.map((category) => (
-          <Link key={category} href={`/archive?category=${encodeURIComponent(category)}`}>
-            {category}
-          </Link>
-        ))}
-      </div>
       <div className="article-list">
         {articles.map((article) => (
-          <ArticleCard key={article.slug} article={article} authors={authors.filter((a) => article.authorSlugs.includes(a.slug))} />
+          <ArticleCard key={article.slug} article={article} authors={contributors.filter((a) => article.contributorSlugs.includes(a.slug))} />
         ))}
       </div>
     </div>

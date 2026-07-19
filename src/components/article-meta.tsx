@@ -1,12 +1,12 @@
 import Link from "next/link";
-import type { Article, Author } from "@/content";
+import type { Article, Contributor } from "@/content";
 
 export function ArticleMeta({
   article,
   authors,
 }: {
   article: Article;
-  authors: Author[];
+  authors: Contributor[];
 }) {
   return (
     <div className="article-meta">

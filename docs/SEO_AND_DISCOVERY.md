@@ -51,7 +51,7 @@ Both use the public content-access functions, so draft articles are excluded.
 
 ## RSS
 
-`/feed.xml` provides a maintainable RSS 2.0 feed for published articles. It contains title, URL, summary, publication date, category, and byline information already present in the content model.
+`/feed.xml` provides a maintainable RSS 2.0 feed for published articles. It contains title, URL, summary, publication date, and byline information already present in the content model.
 
 The feed escapes XML-sensitive text and never imports raw sample data. A future CMS adapter can preserve the route by implementing the existing content-access functions.
 
@@ -63,9 +63,9 @@ Current ranking weights prioritize:
 
 1. Headline
 2. Summary
-3. Author
-4. Category and tag
-5. Issue
+3. Contributor
+4. Publication date
+5. Article body text
 6. Structured article body
 
 Search is case-insensitive and public results exclude drafts. A future CMS-backed search implementation should preserve the `searchArticles` result contract and public-only behavior.

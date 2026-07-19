@@ -1,5 +1,5 @@
 import { siteConfig } from "@/config/site";
-import { getArticles, getAuthors } from "@/content";
+import { getArticles, getContributors } from "@/content";
 import { absoluteUrl } from "@/lib/metadata";
 
 function escapeXml(value: string): string {
@@ -12,7 +12,7 @@ function escapeXml(value: string): string {
 }
 
 export async function GET() {
-  const [articles, authors] = await Promise.all([getArticles(), getAuthors()]);
+  const [articles, authors] = await Promise.all([getArticles(), getContributors()]);
   const authorBySlug = new Map(authors.map((author) => [author.slug, author.name]));
   const items = articles.map((article) => `
     <item>
@@ -21,8 +21,7 @@ export async function GET() {
       <guid isPermaLink="true">${absoluteUrl(`/articles/${article.slug}`)}</guid>
       <description>${escapeXml(article.dek)}</description>
       <pubDate>${new Date(`${article.publishedAt}T12:00:00Z`).toUTCString()}</pubDate>
-      <category>${escapeXml(article.category)}</category>
-      ${article.authorSlugs.map((slug) => `<author>${escapeXml(authorBySlug.get(slug) ?? slug)}</author>`).join("")}
+      ${article.contributorSlugs.map((slug) => `<author>${escapeXml(authorBySlug.get(slug) ?? slug)}</author>`).join("")}
     </item>`).join("");
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">

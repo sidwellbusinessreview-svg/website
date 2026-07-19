@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
-import { getAuthors, searchArticles } from "@/content";
+import { getContributors, searchArticles } from "@/content";
 import { createPageMetadata } from "@/lib/metadata";
 
 export async function generateMetadata({
@@ -28,7 +28,7 @@ export default async function SearchPage({
   const query = (await searchParams).q?.trim() ?? "";
   const [results, authors] = await Promise.all([
     searchArticles(query),
-    getAuthors(),
+    getContributors(),
   ]);
 
   return (
@@ -37,8 +37,7 @@ export default async function SearchPage({
         <p className="eyebrow">Explore the archive</p>
         <h1>Search</h1>
         <p>
-          Search reporting and analysis by topic, author, category, issue, or
-          words from the article.
+          Search reporting and analysis by title, contributor, summary, or words from the article.
         </p>
       </header>
       <form className="search-form" action="/search" method="get" role="search">
@@ -64,10 +63,10 @@ export default async function SearchPage({
 
       {!query ? (
         <div className="empty-state">
-          <h2>Start with a person, topic, or issue.</h2>
+          <h2>Start with a person, topic, or phrase.</h2>
           <p>
             Search is case-insensitive and includes headlines, summaries,
-            bylines, categories, tags, issues, and article text.
+            bylines, summaries, and article text.
           </p>
           <Link className="text-link" href="/archive">
             Browse the full archive <span aria-hidden="true">→</span>
@@ -95,7 +94,7 @@ export default async function SearchPage({
                 key={article.slug}
                 article={article}
                 authors={authors.filter((author) =>
-                  article.authorSlugs.includes(author.slug),
+                  article.contributorSlugs.includes(author.slug),
                 )}
                 headingLevel={3}
               />

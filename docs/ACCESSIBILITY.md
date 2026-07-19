@@ -18,9 +18,11 @@ The site uses semantic header, navigation, main, article, aside, figure, time, a
 - Reduced-motion styling
 - Descriptive external-link announcements and safe new-tab attributes
 
-Playwright runs axe rules tagged for WCAG 2.0 and 2.1 A/AA across the homepage, an article, search, an issue, an author, About, Masthead, and the archive. WCAG 2.2 requirements that axe cannot fully judge still require the manual checks below.
+Playwright runs axe rules tagged for WCAG 2.0 and 2.1 A/AA across the homepage, an article, search, an author, About, and the archive. WCAG 2.2 requirements that axe cannot fully judge still require the manual checks below.
 
 ## Author responsibilities
+
+Contributor identity is presented as linked text rather than portraits, avatars, or initials artwork. Do not introduce person-image placeholders. Image alternative-text requirements apply to article photography, charts, illustrations, and the optional publication logo.
 
 Before an article is published, its editor must confirm:
 

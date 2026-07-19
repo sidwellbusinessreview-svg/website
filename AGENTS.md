@@ -21,8 +21,28 @@ This is the Sidwell Business Review Phase 1 website. It uses Next.js App Router,
 - Public Sanity clients must never include tokens. Draft/read tokens are server-only and must not be imported by client components or `sanity.config.ts`.
 - Maintain the typed block model in `src/content/types.ts` when adding article formats.
 - Reuse existing components before creating route-specific duplicates.
+- Custom array inputs must replace, not coexist with, the default insertion UI. There must be one authoritative creation path. Never persist placeholder array members before explicit confirmation.
+- When replacing a custom Studio component, delete the prior implementation and its registration after migration. Do not layer a second control over the default control.
 - Keep `SiteLogo` replaceable so an image logo can be introduced later.
+- Contributor identity is text-only. The site does not store or display Contributor portraits, avatars, or initials artwork. Article bylines link to text-only Contributor profile pages.
 - Do not change Next.js, React, TypeScript, Tailwind, or other framework versions without recording the reason and consequences in `docs/DECISIONS.md`.
+- Custom Sanity inputs must treat form values as untrusted partial data. Never assume array members, references, or nested properties are complete. Validate and normalize values before use, and add regression tests for undefined, null, and incomplete values.
+
+### Schema-removal policy
+
+When removing or renaming a schema type, field, singleton, route, or relationship:
+
+1. Delete obsolete source files and registrations.
+2. Audit the raw dataset, including published and `drafts.*` documents.
+3. Export the dataset before destructive migration.
+4. Add a repeatable migration or cleanup script.
+5. Dry-run the migration.
+6. Apply it only after explicit approval.
+7. Regenerate the extracted schema and TypeGen output.
+8. Test that obsolete code and documents are absent.
+9. Update documentation and `PROJECT_STATUS.md`.
+
+Changing schema code does not change existing dataset documents. Never overwrite or alias an obsolete schema merely to hide migration problems. A compatibility layer requires an explicit documented reason and removal plan. Never silently cascade-delete published articles.
 
 ## Scope limits
 

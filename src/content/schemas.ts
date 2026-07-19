@@ -20,23 +20,6 @@ const imageFieldsSchema = z.object({
   credit: z.string().trim().min(1).max(300).optional(),
 });
 
-export const categoryNames = [
-  "Markets",
-  "Economics",
-  "Technology",
-  "Entrepreneurship",
-  "Policy",
-  "Campus",
-] as const;
-
-export const categoryNameSchema = z.enum(categoryNames);
-
-export const categorySchema = z.object({
-  slug: slugSchema,
-  name: categoryNameSchema,
-  description: z.string().trim().min(10).max(500),
-});
-
 const paragraphBlockSchema = z.object({
   type: z.literal("paragraph"),
   text: nonEmptyText,
@@ -116,19 +99,16 @@ export const articleSchema = z
     slug: slugSchema,
     title: z.string().trim().min(5).max(180),
     dek: z.string().trim().min(20).max(320),
-    category: categoryNameSchema,
-    tags: z.array(z.string().trim().min(1).max(60)).default([]),
-    authorSlugs: z.array(slugSchema).min(1).refine(
+    contributorSlugs: z.array(slugSchema).min(1).refine(
       (values) => new Set(values).size === values.length,
-      "authors must not be duplicated",
+      "contributors must not be duplicated",
     ),
-    issueSlug: slugSchema,
     publishedAt: publicationDateSchema,
     readTime: z.number().int().positive(),
     status: z.enum(["draft", "published"]).default("published"),
     pinned: z.boolean().default(false),
     featuredRank: z.number().int().positive().optional(),
-    featuredImage: imageFieldsSchema,
+    featuredImage: imageFieldsSchema.optional(),
     content: z.array(articleContentBlockSchema).min(1),
   })
   .superRefine((article, context) => {
@@ -141,30 +121,11 @@ export const articleSchema = z
     }
   });
 
-export const authorSchema = z.object({
+export const contributorSchema = z.object({
   slug: slugSchema,
   name: z.string().trim().min(1).max(100),
-  role: z.string().trim().min(1).max(100),
-  grade: z.string().trim().min(1).max(100),
-  bio: z.string().trim().min(20).max(1000),
-  initials: z.string().trim().min(1).max(4),
-});
-
-export const issueSchema = z.object({
-  slug: slugSchema,
-  title: z.string().trim().min(1).max(140),
-  number: z.number().int().positive(),
-  season: z.string().trim().min(1).max(30),
-  year: z.number().int().min(2000).max(2200),
-  description: z.string().trim().min(20).max(500),
-  editorNote: z.string().trim().min(20).max(2000),
-  articleSlugs: z.array(slugSchema).refine(
-    (values) => new Set(values).size === values.length,
-    "issue articles must not be duplicated",
-  ),
-  accent: z
-    .string()
-    .regex(/^#[0-9a-fA-F]{6}$/, "must be a six-digit hexadecimal color"),
+  role: z.string().trim().min(1).max(100).optional(),
+  grade: z.string().trim().min(1).max(100).optional(),
 });
 
 export const siteSettingsSchema = z.object({
@@ -207,8 +168,5 @@ export const siteSettingsSchema = z.object({
 export type ArticleContentBlock = z.infer<typeof articleContentBlockSchema>;
 export type Article = z.infer<typeof articleSchema>;
 export type ArticleInput = z.input<typeof articleSchema>;
-export type Author = z.infer<typeof authorSchema>;
-export type Category = z.infer<typeof categoryNameSchema>;
-export type CategoryRecord = z.infer<typeof categorySchema>;
-export type Issue = z.infer<typeof issueSchema>;
+export type Contributor = z.infer<typeof contributorSchema>;
 export type SiteSettings = z.infer<typeof siteSettingsSchema>;

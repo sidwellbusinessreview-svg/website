@@ -2,9 +2,6 @@ export type {
   Article,
   ArticleContentBlock,
   ArticleInput,
-  Author,
-  Category,
-  CategoryRecord,
-  Issue,
+  Contributor,
   SiteSettings,
 } from "./schemas";

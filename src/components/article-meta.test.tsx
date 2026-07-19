@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { Article, Author } from "@/content";
+import type { Article, Contributor } from "@/content";
 import { ArticleCard } from "./article-card";
 import { ArticleMeta } from "./article-meta";
 
@@ -8,10 +8,7 @@ const article: Article = {
   slug: "test-article",
   title: "A Test Article",
   dek: "A summary that does not require an optional subtitle.",
-  category: "Markets",
-  tags: [],
-  authorSlugs: ["maya-chen", "jonah-patel"],
-  issueSlug: "winter-2025",
+  contributorSlugs: ["maya-chen", "jonah-patel"],
   publishedAt: "2026-01-26",
   readTime: 5,
   status: "published",
@@ -23,22 +20,18 @@ const article: Article = {
   content: [{ type: "paragraph", text: "Body." }],
 };
 
-const authors: Author[] = [
+const authors: Contributor[] = [
   {
     slug: "maya-chen",
     name: "Maya Chen",
     role: "Editor in Chief",
     grade: "Class of 2026",
-    bio: "Test biography.",
-    initials: "MC",
   },
   {
     slug: "jonah-patel",
     name: "Jonah Patel",
     role: "Economics Editor",
     grade: "Class of 2027",
-    bio: "Test biography.",
-    initials: "JP",
   },
 ];
 
@@ -56,5 +49,11 @@ describe("article presentation", () => {
     expect(
       screen.getByText("A summary that does not require an optional subtitle."),
     ).toBeInTheDocument();
+  });
+
+  it("renders an article card safely without a featured image", () => {
+    render(<ArticleCard article={{ ...article, featuredImage: undefined }} authors={authors} />);
+    expect(screen.getByRole("heading", { name: "A Test Article" })).toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 });

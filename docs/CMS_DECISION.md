@@ -1,5 +1,7 @@
 # CMS decision and implementation design
 
+> **Phase 11C update (July 17, 2026):** Sanity remains the selected CMS, but ADR-014, ADR-015, and the current `CONTENT_MODEL.md` supersede this document's earlier issue/category/tag/author/biography/Masthead mapping. The launch model now uses Contributors, Articles, About with its staff roster, and Site Settings only. Later phases must follow the simplified contract.
+
 **Decision date:** July 17, 2026  
 **Decision:** Use Sanity Studio with Sanity Content Lake.  
 **Implementation status:** Designed, not yet installed. CMS packages and credentials begin in Phase 10 only after the policy and account gates below are complete.

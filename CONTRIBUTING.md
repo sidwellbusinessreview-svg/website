@@ -42,7 +42,7 @@ Make small commits with clear, imperative messages:
 ```text
 fix: prevent article image overflow
 docs: add account ownership guidance
-feat: add article category filtering
+feat: improve contributor archive filtering
 ```
 
 Never commit secrets, populated environment files, generated build output, test artifacts, or unrelated local changes.

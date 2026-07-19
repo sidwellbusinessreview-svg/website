@@ -27,9 +27,6 @@ export const siteConfig = {
   navigation: [
     { label: "Latest", href: "/latest" },
     { label: "Archive", href: "/archive" },
-    { label: "Issues", href: "/issues" },
-    { label: "Authors", href: "/authors" },
     { label: "About", href: "/about" },
-    { label: "Masthead", href: "/masthead" },
   ],
 } as const;

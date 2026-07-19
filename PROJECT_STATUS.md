@@ -1,5 +1,133 @@
 # Project status
 
+## Phase 11H final text-only Contributor identity
+
+- **Completed:** July 19, 2026
+- Finalized the project-wide rule that Contributor identity is text-only. Removed local initials data/schema support, the public Contributor identity component, About initials shapes, the Article-body Contributor sidebar, and every About portrait/portrait-alt schema, Studio, type, validation, and upload path.
+- Article pages now contain one identity location: the linked byline under the headline, in explicit byline order. Contributor profiles use a compact name/role/year header followed immediately by “Articles by …”. About staff uses linked text cards with role/year metadata and a clear absent-adviser state.
+- Preserved optional Article featured/inline images, publication logo assets, editorial image validation, and intentional image-free Article layouts.
+- Extended guarded obsolete-field cleanup to dry-run nested About portrait fields without deleting assets. No dataset content was mutated, deleted, reset, or published.
+- The authenticated production dry run found no obsolete Contributor photo or About portrait fields, so no document cleanup is required. One unreferenced image asset remains informational and was not deleted or assumed to be a former staff portrait.
+
+### Phase 11H follow-up
+
+- Complete the authenticated Studio selector check after sign-in. Public visual and browser checks are automated; Phase 12 remains intentionally unstarted.
+
+## Phase 11G authoritative Contributor editing
+
+- **Completed:** July 19, 2026
+- Replaced the wrapped Sanity Contributor array with one authoritative custom Article byline input. It never calls `renderDefault`, exposes exactly one **Add contributors** path, and has explicit open, remove, and reorder controls without avatars or generic item menus.
+- Added a shared searchable confirmation modal showing name, role, graduation year, active/already-added state, temporary multi-selection, and selected count. Cancel, X, Escape, and outside click do not patch; confirmation creates only complete, uniquely keyed references and blocks duplicates.
+- Applied the same custom interaction to Editors-in-Chief, Editors, and Faculty Adviser. Phase 11H subsequently removed all portrait fields while preserving selection and displayed-role behavior.
+- Replaced the raw reassignment select with the shared searchable single-contributor picker and retained the separate destructive final confirmation.
+- Kept malformed-entry repair explicit and targeted. The dataset audit and repair plan remain dry-run-only; no record was automatically mutated, published, reset, or deleted.
+- Added focused pure and rendered-input regression tests and updated editor, workflow, testing, audit, and future-agent instructions.
+
+### Phase 11G follow-up
+
+- Complete the authenticated focused Studio test: Article and all three About selectors, modal cancellation paths, byline ordering, reassignment, narrow panes, and browser console.
+- Phase 12 remains intentionally unstarted and public routes still use local content through the provider boundary.
+
+## Phase 11F Contributor selector and Article browsing
+
+- **Completed:** July 18, 2026
+- Fixed the Contributor selector crash by treating every form value and array member as untrusted partial data before reading or normalizing a reference.
+- Added field-level incomplete-selection warnings and targeted invalid-entry removal without touching valid selections.
+- Confirmed selections now use `setIfMissing` plus an append-position insert in one `PatchEvent`; Cancel and X emit no patches, duplicates are prevented after draft/published ID normalization, and valid order is preserved.
+- Expanded Article panes with editorial metadata, optional thumbnails, image-free layouts, exact state badges, pinned badges, counts, search, four sort modes, loading/empty/error states, Retry, and New article controls.
+- Added explicit New contributor controls to Active, Archived, and All Contributor panes.
+- Explicitly disabled Sanity Releases so Structure remains the only Studio tool.
+- Added read-only malformed-Contributor auditing and a dry-run repair report. No dataset content was reset, repaired, deleted, or published.
+- The authenticated raw audit found no persisted incomplete Contributor selections in either draft or published Articles. The observed crash therefore came from a temporary incomplete Studio form value, not stored Article data; the generated repair plan was empty.
+- Added regression coverage for the observed `[undefined]` crash plus null, empty, incomplete, draft-prefixed, duplicate, mixed, add, cancel, remove, and reorder behavior.
+
+### Phase 11F follow-up
+
+- Complete the authenticated manual Studio sequence documented in the Phase 11F handoff, including selector X/Cancel, duplicate prevention, every Article pane’s search/sort behavior, creation buttons, narrow widths, and browser console review.
+- Apply no persisted-data repair without reviewing the generated dry-run report and receiving explicit approval.
+- Phase 12 remains intentionally unstarted; public pages still use local content through the provider boundary.
+
+## Phase 11E editorial UI and schema simplification
+
+- **Completed:** July 18, 2026
+- Rebuilt permanent deletion and unpublishing confirmations with centered Sanity UI dialogs, explicit cancellation, destructive labels, loading/error states, and a final contributor-reassignment confirmation.
+- Contributor reassignment preserves byline order, removes duplicates, patches draft/published references, rechecks incoming references, and deletes only after resolution.
+- Added polished Studio article-state and incoming-reference cards, contributor availability badges, exact `Published with unpublished changes` wording, and direct New article creation.
+- Reduced Contributor to name, slug, role, graduation year, and active state; removed the legacy photo field and kept biography absent.
+- Split About staff entries by role. Phase 11H subsequently removed the temporary Editor-in-Chief portrait fields.
+- Made article featured images optional and made public article/card/metadata rendering safe when they are absent.
+- Added JPEG/PNG/WebP schema validation by MIME type and filename extension; PDFs, SVGs, GIFs, and mismatched extensions are rejected.
+- Simplified article summary, Site Settings description, homepage tagline, and logo fallback behavior.
+- Added a guarded, dry-run-first obsolete-field cleanup command; no current test content was reset or deleted.
+- Read-only production-dataset audit found 3 retained test documents and no legacy types, dangling references, obsolete fields, or orphaned assets; the obsolete-field cleanup dry run planned zero changes.
+- Redesigned public contributor headers and About staff cards without contributor photos or biographies.
+
+### Phase 11E follow-up
+
+- Manually verify all Studio dialogs, Escape/X cancellation, contributor selection, status badges, media rejection, and narrow-width behavior using an authenticated editor session.
+- Studio loaded the configured project and displayed Sanity authentication, but the verification browser was not signed in; authenticated editor interactions were therefore not exercised by Codex.
+- Review the obsolete-field dry-run report before any authenticated cleanup apply operation.
+- Phase 12 remains intentionally unstarted; public pages still use local content through the provider boundary.
+
+## Phase 11D deletion safety and legacy removal
+
+- **Completed:** July 17, 2026
+- Confirmed the registered Sanity documents are only Article, Contributor, About (`staticPage`), and Site Settings; obsolete editorial schema types remain physically absent.
+- Added raw dataset auditing, export-gated legacy cleanup, and development editorial-reset commands. Cleanup/reset are dry-run by default, preserve assets, require exact targets and typed confirmations to apply, and write ignored timestamped reports.
+- Added active/archived Contributor lifecycle, filtered selection, live incoming-reference presentation, reference-aware Contributor deletion/reassignment, and explicit draft/published Article deletion actions.
+- Added the permanent schema-removal policy and documented every remaining reference relationship.
+- Public routes remain on local content; no destructive command was applied.
+
+## Phase 11C editorial state and About consolidation
+
+- **Completed:** July 17, 2026
+- Article lists and badges now distinguish Draft only, Published, and Published with changes from the actual raw draft/published document pair; Pinned remains a separate filter.
+- Article actions use Publish, Publish changes, Discard unpublished changes, and confirmation-protected Unpublish article. Duplicate is removed for Articles, Contributors, About, and Site Settings.
+- Consolidated Editors-in-Chief, Editors, and Faculty Adviser into About and retired the Masthead schema, Studio item, public route, navigation, footer link, and sitemap entry.
+- Removed Contributor biography data and presentation; profile headers now use a restrained responsive layout.
+- Public article content remains on the local provider. No CMS package, secret, dataset record, or public provider behavior changed.
+
+### Phase 11C follow-up
+
+- Authenticated Studio verification is still required to exercise every action against a safe development-dataset test record and inspect unseen legacy drafts.
+- Export and review any legacy Masthead, author, or article drafts before migration or deletion. The anonymous published query found no editorial document requiring automatic migration.
+- Phase 12 remains responsible for the Sanity adapter and provider parity; it must not bypass the content-access boundary.
+
+## Phase 11B simplified editor model
+
+- **Completed:** July 17, 2026
+- **Historical note:** Phase 11C supersedes the separate Masthead and biography-related presentation described in this section.
+- Replaced the CMS Author concept with Contributor; only name and slug are required, while role and graduation year are optional. Phase 11H made identity permanently text-only.
+- Added a separate singleton Masthead with Editors-in-Chief, Editors, and Faculty Adviser sections.
+- Simplified articles to date-only publication, contributor references, separate featured-image metadata, structured body, homepage placement, and optional advanced SEO overrides.
+- Removed issue, category, and tag schemas, article fields, Studio sections, public issue routes, discovery filters, and homepage issue module.
+- Simplified Studio navigation and removed Vision; Studio now renders without public site chrome.
+- Preserved `/authors/[slug]`, local `authorSlugs`, and compatibility access aliases while introducing contributor-first APIs and an explicit future Sanity adapter.
+- The published dataset inspection found one image asset and no editorial documents. No dataset content was deleted or mutated; authenticated draft inspection remains a manual requirement.
+
+### Phase 11B follow-up
+
+- Before Phase 12, inspect authenticated drafts and migrate any legacy author/article/issue/category/tag records after export. Datetime-to-date conversion needs timezone review.
+- Phase 12 must implement GROQ projections and the Sanity-domain adapter; public pages remain on local content.
+- Consider a simple optional section or edition label only after editors demonstrate a real discovery need.
+
+## Phase 11 Sanity editor model
+
+- **Completed:** July 17, 2026
+- Added production schemas for site settings, authors, issues, categories, tags, articles, controlled static pages, SEO, editorial images, links, pull quotes, callouts, dividers, and Portable Text.
+- Added grouped editor fields, required/conditional validation, character guidance, slug generation, image metadata rules, article preview preparation, lifecycle ordering, and targeted schema tests.
+- Organized Studio into editorial sections and useful article/issue filters, with one fixed Site Settings document and guarded singleton creation/deletion actions.
+- Added Sanity schema extraction and TypeGen scripts, checked-in generated schema/types, and an explicit generated-record-to-domain adapter contract.
+- Documented the editor model, draft workflow, image/link policy, safe manual development seeding, and screenshot placeholders in `docs/CMS_EDITOR_MODEL.md`.
+- Public routes remain on validated local content; no CMS provider cutover or public behavior change occurred.
+
+### Phase 11 follow-up
+
+- Phase 12 must add GROQ projections and implement/test the adapter contract before enabling Sanity reads.
+- Dataset-wide rules such as exactly one pinned lead and one current issue require query-aware validation or publishing workflow checks in a later phase.
+- Replace documentation screenshot placeholders after editor training content and approved records exist.
+- Real content, student profiles, accounts, and production publication remain subject to the school approval and ownership gates recorded in the CMS decision.
+
 ## Phase 10 Sanity foundation
 
 - **Completed:** July 17, 2026
@@ -155,7 +283,7 @@
 - Add article status, updated date, featured rank, SEO overrides, and timezone-aware publication timestamps.
 - Filter all public access functions to published, eligible content before CMS launch.
 - Replace embedded image URLs with reusable image assets, dimensions, rights notes, and contextual alt/caption/credit data.
-- Add author portraits, active/alumni state, and masthead display ordering.
+- Refine active/alumni state and staff display ordering only if editorial need emerges; Contributor portraits are permanently out of scope.
 - Add issue publication status/date, controlled accent tokens, and optional cover assets.
 - Decide whether About and Masthead become CMS-managed static pages.
 - Add stable body-block IDs and safe rich-text marks.

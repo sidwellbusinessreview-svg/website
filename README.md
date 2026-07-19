@@ -62,7 +62,7 @@ Never assume that saving a file updates GitHub or production. Those are separate
 ## Important folders
 
 - `src/app/` contains public pages, the root layout, global styles, and the custom not-found page.
-- `src/components/` contains reusable publication components such as the header, footer, logo, article cards, metadata, author information, issue cards, captions, and article-body renderer.
+- `src/components/` contains reusable publication components such as the header, footer, logo, article cards, metadata, contributor information, captions, and article-body renderer.
 - `src/content/` contains typed sample content and the content-access layer.
 - `src/sanity/` contains environment validation, the token-free public client, health check, Studio setup state, and the future schema registration point.
 - `src/config/site.ts` contains the publication name, description, tagline, navigation, and contact information.
@@ -71,7 +71,7 @@ Never assume that saving a file updates GitHub or production. Those are separate
 
 ## Changing content
 
-- Sample articles, authors, and issues: `src/content/data.ts`
+- Sample articles and contributors: `src/content/data.ts`
 - Content types and supported article blocks: `src/content/types.ts`
 - Content-access functions: `src/content/index.ts`
 - Publication name and site settings: `src/config/site.ts`

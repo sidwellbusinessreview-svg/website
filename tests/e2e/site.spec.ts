@@ -17,12 +17,21 @@ test("homepage loads and main navigation works", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "The New Economics of School Lunch", level: 1 }),
   ).toBeVisible();
+  const primary = page.getByRole("navigation", { name: "Primary navigation" });
+  await expect(primary.getByRole("link", { name: "Issues" })).toHaveCount(0);
+  await expect(primary.getByRole("link", { name: "Authors" })).toHaveCount(0);
 
   await page.getByRole("navigation", { name: "Primary navigation" })
     .getByRole("link", { name: "Latest" })
     .click();
   await expect(page).toHaveURL(/\/latest$/);
   await expect(page.getByRole("heading", { name: "Latest articles" })).toBeVisible();
+});
+
+test("removed issue routes use not-found behavior", async ({ page }) => {
+  const response = await page.goto("/issues/spring-2026");
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole("heading", { name: "This story is not in our archive." })).toBeVisible();
 });
 
 test("article route loads", async ({ page }) => {
@@ -32,12 +41,9 @@ test("article route loads", async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByRole("link", { name: "Maya Chen" }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Jonah Patel" }).first()).toBeVisible();
-});
-
-test("issue route loads", async ({ page }) => {
-  await page.goto("/issues/spring-2026");
-  await expect(page.getByRole("heading", { name: "The Resilience Issue" })).toBeVisible();
-  await expect(page.getByText("From the editors")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Maya Chen" })).toHaveCount(1);
+  await expect(page.locator(".article-authors")).toHaveCount(0);
+  await expect(page.getByRole("complementary", { name: "Contributors" })).toHaveCount(0);
 });
 
 test("author route loads", async ({ page }) => {
@@ -48,15 +54,32 @@ test("author route loads", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("about and masthead routes load", async ({ page }) => {
+test("contributor profile is restrained and responsive without biography", async ({ page }) => {
+  for (const width of [375, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/authors/maya-chen");
+    await expect(page.getByRole("heading", { name: "Articles by Maya Chen" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Maya Chen", level: 1 })).toBeVisible();
+    await expect(page.locator(".contributor-profile-header img")).toHaveCount(0);
+    await expect(page.locator(".contributor-profile-header")).not.toContainText("MC");
+    await expect(page.locator(".contributor-profile-header")).not.toContainText("covers markets");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)).toBe(false);
+  }
+});
+
+test("About contains staff sections and Masthead is removed", async ({ page }) => {
   await page.goto("/about");
   await expect(
     page.getByRole("heading", { name: "Serious curiosity, clearly expressed." }),
   ).toBeVisible();
 
-  await page.goto("/masthead");
-  await expect(page.getByRole("heading", { name: "Masthead" })).toBeVisible();
-  await expect(page.getByText("Faculty adviser")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Editors-in-Chief" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Editors", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Faculty Adviser" })).toBeVisible();
+  await expect(page.locator(".about-staff-grid img")).toHaveCount(0);
+  await expect(page.locator(".about-staff-avatar, .author-avatar")).toHaveCount(0);
+  const response = await page.goto("/masthead");
+  expect(response?.status()).toBe(404);
 });
 
 for (const studioRoute of ["/studio", "/studio/structure"] as const) {
@@ -69,6 +92,8 @@ for (const studioRoute of ["/studio", "/studio/structure"] as const) {
     const robots = await page.locator('meta[name="robots"]').getAttribute("content");
     expect(robots).toContain("noindex");
     await expect(page.locator("html")).not.toContainText("setuprequired");
+    await expect(page.locator("header.site-header")).toHaveCount(0);
+    await expect(page.locator("footer.site-footer")).toHaveCount(0);
   });
 }
 
@@ -76,9 +101,9 @@ test("search route loads", async ({ page }) => {
   await page.goto("/search");
   await expect(page.getByRole("heading", { name: "Search" })).toBeVisible();
   const search = page.getByLabel("Search the Review");
-  await search.fill("Federal Reserve");
+  await search.fill("Maya Chen");
   await search.press("Enter");
-  await expect(page).toHaveURL(/\/search\?q=Federal\+Reserve$/);
+  await expect(page).toHaveURL(/\/search\?q=Maya\+Chen$/);
   await expect(
     page.getByRole("heading", { name: "Reading the Fed Without Reading Tea Leaves" }),
   ).toBeVisible();
@@ -93,9 +118,9 @@ test("search displays a no-results state", async ({ page }) => {
 
 test("archive filters published articles", async ({ page }) => {
   await page.goto("/archive");
-  await page.getByLabel("Category").selectOption("Markets");
+  await page.getByLabel("Contributor").selectOption("maya-chen");
   await page.getByRole("button", { name: "Apply filters" }).click();
-  await expect(page).toHaveURL(/category=Markets/);
+  await expect(page).toHaveURL(/contributor=maya-chen/);
   await expect(
     page.getByRole("heading", { name: "Reading the Fed Without Reading Tea Leaves" }),
   ).toBeVisible();
@@ -155,7 +180,7 @@ for (const viewport of viewports) {
   });
 }
 
-test("captures targeted homepage and article screenshots", async ({
+test("captures targeted editorial screenshots", async ({
   page,
 }, testInfo) => {
   const captures = [
@@ -173,6 +198,10 @@ test("captures targeted homepage and article screenshots", async ({
       width: 375,
       height: 812,
     },
+    { route: "/authors/maya-chen", name: "contributor-desktop", width: 1440, height: 1000 },
+    { route: "/authors/maya-chen", name: "contributor-mobile", width: 375, height: 812 },
+    { route: "/about", name: "about-desktop", width: 1440, height: 1000 },
+    { route: "/about", name: "about-mobile", width: 375, height: 812 },
   ];
 
   for (const capture of captures) {
@@ -231,11 +260,9 @@ test("article print layout keeps editorial content and hides navigation", async 
 for (const route of [
   "/",
   "/articles/the-new-economics-of-school-lunch",
-  "/search?q=Federal%20Reserve",
-  "/issues/spring-2026",
+  "/search?q=Maya%20Chen",
   "/authors/maya-chen",
   "/about",
-  "/masthead",
   "/archive",
 ]) {
   test(`has no automated axe violations on ${route}`, async ({ page }) => {

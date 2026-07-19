@@ -1,4 +1,4 @@
-import type { Article, ArticleContentBlock, Author, Issue } from "./types";
+import type { Article, ArticleContentBlock, Contributor } from "./types";
 
 export interface SearchResult {
   article: Article;
@@ -39,31 +39,25 @@ function occurrences(value: string, query: string): number {
 
 export function searchPublicArticles(
   articles: Article[],
-  authors: Author[],
-  issues: Issue[],
+  contributors: Contributor[],
   rawQuery: string,
 ): SearchResult[] {
   const query = rawQuery.trim().toLocaleLowerCase();
   if (!query) return [];
 
-  const authorBySlug = new Map(authors.map((author) => [author.slug, author]));
-  const issueBySlug = new Map(issues.map((issue) => [issue.slug, issue]));
+  const contributorBySlug = new Map(contributors.map((contributor) => [contributor.slug, contributor]));
 
   return articles
     .filter((article) => article.status === "published")
     .map((article) => {
-      const authorText = article.authorSlugs
-        .map((slug) => authorBySlug.get(slug)?.name ?? "")
+      const contributorText = article.contributorSlugs
+        .map((slug) => contributorBySlug.get(slug)?.name ?? "")
         .join(" ")
         .toLocaleLowerCase();
-      const issue = issueBySlug.get(article.issueSlug);
       const fields = [
         [article.title, 12],
         [article.dek, 7],
-        [authorText, 6],
-        [article.category, 5],
-        [article.tags.join(" "), 5],
-        [`${issue?.title ?? ""} ${issue?.season ?? ""} ${issue?.year ?? ""}`, 4],
+        [contributorText, 6],
         [article.content.map(blockText).join(" "), 1],
       ] as const;
       const score = fields.reduce(

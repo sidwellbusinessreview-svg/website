@@ -13,7 +13,6 @@ export function SiteFooter() {
         <div>
           <p className="eyebrow">Publication</p>
           <Link href="/about">About</Link>
-          <Link href="/masthead">Masthead</Link>
           <Link href="/archive">Archive</Link>
         </div>
         <div>

@@ -1,4 +1,4 @@
-import type { ArticleInput, Author, CategoryRecord, Issue } from "./types";
+import type { ArticleInput, Contributor } from "./types";
 
 const photos = {
   city: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1800&q=85",
@@ -11,48 +11,31 @@ const photos = {
   street: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1800&q=85",
 };
 
-export const authors: Author[] = [
+export const contributors: Contributor[] = [
   {
     slug: "maya-chen",
     name: "Maya Chen",
     role: "Editor in Chief",
     grade: "Class of 2026",
-    initials: "MC",
-    bio: "Maya covers markets, corporate strategy, and the choices institutions make under pressure.",
   },
   {
     slug: "jonah-patel",
     name: "Jonah Patel",
     role: "Economics Editor",
     grade: "Class of 2027",
-    initials: "JP",
-    bio: "Jonah writes about public policy, labor economics, and the Washington region.",
   },
   {
     slug: "lena-brooks",
     name: "Lena Brooks",
     role: "Technology Editor",
     grade: "Class of 2026",
-    initials: "LB",
-    bio: "Lena studies emerging technology, digital culture, and the economics behind innovation.",
   },
   {
     slug: "samir-okafor",
     name: "Samir Okafor",
     role: "Staff Writer",
     grade: "Class of 2028",
-    initials: "SO",
-    bio: "Samir reports on entrepreneurship, small business, and student-led ventures.",
   },
-];
-
-export const categories: CategoryRecord[] = [
-  { slug: "markets", name: "Markets", description: "Markets, investing, and finance." },
-  { slug: "economics", name: "Economics", description: "Economic systems, labor, and public choices." },
-  { slug: "technology", name: "Technology", description: "Technology, innovation, and digital business." },
-  { slug: "entrepreneurship", name: "Entrepreneurship", description: "Founders, ventures, and small businesses." },
-  { slug: "policy", name: "Policy", description: "Public policy and institutional decision-making." },
-  { slug: "campus", name: "Campus", description: "Business and economics within the school community." },
 ];
 
 const opening = [
@@ -76,10 +59,7 @@ export const articles: ArticleInput[] = [
     slug: "the-new-economics-of-school-lunch",
     title: "The New Economics of School Lunch",
     dek: "Rising costs, tighter budgets, and changing tastes are reshaping one of the school day’s most familiar institutions.",
-    category: "Campus",
-    tags: ["school lunch", "operations", "food systems"],
-    authorSlugs: ["maya-chen", "jonah-patel"],
-    issueSlug: "spring-2026",
+    contributorSlugs: ["maya-chen", "jonah-patel"],
     publishedAt: "2026-05-18",
     readTime: 8,
     pinned: true,
@@ -136,10 +116,7 @@ export const articles: ArticleInput[] = [
     title:
       "Semiconductors and the Geography of Risk in a World That Can No Longer Take Frictionless Trade for Granted",
     dek: "The chip supply chain reveals how efficiency, national security, and resilience now compete for corporate attention.",
-    category: "Technology",
-    tags: ["semiconductors", "supply chains", "industrial policy"],
-    authorSlugs: ["lena-brooks"],
-    issueSlug: "spring-2026",
+    contributorSlugs: ["lena-brooks"],
     publishedAt: "2026-05-11",
     readTime: 13,
     featuredImage: {
@@ -200,10 +177,7 @@ export const articles: ArticleInput[] = [
     slug: "small-businesses-big-rates",
     title: "Small Businesses, Big Rates",
     dek: "For local entrepreneurs, higher borrowing costs turn ordinary decisions into consequential bets.",
-    category: "Entrepreneurship",
-    tags: ["small business", "interest rates", "credit"],
-    authorSlugs: ["samir-okafor"],
-    issueSlug: "spring-2026",
+    contributorSlugs: ["samir-okafor"],
     publishedAt: "2026-04-28",
     readTime: 6,
     featuredImage: {
@@ -228,10 +202,7 @@ export const articles: ArticleInput[] = [
     slug: "what-metro-ridership-can-tell-us",
     title: "What Metro Ridership Can Tell Us About Washington’s New Workweek",
     dek: "Transit patterns provide a surprisingly clear view of hybrid work, downtown demand, and a region still finding its rhythm.",
-    category: "Economics",
-    tags: ["Metro", "hybrid work", "Washington"],
-    authorSlugs: ["jonah-patel"],
-    issueSlug: "winter-2025",
+    contributorSlugs: ["jonah-patel"],
     publishedAt: "2026-02-12",
     readTime: 7,
     featuredImage: {
@@ -272,10 +243,7 @@ export const articles: ArticleInput[] = [
     slug: "reading-the-fed",
     title: "Reading the Fed Without Reading Tea Leaves",
     dek: "A practical guide to separating central-bank signals from market noise.",
-    category: "Markets",
-    tags: ["Federal Reserve", "monetary policy", "investing"],
-    authorSlugs: ["maya-chen"],
-    issueSlug: "winter-2025",
+    contributorSlugs: ["maya-chen"],
     publishedAt: "2026-01-26",
     readTime: 5,
     featuredImage: {
@@ -300,10 +268,7 @@ export const articles: ArticleInput[] = [
     slug: "solar-club-capital-budget",
     title: "How a Student Solar Proposal Became a Capital-Budget Lesson",
     dek: "A campus sustainability idea shows why payback periods are only the beginning of an investment case.",
-    category: "Policy",
-    tags: ["solar energy", "capital budgeting", "campus"],
-    authorSlugs: ["lena-brooks"],
-    issueSlug: "winter-2025",
+    contributorSlugs: ["lena-brooks"],
     publishedAt: "2025-12-08",
     readTime: 6,
     featuredImage: {
@@ -327,42 +292,5 @@ export const articles: ArticleInput[] = [
         ],
       },
     ],
-  },
-];
-
-export const issues: Issue[] = [
-  {
-    slug: "spring-2026",
-    title: "The Resilience Issue",
-    number: 2,
-    season: "Spring",
-    year: 2026,
-    description:
-      "How institutions, businesses, and communities adapt when the assumptions beneath them change.",
-    editorNote:
-      "This issue looks closely at systems under pressure—from global chip networks to the economics of a school lunch.",
-    articleSlugs: [
-      "the-new-economics-of-school-lunch",
-      "semiconductors-and-the-geography-of-risk",
-      "small-businesses-big-rates",
-    ],
-    accent: "#a43b2b",
-  },
-  {
-    slug: "winter-2025",
-    title: "Signals",
-    number: 1,
-    season: "Winter",
-    year: 2025,
-    description:
-      "Reading the indicators that shape markets, cities, and long-term investment.",
-    editorNote:
-      "Our inaugural issue asks how careful observers distinguish meaningful signals from ordinary noise.",
-    articleSlugs: [
-      "what-metro-ridership-can-tell-us",
-      "reading-the-fed",
-      "solar-club-capital-budget",
-    ],
-    accent: "#234e70",
   },
 ];

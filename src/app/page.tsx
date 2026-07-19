@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
-import { IssueCard } from "@/components/issue-card";
-import { getArticles, getAuthors, getCurrentIssue, selectLeadArticle } from "@/content";
+import { getArticles, getContributors, selectLeadArticle } from "@/content";
 
 export default async function HomePage() {
-  const [articles, authors, currentIssue] = await Promise.all([
+  const [articles, contributors] = await Promise.all([
     getArticles(),
-    getAuthors(),
-    getCurrentIssue(),
+    getContributors(),
   ]);
   const lead = selectLeadArticle(articles);
   if (!lead) {
@@ -26,13 +24,11 @@ export default async function HomePage() {
       <section className="container hero-section">
         <div className="section-heading">
           <p className="eyebrow">
-            {currentIssue
-              ? `${currentIssue.season} ${currentIssue.year} · Issue ${currentIssue.number}`
-              : "Latest reporting"}
+            Latest reporting
           </p>
           <span>Independent student analysis from Washington, D.C.</span>
         </div>
-        <ArticleCard article={lead} authors={authors.filter((a) => lead.authorSlugs.includes(a.slug))} featured headingLevel={1} />
+        <ArticleCard article={lead} authors={contributors.filter((a) => lead.contributorSlugs.includes(a.slug))} featured headingLevel={1} />
       </section>
       <section className="container section">
         <div className="section-title-row">
@@ -41,7 +37,7 @@ export default async function HomePage() {
         </div>
         <div className="article-grid">
           {remaining.slice(0, 3).map((article) => (
-            <ArticleCard key={article.slug} article={article} authors={authors.filter((a) => article.authorSlugs.includes(a.slug))} />
+            <ArticleCard key={article.slug} article={article} authors={contributors.filter((a) => article.contributorSlugs.includes(a.slug))} />
           ))}
         </div>
       </section>
@@ -55,17 +51,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-      {currentIssue && (
-        <section className="container section">
-          <div className="section-title-row">
-            <h2 className="section-title">Current issue</h2>
-            <Link className="text-link" href="/archive">
-              Browse the archive <span aria-hidden="true">→</span>
-            </Link>
-          </div>
-          <IssueCard issue={currentIssue} headingLevel={3} />
-        </section>
-      )}
     </>
   );
 }

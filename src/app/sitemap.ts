@@ -1,21 +1,17 @@
 import type { MetadataRoute } from "next";
-import { getArticles, getAuthors, getIssues } from "@/content";
+import { getArticles, getContributors } from "@/content";
 import { absoluteUrl } from "@/lib/metadata";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [articles, authors, issues] = await Promise.all([
+  const [articles, authors] = await Promise.all([
     getArticles(),
-    getAuthors(),
-    getIssues(),
+    getContributors(),
   ]);
   const staticRoutes = [
     "",
     "/latest",
     "/archive",
-    "/issues",
-    "/authors",
     "/about",
-    "/masthead",
   ];
 
   return [
@@ -24,7 +20,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: absoluteUrl(`/articles/${article.slug}`),
       lastModified: article.publishedAt,
     })),
-    ...issues.map((issue) => ({ url: absoluteUrl(`/issues/${issue.slug}`) })),
     ...authors.map((author) => ({ url: absoluteUrl(`/authors/${author.slug}`) })),
   ];
 }

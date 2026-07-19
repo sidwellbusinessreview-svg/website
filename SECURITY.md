@@ -21,7 +21,7 @@ If a secret is exposed:
 
 ## Student privacy
 
-Collect and publish the minimum student personal information necessary for the Review. Avoid personal phone numbers, personal email addresses, home addresses, schedules, private school records, and unnecessary identifying metadata. Use publication-managed contact channels whenever possible, obtain appropriate permission for biographies and photographs, and follow school policy for student data.
+Collect and publish the minimum student personal information necessary for the Review. Avoid personal phone numbers, personal email addresses, home addresses, schedules, private school records, and unnecessary identifying metadata. Use publication-managed contact channels whenever possible, obtain appropriate permission for profile details and photographs, and follow school policy for student data.
 
 ## Supported code
 

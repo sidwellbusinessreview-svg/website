@@ -1,122 +1,27 @@
 # Content authoring rules
 
-These rules apply to local sample content now and should become field descriptions and validation guidance in the future CMS.
+## Contributor identity
+
+Contributor identity is text-only. Do not upload or store Contributor portraits, avatars, initials artwork, or other identity images. Article bylines contain linked names in editorial order, Contributor profiles contain name plus optional role/year, and About staff entries contain linked names plus optional displayed role/year. Article photography and publication-logo assets follow the separate editorial-image rules below.
 
 ## Required article metadata
 
-Every article needs:
+Every article needs a unique slug, clear title, summary of no more than 300 characters, at least one contributor, valid `YYYY-MM-DD` publication date, reading time in local mode, and non-empty structured body. A featured image is optional; when one is present it needs meaningful alt text. Publish the contributor record before publishing an article that references it. Preserve contributor byline order and never select the same person twice.
 
-- A unique lowercase slug using words separated by hyphens
-- A clear headline between 5 and 180 characters
-- A summary/deck between 20 and 320 characters
-- At least one valid author
-- One valid category
-- A valid issue reference during the current local-content phase
-- A real calendar publication date in `YYYY-MM-DD` format
-- A positive estimated reading time
-- A featured image with meaningful alt text
-- At least one valid structured body block
-- A status of `draft` or `published`
+Version 1 has no categories, tags, or issues. Do not encode these concepts in titles or recreate them as ad hoc reference documents.
 
-Published articles cannot use future publication dates. Draft articles are excluded from public article access functions.
+## Images
 
-## Headlines and summaries
+Upload JPEG, PNG, or WebP images only. PDF, SVG, GIF, and other formats are not accepted in editorial image fields.
 
-Headlines should be specific, accurate, and readable without relying on the image. Long headlines are supported, but editors should remove unnecessary clauses.
+Alt text describes relevant visible information and purpose; it is not a caption. Captions provide context. Credits name the creator/source and follow rights requirements. Confirm permission before publication. Inline images follow the same rules. Text-heavy charts also need an accessible summary.
 
-The summary should explain the article’s question, finding, or significance. It should add information rather than repeat the headline.
+## Links and structure
 
-## Authors
+Use descriptive link labels and safe HTTP(S) or approved internal destinations. Never add raw HTML or `javascript:` URLs. Start body sections at H2 and use H3 only beneath an H2. Use lists for genuinely parallel items, pull quotes for exact excerpts already present in the story, and callouts for concise supporting context rather than essential narrative.
 
-Use an existing author slug and preserve intentional byline order. Do not list the same author twice. Add or update the author record before referencing it from an article.
+## Dates, placement, and SEO
 
-Do not publish personal student email addresses, phone numbers, schedules, or other private information.
+Use the intended public calendar date with no time. Same-date stories sort by slug, so slugs must remain stable. Only one published story should be pinned; featured order is allowed only for pinned stories. Most editors should leave Advanced / SEO overrides blank because title, summary, optional featured image, and canonical URL are automatic.
 
-## Categories and issues
-
-Use an existing controlled category. Do not invent a spelling variation in an article record. During the current phase, every article must reference an existing issue, and issue article lists must reference existing article slugs.
-
-## Image alt text
-
-Alt text is required for every featured and inline image in the current model.
-
-Good alt text:
-
-- Describes the relevant visible content
-- Is concise but specific
-- Reflects why the image appears in this article
-- Does not begin with “image of” or “photo of” unless the medium matters
-
-Do not use a filename, photographer credit, or caption as alt text. If decorative-image support is introduced later, it must use an explicit decorative flag and empty alt text rather than simply omitting the field.
-
-## Captions
-
-Captions are optional and belong to a specific image. They provide context a reader cannot get from alt text alone, such as why a scene matters or how it relates to the article.
-
-Do not create unattached caption blocks. A caption without an image is invalid.
-
-## Photo credits
-
-Credits are optional in the schema but required whenever the source, license, permission, or publication policy requires attribution. Use a consistent format such as:
-
-```text
-Photo by Name / Source
-```
-
-Confirm publication rights before adding an image. A credit does not itself establish permission.
-
-## Links
-
-- Use `https` whenever available.
-- Link to the most direct and authoritative source.
-- Write meaningful labels that make sense out of context.
-- Do not use labels such as “click here.”
-- Confirm the destination is appropriate and still available.
-- Never place raw HTML, scripts, or event handlers in article content.
-
-The current standalone link block opens external links in a new tab. Future rich-text links should distinguish internal references from external URLs.
-
-## Pull quotes
-
-Use pull quotes sparingly to emphasize an important sentence or idea already supported by the article. Do not introduce a new claim only in a pull quote. Avoid using multiple pull quotes close together.
-
-## Callout boxes
-
-Use a callout for concise context that benefits from separation, such as:
-
-- A definition
-- A key tradeoff
-- A short “what to watch” note
-- A compact methodological explanation
-
-Do not place the main argument or several ordinary paragraphs inside callouts. A callout body is required; its title is optional.
-
-## Heading hierarchy
-
-- Article titles are the page’s level-one heading and are not body blocks.
-- Use level-two headings for major article sections.
-- Use level-three headings only within the preceding level-two section.
-- Do not skip directly to level three.
-- Headings should describe the following section and should not be used only for visual styling.
-
-## Lists, quotes, and dividers
-
-Use bulleted lists when sequence does not matter and numbered lists when order or steps matter. Lists require at least one non-empty item.
-
-Block quotes must reproduce or accurately represent sourced words. Add attribution when the source is not unmistakable from nearby text.
-
-Use dividers only for a meaningful transition. Do not stack dividers or use them as substitutes for headings.
-
-## Pinned and featured articles
-
-Only one published article may be pinned as the homepage lead. A featured rank must be a positive integer and may appear only on a pinned article. When ranking support expands beyond one lead, the editorial rules and validator must be updated together.
-
-## Before submitting content
-
-Run:
-
-```bash
-npm run validate:content
-```
-
-The command reports field paths and relationship problems. Fix every error before opening a pull request or publishing through a future CMS.
+Run `npm run validate:content` after local content edits and `npm run sanity:typegen` after CMS schema changes.

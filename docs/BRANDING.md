@@ -1,5 +1,7 @@
 # Branding guide
 
+Contributor identity is deliberately outside the logo and illustration system: it is always text-only. Do not add portraits, avatars, initials marks, or geometric identity placeholders. The optional image logo is publication branding and remains supported.
+
 The Sidwell Business Review brand is intentionally centralized so future student teams can update it without searching through page components.
 
 ## Publication text
@@ -56,7 +58,7 @@ Important tokens include:
 - `--color-focus`
 - `--color-footer`
 
-Do not replace token usage with repeated hexadecimal values in components. After changing colors, run the Playwright axe tests and manually inspect links, focus outlines, captions, disabled controls, issue covers, and the dark purpose section.
+Do not replace token usage with repeated hexadecimal values in components. After changing colors, run the Playwright axe tests and manually inspect links, focus outlines, captions, disabled controls, article images, and the dark purpose section.
 
 ## Changing fonts
 

@@ -1,25 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AuthorInfo } from "@/components/author-info";
-import { getAuthors } from "@/content";
+import { getContributors } from "@/content";
 import { createPageMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Authors",
-  description: "Meet the student writers and editors of Sidwell Business Review.",
+  title: "Contributors",
+  description: "Contributor profiles for Sidwell Business Review.",
   path: "/authors",
 });
 
 export default async function AuthorsPage() {
-  const authors = await getAuthors();
+  const authors = await getContributors();
   return (
     <div className="container page-shell">
-      <header className="page-header"><p className="eyebrow">Our writers</p><h1>Authors</h1><p>Meet the students reporting, editing, and analyzing the business world.</p></header>
+      <header className="page-header"><p className="eyebrow">Bylines</p><h1>Contributors</h1><p>Student writers whose work appears in the Review.</p></header>
       <div className="author-grid">
         {authors.map((author) => (
           <article className="author-card" key={author.slug}>
-            <AuthorInfo author={author} linked={false} />
-            <p>{author.bio}</p>
+            <h2><Link href={`/authors/${author.slug}`}>{author.name}</Link></h2>
+            {(author.role || author.grade) && <p>{[author.role, author.grade].filter(Boolean).join(" · ")}</p>}
             <Link className="text-link" href={`/authors/${author.slug}`}>View profile <span aria-hidden="true">→</span></Link>
           </article>
         ))}

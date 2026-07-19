@@ -74,6 +74,21 @@ GitHub Actions uploads `playwright-report` and `playwright-test-results` artifac
 - Add `data-testid` only when the interface has no stable accessible selector.
 - Test public behavior rather than private implementation details.
 - New article body blocks require renderer tests, type coverage, and browser verification when their layout is significant.
+- Custom Sanity inputs require regression fixtures for undefined, null, incomplete, malformed, and duplicate form values. They must replace the default insertion UI, expose one creation path, and test that confirmation emits only intended complete keyed values while Cancel, X, Escape, and outside click emit nothing.
+
+## Studio regression checks
+
+After changing Contributor selection or Article browsing, run the unit suite and then verify `/studio` while signed in. Article lists support search across title, subtitle, summary, contributor name, and publication date. Test Newest, Oldest, Title A–Z, and Recently updated sorting in every state pane.
+
+The Article field must show exactly one **Add contributors** button and no native **Add item** or default item menu. The modal shows role and graduation year, supports temporary multiple selection, and only **Confirm selection** patches the field. X, Escape, outside click, and **Cancel** never save. Verify About staff uses the same rules and contributor reassignment uses the same searchable single-select. A malformed historical selection must show a friendly repair action instead of crashing.
+
+The read-only persisted-data check is:
+
+```bash
+npm run sanity:audit-contributors
+```
+
+It writes a dry-run report and never repairs or deletes dataset content.
 
 ## Common failures
 
@@ -111,6 +126,10 @@ Read the rule, affected selector, impact, and remediation in the Playwright outp
 ### The build passes but a browser test fails
 
 A build proves compilation and static generation, not navigation, layout, image delivery, or browser accessibility. Reproduce the failing route with `npm run test:e2e:ui` or inspect the saved trace/report.
+
+### Content Lake audit failures
+
+Run `npm run sanity:audit-content` while authenticated with the Sanity CLI. A nonzero exit indicates legacy documents, unregistered types, missing references, or obsolete fields. Review the timestamped `.sanity-reports` file; do not hide the problem by restoring an obsolete schema alias. Cleanup and reset commands are dry-run-only unless their explicit target, export, and confirmation safeguards are supplied.
 
 ## CI behavior
 

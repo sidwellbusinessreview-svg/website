@@ -1,34 +1,34 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
-import { AuthorInfo } from "@/components/author-info";
-import { getArticlesByAuthor, getAuthorBySlug, getAuthors } from "@/content";
+import { getArticlesByContributor, getContributorBySlug, getContributors } from "@/content";
 import { createPageMetadata } from "@/lib/metadata";
 
 export async function generateStaticParams() {
-  return (await getAuthors()).map(({ slug }) => ({ slug }));
+  return (await getContributors()).map(({ slug }) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const author = await getAuthorBySlug((await params).slug);
+  const author = await getContributorBySlug((await params).slug);
   return author
     ? createPageMetadata({
         title: author.name,
-        description: author.bio,
+        description: `Articles by ${author.name}.`,
         path: `/authors/${author.slug}`,
       })
     : {};
 }
 
 export default async function AuthorPage({ params }: { params: Promise<{ slug: string }> }) {
-  const author = await getAuthorBySlug((await params).slug);
+  const author = await getContributorBySlug((await params).slug);
   if (!author) notFound();
-  const articles = await getArticlesByAuthor(author.slug);
+  const articles = await getArticlesByContributor(author.slug);
   return (
     <div className="container page-shell">
-      <header className="profile-header">
-        <AuthorInfo author={author} linked={false} />
-        <p>{author.bio}</p>
+      <header className="profile-header contributor-profile-header">
+        <p className="eyebrow">Contributor</p>
+        <h1>{author.name}</h1>
+        {(author.role || author.grade) && <p>{[author.role, author.grade].filter(Boolean).join(" · ")}</p>}
       </header>
       <div className="section-title-row"><h2 className="section-title">Articles by {author.name}</h2></div>
       <div className="article-list">
@@ -37,7 +37,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
       {articles.length === 0 && (
         <div className="empty-state">
           <h2>No published articles yet.</h2>
-          <p>This profile will list the author’s work when it is published.</p>
+          <p>This profile will list the contributor’s work when it is published.</p>
         </div>
       )}
     </div>

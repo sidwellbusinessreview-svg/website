@@ -4,7 +4,7 @@ Phase 10 embeds Sanity Studio at `/studio` while every public page continues to 
 
 ## Before creating anything
 
-Confirm that the school has approved Sanity for published student bylines, biographies, images, and articles. Use the publication Gmail as the durable administrator or recovery account, and record ownership details in the private operations register—not in Git.
+Confirm that the school has approved Sanity for published student bylines, approved profile details, images, and articles. Use the publication Gmail as the durable administrator or recovery account, and record ownership details in the private operations register—not in Git.
 
 Do not paste tokens into source code, issues, chat, screenshots, or this documentation. Phase 10 needs no API token. Sanity Studio authenticates invited users through Sanity, while the health check reads only published data from the public dataset.
 
@@ -113,6 +113,8 @@ The publication Gmail remains the durable administrator or recovery identity. A 
 
 ## Phase boundary
 
-The schema registry is intentionally present but empty in Phase 10. Phase 11 adds document schemas, queries, provider adapters, mapping validation, cache tags, and migration parity tests. Until that work is accepted, local content remains authoritative for all public routes.
+Phase 11C provides the simplified Contributor, Article, About-with-staff, and Site Settings schemas. Public routes still use local content; queries, provider adapters, caching, and cutover belong to later phases.
+
+Before schema removal or a dataset reset, follow `DATASET_AUDIT_AND_RESET.md`. Schema changes alone never remove old Content Lake documents. Always inspect both published and draft records and export before an approved destructive cleanup.
 
 Official references: [embedded Studio for Next.js](https://www.sanity.io/docs/nextjs/embedding-sanity-studio-in-nextjs), [CORS configuration](https://www.sanity.io/docs/content-lake/cors), and [token safety](https://www.sanity.io/docs/content-lake/keeping-your-data-safe).

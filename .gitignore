@@ -17,6 +17,7 @@
 /blob-report/
 /.playwright/
 /junit.xml
+/.sanity-reports/
 
 # next.js
 /.next/
