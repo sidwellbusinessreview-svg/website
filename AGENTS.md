@@ -17,7 +17,10 @@ This is the Sidwell Business Review Phase 1 website. It uses Next.js App Router,
 - Keep design values centralized in CSS variables in `src/app/globals.css`.
 - Keep raw sample data inside `src/content/data.ts`.
 - Preserve the content-provider boundary: pages and general components must use the access functions exported by `src/content/index.ts`, not import raw arrays or couple themselves directly to a future CMS.
-- Keep Sanity integration code in `src/sanity/`, Studio configuration in `sanity.config.ts`, and the embedded Studio at `/studio`. Public routes must remain on the local provider until the documented provider cutover phase.
+- Keep Sanity client/schema infrastructure in `src/sanity/`, provider queries/adapters in `src/content/sanity/`, Studio configuration in `sanity.config.ts`, and the embedded Studio at `/studio`.
+- Never bypass `src/content/index.ts`. Keep both providers conforming to `ContentProvider`; `CONTENT_SOURCE=local` is a temporary rollback mode and production must use `sanity` after migration acceptance.
+- The provider contract contains only Site Settings, Articles, Contributors, About, Archive, and Search. Do not add Issue, Category, Tag, Masthead, biography, or person-image compatibility methods or queries.
+- Treat About (`about`) and Site Settings (`siteSettings`) as durable fixed-ID pages. Never expose delete, duplicate, copy, unpublish, or draft-only discard actions for them. Run the authenticated `npm run sanity:audit-pages` after lifecycle changes.
 - Public Sanity clients must never include tokens. Draft/read tokens are server-only and must not be imported by client components or `sanity.config.ts`.
 - Maintain the typed block model in `src/content/types.ts` when adding article formats.
 - Reuse existing components before creating route-specific duplicates.
@@ -27,6 +30,8 @@ This is the Sidwell Business Review Phase 1 website. It uses Next.js App Router,
 - Contributor identity is text-only. The site does not store or display Contributor portraits, avatars, or initials artwork. Article bylines link to text-only Contributor profile pages.
 - Do not change Next.js, React, TypeScript, Tailwind, or other framework versions without recording the reason and consequences in `docs/DECISIONS.md`.
 - Custom Sanity inputs must treat form values as untrusted partial data. Never assume array members, references, or nested properties are complete. Validate and normalize values before use, and add regression tests for undefined, null, and incomplete values.
+- Preserve Portable Text list semantics through the Sanity adapter and shared Article renderer: nesting, inline emphasis, and safe links must not be flattened. Keep explicit list-marker styles because Tailwind resets browser defaults.
+- Keep public cache timing and tags centralized in `src/content/sanity/cache.ts`. New relationship-dependent queries must include the shared `content` tag plus descriptive dependency tags. Do not claim automatic refresh from a server restart; use `npm run sanity:check-cache` for read-only source comparison and test the 300-second fallback separately.
 
 ### Schema-removal policy
 
@@ -50,7 +55,7 @@ Do not introduce a CMS, database, authentication, analytics, paid service, or ad
 
 Never commit secrets. Do not add real tokens, passwords, private keys, private identifiers, or populated environment files. Use `.env.example` for documented placeholder names only.
 
-Do not ask users to paste tokens into Codex or print environment values. Check only whether required variables are present. Preserve the safe no-environment Studio setup state and run `npm run sanity:check` only when approved local public variables are available.
+Do not ask users to paste tokens into Codex or print token values. Public project, dataset, and API-version values may be printed by `npm run sanity:check-target` for target alignment. Preserve the safe no-environment Studio setup state. Public-provider checks stay token-free and published-only. Draft-aware local audits must use the signed-in CLI user; CI must use a server-only read token or explicitly run published-only.
 
 Do not run `npm audit fix --force`. Review advisories and proposed dependency changes deliberately.
 

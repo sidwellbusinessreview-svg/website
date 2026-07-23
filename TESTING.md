@@ -127,10 +127,29 @@ Read the rule, affected selector, impact, and remediation in the Playwright outp
 
 A build proves compilation and static generation, not navigation, layout, image delivery, or browser accessibility. Reproduce the failing route with `npm run test:e2e:ui` or inspect the saved trace/report.
 
+`npm run test:e2e` deliberately selects the stable local fixture provider, regardless of `.env.local`. Use `npm run test:e2e:sanity` for the separate published CMS dataset suite. This prevents the local-route assertions from silently changing meaning when a developer switches content sources.
+
+The CMS suite defaults to the canonical published records:
+
+- Article: **CMS Integration Test Article** at `cms-integration-test-article`
+- Contributor: **CMS Integration Test Contributor** at `cms-integration-test-contributor`
+
+The test covers Homepage, Article, Contributor, Search, Latest, Archive, sitemap, feed, About, and exclusion of local-only sample content. If an approved replacement fixture is introduced, override `CMS_TEST_ARTICLE_TITLE`, `CMS_TEST_ARTICLE_SLUG`, `CMS_TEST_CONTRIBUTOR_NAME`, and `CMS_TEST_CONTRIBUTOR_SLUG` in the shell running Playwright. These are public test labels, not secrets; do not use them to pass tokens.
+
+It also verifies that the canonical CMS Article renders a real bulleted list with semantic `<ul>/<li>` markup, visible markers, and no mobile horizontal overflow.
+
+### CMS cache diagnostic
+
+Run `npm run sanity:check-cache` to compare the canonical Article from uncached Sanity origin, Sanity CDN, provider detail, and provider collection reads. The command is read-only, uses no token, prints no secret, and exits unsuccessfully when public sources disagree. It does not inspect the browser or Next development cache and deliberately does not wait through the five-minute refresh window.
+
+If a newly published value appears only after stopping the server and removing `.next`, record that as a stale development cache/session. Do not infer that the 300-second fallback or hosted webhook has passed. A one-off `ChunkLoadError` that disappears after a clean restart is likewise a development artifact unless it reproduces from a clean state.
+
 ### Content Lake audit failures
 
-Run `npm run sanity:audit-content` while authenticated with the Sanity CLI. A nonzero exit indicates legacy documents, unregistered types, missing references, or obsolete fields. Review the timestamped `.sanity-reports` file; do not hide the problem by restoring an obsolete schema alias. Cleanup and reset commands are dry-run-only unless their explicit target, export, and confirmation safeguards are supplied.
+First run `npm run sanity:check-target`. Then run `npm run sanity:audit-pages` and `npm run sanity:audit-content` while signed into the Sanity CLI. Both scripts include `--with-user-token`; the user token stays in the CLI session and is never printed or committed. A nonzero content-audit exit indicates legacy documents, unregistered types, missing references, obsolete fields, or missing authentication.
+
+For a token-free check, use `npm run sanity:audit-pages:published` or `npm run sanity:audit-content:published`. These commands explicitly label draft state as not checked. An anonymous response can never prove that a draft is absent. Review timestamped `.sanity-reports`; do not hide a problem by restoring an obsolete schema alias. Cleanup and reset commands are dry-run-only unless their explicit target, export, and confirmation safeguards are supplied.
 
 ## CI behavior
 
-GitHub Actions runs on pull requests and pushes to `main`. The first job performs lint, typecheck, Vitest, and the production build. After that succeeds, a separate job installs Chromium and runs Playwright. No secrets are required by the current tests.
+GitHub Actions runs on pull requests and pushes to `main`. The first job performs lint, typecheck, Vitest, and the production build. After that succeeds, a separate job installs Chromium and runs Playwright. Public-site tests require no token. If a future CI job runs `npm run sanity:audit-pages:ci`, it may receive `SANITY_API_READ_TOKEN` as a server-only repository secret; without that secret it performs an explicitly published-only audit. Never use a personal CLI user token in CI.

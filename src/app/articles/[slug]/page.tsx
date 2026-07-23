@@ -110,7 +110,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       </header>
       {article.featuredImage && <figure className="container feature-figure">
         <div className="feature-figure__image">
-          <Image src={article.featuredImage.src} alt={article.featuredImage.alt} fill preload sizes="(max-width: 1200px) 100vw, 1200px" />
+          <Image src={article.featuredImage.src} alt={article.featuredImage.alt} fill preload sizes="(max-width: 1200px) 100vw, 1200px" style={article.featuredImage.hotspot ? { objectPosition: `${article.featuredImage.hotspot.x * 100}% ${article.featuredImage.hotspot.y * 100}%` } : undefined} />
         </div>
         <ImageCaption caption={article.featuredImage.caption} credit={article.featuredImage.credit} />
       </figure>}

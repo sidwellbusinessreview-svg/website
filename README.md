@@ -26,7 +26,7 @@ npm run dev
 
 Then open [http://localhost:3000](http://localhost:3000). The development server automatically refreshes when files change.
 
-The environment file may remain blank to use the current local-content mode. Phase 10 adds an optional embedded Sanity Studio; follow `docs/SANITY_SETUP.md` when an approved project is ready. Never commit `.env.local` or real secrets.
+The environment file may remain blank to use the temporary local-content rollback mode. Set `CONTENT_SOURCE=sanity` only after adding approved public Sanity values; follow `docs/CONTENT_PROVIDER.md`. Never commit `.env.local` or real secrets.
 
 ## Sanity Studio foundation
 
@@ -38,7 +38,7 @@ Run the token-free connectivity check after configuring `.env.local`:
 npm run sanity:check
 ```
 
-Studio configuration lives in `sanity.config.ts`, CLI configuration in `sanity.cli.ts`, and integration code in `src/sanity/`. No CMS provider supplies public pages yet.
+Studio configuration lives in `sanity.config.ts`, CLI configuration in `sanity.cli.ts`, and integration code in `src/sanity/`. Check the public provider without a token with `npm run sanity:check-provider`. Exact local/Sanity acceptance and rollback commands are in `docs/PHASE_12_ACCEPTANCE.md`.
 
 ## Validation
 
@@ -63,7 +63,7 @@ Never assume that saving a file updates GitHub or production. Those are separate
 
 - `src/app/` contains public pages, the root layout, global styles, and the custom not-found page.
 - `src/components/` contains reusable publication components such as the header, footer, logo, article cards, metadata, contributor information, captions, and article-body renderer.
-- `src/content/` contains typed sample content and the content-access layer.
+- `src/content/` contains the domain contract, local and Sanity providers, adapters, queries, and provider-independent access layer.
 - `src/sanity/` contains environment validation, the token-free public client, health check, Studio setup state, and the future schema registration point.
 - `src/config/site.ts` contains the publication name, description, tagline, navigation, and contact information.
 - `public/` is for static files such as a future image logo, local photography, and publication assets.
@@ -79,10 +79,10 @@ Never assume that saving a file updates GitHub or production. Those are separate
 - Fonts loaded for the whole site: `src/app/layout.tsx`
 - Text logo behavior: `src/components/site-logo.tsx`
 
-Pages call functions such as `getArticles`, `getArticleBySlug`, `getIssues`, and `getAuthors`; they do not import the sample arrays. This boundary is intentional so a CMS can replace the local source later without requiring page rewrites.
+Pages call functions such as `getArticles`, `getArticleBySlug`, `getContributors`, and `searchArticles`; they do not import sample arrays or raw Sanity records. This boundary keeps provider changes out of routes.
 
 ## Current scope
 
-This phase remains a local-content publication prototype with an embedded Sanity Studio foundation. The Studio uses Sanity authentication but does not yet supply public content. Search and archive filtering continue to work against validated local content through the provider boundary.
+Phase 12 supplies an opt-in Sanity public-content provider while retaining `CONTENT_SOURCE=local` as a temporary rollback mode until migration acceptance. Sanity mode uses published content only and a token-free public client. Production should change to `CONTENT_SOURCE=sanity` after real-content migration and editorial acceptance.
 
 Project security and contribution expectations are documented in `SECURITY.md` and `CONTRIBUTING.md`.

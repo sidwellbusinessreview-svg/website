@@ -131,8 +131,8 @@ This file records durable technical and operational decisions. Add a dated entry
 - **Status:** Accepted
 - **Date:** 2026-07-17
 - **Context:** Perspective-flattened Studio lists can make a draft-only document appear published, and separate Masthead and Contributor biography content add editorial complexity without launch value.
-- **Decision:** Classify Articles from raw draft/published ID pairs as Draft only, Published, or Published with changes. Present explicit publish, publish-changes, discard-changes, and confirmation-protected unpublish actions. Remove duplication actions for core editorial documents. Put the staff roster in the About singleton and exclude Contributor biographies.
-- **Consequences:** The custom article state panes must query with the raw perspective. `/masthead` is retired, About owns staff roles, and any legacy Masthead or biography data requires export/review rather than automatic deletion.
+- **Decision:** Classify Articles from raw draft/published ID pairs as Draft only, Published, or Published with changes. Present explicit publish, publish-changes, discard-changes, and confirmation-protected unpublish actions. Remove duplication actions for core editorial documents. Put the staff roster in the fixed About page and exclude Contributor biographies.
+- **Consequences:** The custom article state panes must query with the raw perspective. The former standalone staff route is retired, About owns staff roles, and any legacy staff-page or biography data requires export/review rather than automatic deletion.
 
 ### ADR-016: Archive Contributors and require explicit dataset migrations
 
@@ -141,3 +141,27 @@ This file records durable technical and operational decisions. Add a dated entry
 - **Context:** Removing a schema did not remove a legacy draft document, whose strong reference then correctly blocked Contributor deletion.
 - **Decision:** Treat schema removal and Content Lake migration as separate operations. Require raw audits, export-backed dry-run cleanup, explicit target/confirmation gates, regenerated types, and absence tests. Archive Contributors for normal offboarding; retain strong Article/About references and replace generic deletion with reference-aware workflows.
 - **Consequences:** Assets are preserved by default, published Articles never cascade-delete, compatibility aliases require a documented removal plan, and destructive commands never run automatically.
+
+### ADR-017: Select content providers explicitly during migration
+
+- **Status:** Accepted
+- **Date:** 2026-07-19
+- **Context:** Public routes need CMS data without coupling pages to GROQ, while migration requires a recoverable local mode and must never expose drafts or hide a CMS outage behind sample content.
+- **Decision:** Local and Sanity implementations conform to the domain-facing `ContentProvider` and are selected by `CONTENT_SOURCE`. The temporary default is `local` until migration acceptance; production then explicitly uses `sanity`. Public Sanity reads use published perspective, explicit draft exclusion, deterministic ordering, adapters, exact 300-second tagged caching, and fixed-tag secret-authenticated revalidation. There is no automatic local fallback after explicit Sanity selection.
+- **Consequences:** Pages remain provider-independent. Missing configuration fails clearly, query failures become controlled errors, and rollback is deliberate. ADR-014 remains authoritative: the provider has no Issue, Category, Tag, or Masthead methods or queries.
+
+### ADR-018: Treat About and Site Settings as durable fixed pages
+
+- **Status:** Accepted
+- **Date:** 2026-07-20
+- **Context:** Deleting both variants of the fixed About document left editors at a confusing missing-document state, and generic document actions could expose destructive lifecycle operations.
+- **Decision:** About uses fixed ID `about` and Site Settings uses `siteSettings`. Their permanent Structure entries use lifecycle panes rather than opening an absent ID directly. Current records open normally. An absent current pair offers explicit history inspection or confirmed clean draft initialization at the same fixed ID; it never restores or publishes automatically. Initialization uses `sanity.action.document.create` with `createDraftId`, never a generic mutation against `drafts.*`, and must be verified by an exact raw existence query before navigation. Singleton actions use a schema-registry allowlist: Publish is retained; Discard is shown only for a published document with unpublished changes; delete, duplicate, copy, and unpublish are never available. Normal Sanity drafts remain enabled for future preview; Scheduled Drafts and Releases UI are disabled.
+- **Consequences:** An empty content query is no longer treated as proof of a never-created record. CLI audits report partial history as indeterminate, while authenticated Studio remains authoritative for its own retained document history. Draft-only fixed pages cannot be discarded destructively. Public adapters use controlled defaults while a fixed page has no published version. Lifecycle changes require the read-only fixed-page audit, state/action tests, and an authenticated Studio recovery check.
+
+### ADR-019: Use one validated Sanity target for all surfaces
+
+- **Status:** Accepted
+- **Date:** 2026-07-21
+- **Context:** Studio and CLI disagreed about whether the current About document existed, while several callers used a hardcoded API version instead of the validated public environment.
+- **Decision:** Public project, dataset, and API version come from `src/sanity/env.ts`. Studio configuration, CLI configuration, fixed-page checks, read-only audits, provider diagnostics, the public provider, TypeGen, and CMS browser tests must resolve to that configuration. Fixed-page Studio and CLI checks share one exact uncached raw query.
+- **Consequences:** Target diagnostics may safely report public project/dataset/API values but never tokens. Studio emits detailed target/result diagnostics only in development. A current About response of `[]` always selects the creation/recovery view and can never enable **Open About**.

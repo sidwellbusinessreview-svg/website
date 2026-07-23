@@ -146,7 +146,14 @@ a:hover { color: var(--color-accent); }
 .article-body > p:first-child::first-letter { float: left; padding: .1rem .4rem 0 0; color: var(--color-accent); font-size: 4.4rem; line-height: .75; }
 .article-body h2 { margin: 2.8rem 0 .7rem; font-size: 2.1rem; line-height: 1.1; }
 .article-body h3 { margin-top: 2rem; font-size: 1.45rem; }
-.article-body li { margin-bottom: .45rem; padding-left: .4rem; }
+.article-body :is(ul, ol) { margin: 1.35rem 0; padding-inline-start: 1.65rem; }
+.article-body ul { list-style: disc outside; }
+.article-body ol { list-style: decimal outside; }
+.article-body ul ul { list-style-type: circle; }
+.article-body ol ol { list-style-type: lower-alpha; }
+.article-body li { margin-bottom: .35rem; padding-left: .25rem; }
+.article-body li > :is(ul, ol) { margin-block: .35rem .55rem; }
+.article-body li::marker { color: var(--color-accent); font-family: var(--font-body); font-weight: 700; }
 .article-body blockquote { margin: 2.5rem 0; border-left: 4px solid var(--color-accent); padding-left: 1.5rem; font-size: 1.45rem; font-style: italic; }
 .article-body blockquote cite { color: var(--color-muted); font-family: var(--font-body); font-size: .75rem; font-style: normal; text-transform: uppercase; }
 .pull-quote { margin: 3rem -5rem; border-block: 2px solid var(--color-ink); padding: 1.5rem 0; color: var(--color-accent); font-size: clamp(2rem, 4vw, 3.3rem); font-weight: 650; letter-spacing: -.035em; line-height: 1.05; text-align: center; }

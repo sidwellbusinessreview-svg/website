@@ -1,9 +1,13 @@
 import { getCliClient } from "sanity/cli";
 import { planMalformedContributorRepairs, type RawDocument } from "./content-operations";
 import { writeReport } from "./cli-utils";
+import { getSanityEnvironment } from "../../src/sanity/env";
+import { configureAuditClient } from "./audit-client";
 
 async function main() {
-  const client = getCliClient({ apiVersion: "2025-02-19" }).withConfig({ perspective: "raw", useCdn: false });
+  const environment = getSanityEnvironment();
+  if (!environment.configured) throw new Error("Sanity target configuration is incomplete.");
+  const { client } = configureAuditClient(getCliClient({ apiVersion: environment.apiVersion }));
   const documents = await client.fetch<RawDocument[]>('*[_type == "article"]{_id,_type,title,contributors}');
   const plan = planMalformedContributorRepairs(documents);
   console.log(plan.length ? "Incomplete Contributor selections found:" : "No persisted incomplete Contributor selections found.");

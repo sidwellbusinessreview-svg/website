@@ -30,6 +30,15 @@
 3. Review the changed fields and preview.
 4. Select **Publish changes** to replace the public version, or **Discard unpublished changes** to keep the existing public version and remove the draft edits.
 
+## Edit About or Site Settings
+
+1. Open the permanent **About** or **Site Settings** entry in Structure. Do not use the global New menu.
+2. If neither current version exists, review the lifecycle pane. **Open revision history** enters Sanity’s built-in editor/history view so retained content can be inspected. **Create clean About draft** requires confirmation and uses Sanity’s supported Document Actions API to create a new unpublished draft for the same fixed published ID without restoring old content. The pane must verify the exact draft in raw Content Lake state before opening the editor.
+3. Never infer “never created” merely from an empty GROQ result. Sanity can retain a deleted/discarded-history tombstone that normal content queries do not return.
+4. Use **Publish** for the first version or **Publish changes** for later edits.
+5. **Discard unpublished changes** appears only when a published version also exists. It removes only the draft and immediately returns to the published values.
+6. Delete, permanent delete, duplicate, copy, and unpublish are intentionally unavailable. Clear optional fields manually instead of deleting the fixed page.
+
 ## Unpublish an article
 
 1. Open the article and select **Unpublish article**.

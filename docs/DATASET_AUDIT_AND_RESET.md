@@ -4,12 +4,13 @@ These commands use the current authenticated Sanity CLI session. They never cont
 
 ```bash
 npm run sanity:audit-content
+npm run sanity:audit-singletons
 npm run sanity:audit-contributors
 npm run sanity:cleanup-legacy
 npm run sanity:reset-test-content
 ```
 
-The first two commands are read-only. The contributor audit reports each affected Article title, draft/published state, and invalid member count, and writes a dry-run repair plan without mutating content. The general audit fails when it finds legacy/unregistered document types, dangling references, or obsolete fields. Cleanup/reset commands are dry-run by default and write timestamped ignored reports under `.sanity-reports/`.
+The audit commands are read-only. The singleton audit reports the exact `about` and `siteSettings` published/draft IDs, lifecycle states, history evidence available to the CLI, incorrect or duplicate IDs, legacy singleton IDs, and obsolete references. Sanity may expose tombstones inside Studio that ordinary queries and lower-privilege history endpoints cannot distinguish; in that case the audit reports `historyIndeterminate`, never `neverCreated`. The contributor audit reports each affected Article title, draft/published state, and invalid member count. The general audit fails for invalid published Articles, legacy/unregistered types, dangling references, or obsolete fields. Cleanup/reset commands are dry-run by default and write timestamped ignored reports under `.sanity-reports/`.
 
 `npm run sanity:cleanup-fields` also detects obsolete Contributor photo fields and nested About `portrait`/`portraitAltText` fields. Its dry run reports exact unset paths but never mutates documents or deletes referenced assets. Article featured/inline images and publication-logo assets are outside this cleanup.
 

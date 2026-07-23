@@ -1,9 +1,13 @@
 import { getCliClient } from "sanity/cli";
 import { confirmationMatches, planLegacyCleanup, type RawDocument } from "./content-operations";
 import { applying, argument, assertExpectedTarget, assertRecentExport, writeReport } from "./cli-utils";
+import { getSanityEnvironment } from "../../src/sanity/env";
+import { configureAuditClient } from "./audit-client";
 
 async function main() {
-const client = getCliClient({ apiVersion: "2025-02-19" }).withConfig({ perspective: "raw", useCdn: false });
+const environment = getSanityEnvironment();
+if (!environment.configured) throw new Error("Sanity target configuration is incomplete.");
+const { client } = configureAuditClient(getCliClient({ apiVersion: environment.apiVersion }));
 const config = client.config();
 const documents = await client.fetch<RawDocument[]>("*[]");
 const plan = planLegacyCleanup(documents);

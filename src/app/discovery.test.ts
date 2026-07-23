@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GET as getFeed } from "./feed.xml/route";
+import { escapeXml, GET as getFeed } from "./feed.xml/route";
 import sitemap from "./sitemap";
 import { getArticles } from "@/content";
 import { createPageMetadata } from "@/lib/metadata";
@@ -33,7 +33,12 @@ describe("metadata and discovery", () => {
     const [response, articles] = await Promise.all([getFeed(), getArticles()]);
     const xml = await response.text();
     expect(response.headers.get("content-type")).toContain("application/rss+xml");
+    expect(response.headers.get("cache-control")).toContain("s-maxage=300");
     expect((xml.match(/<item>/g) ?? [])).toHaveLength(articles.length);
     for (const article of articles) expect(xml).toContain(article.title);
+  });
+
+  it("escapes XML-sensitive publication values", async () => {
+    expect(escapeXml(`Markets & "Money" <Today> O'Reilly`)).toBe("Markets &amp; &quot;Money&quot; &lt;Today&gt; O&apos;Reilly");
   });
 });

@@ -7,6 +7,12 @@ const validSource = (): ContentSource => structuredClone({ articles, contributor
 const expectProblem = (change: (source: ContentSource) => void, expected: RegExp) => { const source = validSource(); change(source); expect(() => validateContentSource(source, new Date("2026-07-16T12:00:00Z"))).toThrow(expected); };
 describe("runtime content validation", () => {
   it.each([{ type: "paragraph", text: "Paragraph" }, { type: "heading", level: 2, text: "Heading" }, { type: "bulletedList", items: ["Item"] }, { type: "numberedList", items: ["Item"] }, { type: "quote", text: "Quote" }, { type: "pullQuote", text: "Pull quote" }, { type: "image", src: "https://example.com/a.jpg", alt: "Alt" }, { type: "callout", text: "Callout" }, { type: "divider" }, { type: "link", text: "More", href: "https://example.com", label: "Source" }])("accepts $type", (block) => expect(articleContentBlockSchema.safeParse(block).success).toBe(true));
+  it("accepts rich nested list items without raw HTML", () => {
+    expect(articleContentBlockSchema.safeParse({
+      type: "bulletedList",
+      items: [{ level: 1, content: [{ text: "Bold link", marks: ["strong"], href: "https://example.com" }] }, { level: 2, content: [{ text: "Nested" }] }],
+    }).success).toBe(true);
+  });
   it("accepts local content without contributor biographies", () => { const result = validateContentSource(validSource(), new Date("2026-07-16T12:00:00Z")); expect(result.articles).toHaveLength(6); expect(result.contributors).toHaveLength(4); expect(result.contributors.every((contributor) => !("bio" in contributor))).toBe(true); });
   it("keeps local Contributor identity text-only", () => {
     const result = validateContentSource(validSource(), new Date("2026-07-16T12:00:00Z"));

@@ -31,6 +31,36 @@ describe("ArticleBody", () => {
     expect(container.querySelector("hr")).toBeInTheDocument();
   });
 
+  it("renders paragraphs around semantic bullet and numbered lists", () => {
+    const { container } = render(<ArticleBody blocks={[
+      { type: "paragraph", text: "Before the lists." },
+      { type: "bulletedList", items: ["One bullet", "Two bullets"] },
+      { type: "numberedList", items: ["First step", "Second step"] },
+      { type: "paragraph", text: "After the lists." },
+    ]} />);
+    expect(container.querySelectorAll("ul")).toHaveLength(1);
+    expect(container.querySelectorAll("ol")).toHaveLength(1);
+    expect(container.querySelectorAll("ul > li")).toHaveLength(2);
+    expect(container.querySelectorAll("ol > li")).toHaveLength(2);
+    expect(container.querySelectorAll("p")).toHaveLength(2);
+  });
+
+  it("renders nested list levels with bold, italic, and safe links", () => {
+    const { container } = render(<ArticleBody blocks={[{
+      type: "bulletedList",
+      items: [
+        { level: 1, content: [{ text: "Parent " }, { text: "bold", marks: ["strong"] }] },
+        { level: 2, content: [{ text: "Nested link", marks: ["em"], href: "https://example.com/report" }] },
+        { level: 1, content: [{ text: "Second parent" }] },
+      ],
+    }]} />);
+    expect(container.querySelectorAll(":scope .article-body > ul > li")).toHaveLength(2);
+    expect(container.querySelectorAll("ul ul > li")).toHaveLength(1);
+    expect(screen.getByText("bold").tagName).toBe("STRONG");
+    expect(screen.getByText("Nested link").tagName).toBe("EM");
+    expect(screen.getByRole("link", { name: "Nested link" })).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
   it("announces external links and applies safe new-tab attributes", () => {
     render(
       <ArticleBody blocks={[{

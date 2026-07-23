@@ -33,11 +33,12 @@ export type ContentAudit = {
 };
 
 export function auditDocuments(documents: RawDocument[]): ContentAudit {
+  const isSystemDocument = ({ _type }: RawDocument) => _type.startsWith("sanity.") || _type.startsWith("system.");
   const baseIds = new Set(documents.map(({ _id }) => _id.replace(/^drafts\./, "")));
   const exactIds = new Set(documents.map(({ _id }) => _id));
   const references = documents.flatMap((document) => collectReferences(document, document._id));
   const legacyDocuments = documents.filter((document) => legacyDocumentTypes.has(document._type) || legacySingletonIds.has(document._id.replace(/^drafts\./, ""))).map(({ _id }) => _id).sort();
-  const unregisteredTypes = [...new Set(documents.filter((document) => !document._type.startsWith("sanity.") && !currentDocumentTypes.has(document._type) && !legacyDocumentTypes.has(document._type)).map(({ _type }) => _type))].sort();
+  const unregisteredTypes = [...new Set(documents.filter((document) => !isSystemDocument(document) && !currentDocumentTypes.has(document._type) && !legacyDocumentTypes.has(document._type)).map(({ _type }) => _type))].sort();
   const danglingReferences = references.filter(({ targetId }) => !baseIds.has(targetId));
   const pairs = documents.filter(({ _id }) => _id.startsWith("drafts.") && exactIds.has(_id.slice(7))).map(({ _id }) => _id.slice(7)).sort();
   const obsoleteFields = documents.flatMap((document) => {
@@ -49,7 +50,7 @@ export function auditDocuments(documents: RawDocument[]): ContentAudit {
   const referencedAssets = new Set(references.filter(({ targetId }) => targetId.startsWith("image-") || targetId.startsWith("file-")).map(({ targetId }) => targetId));
   const orphanedAssets = documents.filter(({ _type, _id }) => _type.startsWith("sanity.") && (_id.startsWith("image-") || _id.startsWith("file-")) && !referencedAssets.has(_id)).map(({ _id }) => _id).sort();
   return {
-    documents: documents.filter(({ _type }) => !_type.startsWith("sanity.")).map<ContentAudit["documents"][number]>((document) => ({ id: document._id, type: document._type, label: document.title || document.name || "Untitled", state: document._id.startsWith("drafts.") ? "draft" : "published" })).sort((a, b) => a.id.localeCompare(b.id)),
+    documents: documents.filter((document) => !isSystemDocument(document)).map<ContentAudit["documents"][number]>((document) => ({ id: document._id, type: document._type, label: document.title || document.name || "Untitled", state: document._id.startsWith("drafts.") ? "draft" : "published" })).sort((a, b) => a.id.localeCompare(b.id)),
     legacyDocuments, unregisteredTypes, danglingReferences, pairs, obsoleteFields, orphanedAssets,
     valid: legacyDocuments.length === 0 && unregisteredTypes.length === 0 && danglingReferences.length === 0 && obsoleteFields.length === 0,
   };

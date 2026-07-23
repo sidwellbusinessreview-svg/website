@@ -7,6 +7,7 @@ const slugSchema = z
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "must be a lowercase URL-safe slug");
 
 const nonEmptyText = z.string().trim().min(1);
+const nonEmptyInlineText = z.string().refine((value) => value.trim().length > 0, "must contain text");
 const httpUrlSchema = z
   .url()
   .refine((value) => value.startsWith("http://") || value.startsWith("https://"), {
@@ -18,6 +19,10 @@ const imageFieldsSchema = z.object({
   alt: z.string().trim().min(1, "image alt text is required"),
   caption: z.string().trim().min(1).max(500).optional(),
   credit: z.string().trim().min(1).max(300).optional(),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
+  hotspot: z.object({ x: z.number(), y: z.number() }).passthrough().optional(),
+  crop: z.object({ top: z.number(), right: z.number(), bottom: z.number(), left: z.number() }).optional(),
 });
 
 const paragraphBlockSchema = z.object({
@@ -31,14 +36,28 @@ const headingBlockSchema = z.object({
   text: nonEmptyText,
 });
 
+const inlineContentSchema = z.object({
+  text: nonEmptyInlineText,
+  marks: z.array(z.enum(["strong", "em"])).optional(),
+  href: z.union([
+    httpUrlSchema,
+    z.string().regex(/^\/[a-z0-9/_-]*(?:#[a-z0-9_-]+)?$/i, "must be a safe internal path"),
+  ]).optional(),
+});
+
+const richListItemSchema = z.object({
+  content: z.array(inlineContentSchema).min(1),
+  level: z.number().int().min(1).max(10).default(1),
+});
+
 const bulletedListBlockSchema = z.object({
   type: z.literal("bulletedList"),
-  items: z.array(nonEmptyText).min(1),
+  items: z.array(z.union([nonEmptyText, richListItemSchema])).min(1),
 });
 
 const numberedListBlockSchema = z.object({
   type: z.literal("numberedList"),
-  items: z.array(nonEmptyText).min(1),
+  items: z.array(z.union([nonEmptyText, richListItemSchema])).min(1),
 });
 
 const quoteBlockSchema = z.object({
@@ -147,7 +166,7 @@ export const siteSettingsSchema = z.object({
   logo: z.object({
     mode: z.enum(["text", "image"]),
     textWordmark: z.string().trim().min(1).max(100),
-    imageSrc: z.string().regex(/^\/[a-z0-9/_.-]+$/i),
+    imageSrc: z.union([z.string().regex(/^\/[a-z0-9/_.-]+$/i), httpUrlSchema]),
     imageAlt: z.string().trim().min(1).max(120),
     imageWidth: z.number().int().positive(),
     imageHeight: z.number().int().positive(),

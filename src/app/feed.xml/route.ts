@@ -1,8 +1,9 @@
 import { siteConfig } from "@/config/site";
 import { getArticles, getContributors } from "@/content";
 import { absoluteUrl } from "@/lib/metadata";
+import { PUBLIC_CONTENT_REVALIDATE_SECONDS } from "@/content/sanity/cache";
 
-function escapeXml(value: string): string {
+export function escapeXml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -38,7 +39,7 @@ export async function GET() {
   return new Response(xml, {
     headers: {
       "Content-Type": "application/rss+xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600, s-maxage=3600",
+      "Cache-Control": `public, max-age=0, s-maxage=${PUBLIC_CONTENT_REVALIDATE_SECONDS}, stale-while-revalidate=60`,
     },
   });
 }

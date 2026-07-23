@@ -5,6 +5,8 @@ import { Box, Button, Flex, Stack, Text } from "@sanity/ui";
 import { useDocumentOperation, type DocumentActionComponent, type DocumentActionProps, type DocumentBadgeComponent } from "sanity";
 import { articleStatusLabel } from "./articleState";
 import { ArticlePermanentDeleteAction, ContributorArchiveAction, ContributorDeleteAction } from "./lifecycleActions";
+import { filterSingletonActions, isSingletonSchemaType } from "./singletons";
+import { singletonDocumentState, singletonStatusLabel } from "./singletonState";
 
 export const ArticleStatusBadge: DocumentBadgeComponent = (props) => ({
   label: articleStatusLabel(props.draft, props.published),
@@ -17,6 +19,15 @@ export const ContributorAvailabilityBadge: DocumentBadgeComponent = (props) => (
   title: (props.draft ?? props.published)?.active === false ? "Not available for selection on new articles." : "Available for selection on new articles.",
   color: (props.draft ?? props.published)?.active === false ? "primary" : "success",
 });
+
+export const SingletonStatusBadge: DocumentBadgeComponent = (props) => {
+  const state = singletonDocumentState(props.draft, props.published);
+  return {
+    label: singletonStatusLabel(props.draft, props.published),
+    title: state === "publishedWithChanges" ? "The published version remains public until these changes are published." : state === "publishedOnly" ? "This fixed page is published and remains editable." : state === "draftOnly" ? "This fixed page has not been published." : "Use the permanent page entry to create or recover this document.",
+    color: state === "publishedWithChanges" ? "warning" : state === "publishedOnly" ? "success" : "primary",
+  };
+};
 
 export function relabelPublishAction(Action: DocumentActionComponent): DocumentActionComponent {
   const Relabeled: DocumentActionComponent = (props) => {
@@ -55,6 +66,7 @@ export const UnpublishArticleAction: DocumentActionComponent = (props: DocumentA
 UnpublishArticleAction.action = "unpublish";
 
 export function resolveDocumentActions(actions: DocumentActionComponent[], schemaType: string): DocumentActionComponent[] {
+  if (isSingletonSchemaType(schemaType)) return filterSingletonActions(actions, schemaType);
   const removeDuplicate = ["article", "contributor", "staticPage", "siteSettings"].includes(schemaType);
   let resolved = removeDuplicate ? actions.filter((action) => action.action !== "duplicate") : actions;
   resolved = resolved.filter((action) => action.action !== "delete");

@@ -18,6 +18,7 @@ export const staticPage = defineType({
   name: "staticPage",
   title: "Static page",
   type: "document",
+  initialValue: { title: "About", slug: { _type: "slug", current: "about" } },
   validation: (Rule) => Rule.custom((value) => validateUniqueStaff(value as Parameters<typeof validateUniqueStaff>[0])),
   groups: [
     { name: "content", title: "Content", default: true },

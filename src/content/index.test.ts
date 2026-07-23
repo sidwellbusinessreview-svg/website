@@ -11,4 +11,9 @@ describe("simplified content access", () => {
   it("selects pinned lead and uses ranked order", () => { expect(selectLeadArticle([makeArticle({ slug: "two", pinned: true, featuredRank: 2 }), makeArticle({ slug: "one", pinned: true, featuredRank: 1 })])?.slug).toBe("one"); });
   it("excludes drafts and sorts same-date slugs deterministically", () => { expect(getPublicArticles([makeArticle({ slug: "zebra" }), makeArticle({ slug: "alpha" }), makeArticle({ slug: "draft", status: "draft" })]).map(({ slug }) => slug)).toEqual(["alpha", "zebra"]); });
   it("detects duplicate slugs", () => { expect(findDuplicateSlugs([{ slug: "b" }, { slug: "a" }, { slug: "b" }])).toEqual(["b"]); });
+  it("preserves local-provider list blocks for the shared semantic renderer", async () => {
+    const listBlocks = (await getArticles()).flatMap(({ content }) => content.flatMap((block) => "items" in block ? [block] : []));
+    expect(listBlocks.length).toBeGreaterThan(0);
+    expect(listBlocks.every(({ items }) => items.length > 0)).toBe(true);
+  });
 });

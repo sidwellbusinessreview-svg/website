@@ -66,5 +66,6 @@ describe("article actions", () => {
   it("removes Duplicate and adds Unpublish", () => { const result = resolveDocumentActions([action("duplicate"), action("publish"), action("discardChanges"), action("unpublish")], "article"); expect(result.some(({ action }) => action === "duplicate")).toBe(false); expect(result.filter(({ action }) => action === "unpublish")).toEqual([UnpublishArticleAction]); expect(result[0].action).toBe("publish"); });
   it("replaces generic article deletion", () => expect(resolveDocumentActions([action("delete")], "article")).toContain(ArticlePermanentDeleteAction));
   it("adds archive and reference-aware contributor deletion", () => expect(resolveDocumentActions([action("delete")], "contributor")).toEqual([ContributorArchiveAction, ContributorDeleteAction]));
-  it.each(["contributor", "staticPage", "siteSettings"])("removes Duplicate for %s", (type) => expect(resolveDocumentActions([action("duplicate"), action("delete")], type).some(({ action }) => action === "duplicate")).toBe(false));
+  it("removes Duplicate for Contributors", () => expect(resolveDocumentActions([action("duplicate"), action("delete")], "contributor").some(({ action }) => action === "duplicate")).toBe(false));
+  it.each(["staticPage", "siteSettings"])("allows no destructive singleton actions for %s", (type) => expect(resolveDocumentActions([action("publish"), action("discardChanges"), action("delete"), action("duplicate"), action("unpublish")], type).map(({ action }) => action)).toEqual(["publish", "discardChanges"]));
 });

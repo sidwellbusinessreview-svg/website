@@ -1,6 +1,6 @@
 # Simplified Sanity editor model
 
-Phase 11B keeps the Studio deliberately small. Public pages still use local content.
+Phase 11B keeps the Studio deliberately small. Phase 12 can serve published public content through the Sanity provider while retaining explicit local rollback mode.
 
 ## Navigation
 
@@ -9,7 +9,7 @@ Phase 11B keeps the Studio deliberately small. Public pages still use local cont
 - **About**
 - **Site Settings**
 
-Vision, Releases, issues, categories, tags, and technical tools are absent. About and Site Settings are fixed singleton documents protected from ordinary duplicate/delete actions. Duplicate is also removed from Articles and Contributors. Studio has a dedicated full-screen shell without the public header or footer.
+Vision, Releases, issues, categories, tags, and technical tools are absent. About and Site Settings are fixed pages protected from ordinary duplicate/delete actions. Duplicate is also removed from Articles and Contributors. Studio has a dedicated full-screen shell without the public header or footer.
 
 Each Article pane shows a count, search field, sort control, New article button, status and pinned badges, title, subtitle or shortened summary, contributors, publication date, and an optional compact thumbnail. Search is case-insensitive and does not alter draft/published classification. Sorting supports newest date, oldest date, title, and recently updated. Image-free records use a deliberate compact text layout.
 
@@ -22,6 +22,12 @@ Contributors default to active. Use **Archive contributor** for ordinary offboar
 ## About
 
 About combines the publication mission/body with text-only Editors-in-Chief, Editors, and Faculty Adviser sections. Each staff entry references a Contributor and may supply an optional displayed role for that roster entry. No staff entry has an image, portrait, avatar, or initials field. Contributor roles and About roles may differ. There is no separate Masthead document or public Masthead route.
+
+## Durable fixed pages
+
+About uses the fixed document ID `about`; Site Settings uses `siteSettings`. Their permanent Structure entries first inspect the current draft/published pair with an exact uncached raw query. Existing records open normally. If neither variant exists, the pane does not assume the record is new: it explains that Sanity may retain document history and offers **Open revision history** or an explicitly confirmed **Create clean About draft** action. Clean creation uses Sanity’s `sanity.action.document.create` Document Action with the fixed published ID and a draft ID from `createDraftId`; generic mutations never write directly to `drafts.*`. The pane verifies the new draft through the exact raw query before opening the editor and never restores or publishes old content automatically. These durable resources cannot be deleted, duplicated, copied, or unpublished.
+
+The normal draft/publish workflow remains enabled. Draft-only fixed pages can be published but cannot be discarded or deleted. Published fixed pages remain editable. When a published fixed page has a draft, **Publish changes** and **Discard unpublished changes** are available; Discard removes only the draft and returns to the published values. Historical revision restoration, where Sanity supports it, must create unpublished changes rather than overwrite the public version directly.
 
 ## Article form
 

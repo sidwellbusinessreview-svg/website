@@ -8,6 +8,7 @@ describe("dataset audit", () => {
   it.each(["author", "issue", "category", "tag"])("detects legacy %s documents", (type) => expect(auditDocuments([doc(`legacy-${type}`, type)]).legacyDocuments).toHaveLength(1));
   it("detects missing references", () => expect(auditDocuments([doc("a", "article", { contributors: [{ _ref: "missing" }] })]).danglingReferences).toHaveLength(1));
   it("does not misclassify Sanity-managed underscore metadata as an obsolete editorial field", () => expect(auditDocuments([doc("about", "staticPage", { _system: { base: { id: "x" } } })]).obsoleteFields).toEqual([]));
+  it("ignores Sanity-managed system document types", () => expect(auditDocuments([doc("_.groups.read", "system.group")]).unregisteredTypes).toEqual([]));
   it("detects draft/published pairs", () => expect(auditDocuments([doc("a", "article"), doc("drafts.a", "article")]).pairs).toEqual(["a"]));
 });
 

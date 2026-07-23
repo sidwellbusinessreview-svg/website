@@ -1,23 +1,30 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getContributors } from "@/content";
+import { getContributors, getStaticPageBySlug } from "@/content";
+import { ArticleBody } from "@/components/article-body";
 import { createPageMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = createPageMetadata({ title: "About", description: "Learn about the mission, standards, and student leadership of Sidwell Business Review.", path: "/about" });
 
 export default async function AboutPage() {
-  const contributors = await getContributors();
-  const editorsInChief = contributors.filter(({ role }) => role?.toLowerCase().includes("editor in chief"));
-  const editors = contributors.filter(({ slug }) => !editorsInChief.some((editor) => editor.slug === slug));
+  const [contributors, managedPage] = await Promise.all([getContributors(), getStaticPageBySlug("about")]);
+  const contributorBySlug = new Map(contributors.map((contributor) => [contributor.slug, contributor]));
+  const localEditorsInChief = contributors.filter(({ role }) => role?.toLowerCase().includes("editor in chief"));
+  const localEditors = contributors.filter(({ slug }) => !localEditorsInChief.some((editor) => editor.slug === slug));
+  const staff = (entries: Array<{ contributorSlug: string; displayedRole?: string }>) => entries.flatMap((entry) => {
+    const contributor = contributorBySlug.get(entry.contributorSlug);
+    return contributor ? [{ ...contributor, role: entry.displayedRole ?? contributor.role }] : [];
+  });
+  const editorsInChief = managedPage ? staff(managedPage.staff.editorsInChief) : localEditorsInChief;
+  const editors = managedPage ? staff(managedPage.staff.editors) : localEditors;
+  const facultyAdviser = managedPage ? staff(managedPage.staff.facultyAdviser) : [];
   return <div className="container prose-page about-page">
-    <header className="page-header"><p className="eyebrow">About the Review</p><h1>Serious curiosity, clearly expressed.</h1></header>
+    <header className="page-header"><p className="eyebrow">{managedPage?.eyebrow ?? "About the Review"}</p><h1>{managedPage?.title ?? "Serious curiosity, clearly expressed."}</h1></header>
     <div className="prose-page__body">
-      <p className="lead">Sidwell Business Review is a student-run publication examining business, economics, markets, technology, and public policy.</p>
-      <h2>Our mission</h2><p>We give student writers space to ask ambitious questions, report carefully, and make clear arguments. Business journalism is strongest when it treats companies and markets as human institutions—not abstractions.</p>
-      <h2>Our standards</h2><p>Writers distinguish reporting from opinion, identify sources, disclose relevant conflicts, and correct errors transparently. Editors work with every contributor on evidence, structure, fairness, and clarity.</p>
+      {managedPage ? <ArticleBody blocks={managedPage.body} /> : <><p className="lead">Sidwell Business Review is a student-run publication examining business, economics, markets, technology, and public policy.</p><h2>Our mission</h2><p>We give student writers space to ask ambitious questions, report carefully, and make clear arguments. Business journalism is strongest when it treats companies and markets as human institutions—not abstractions.</p><h2>Our standards</h2><p>Writers distinguish reporting from opinion, identify sources, disclose relevant conflicts, and correct errors transparently. Editors work with every contributor on evidence, structure, fairness, and clarity.</p></>}
       <h2>Editors-in-Chief</h2><div className="about-staff-grid">{editorsInChief.map((contributor) => <StaffCard key={contributor.slug} slug={contributor.slug} name={contributor.name} role={contributor.role} grade={contributor.grade} />)}</div>
       <h2>Editors</h2><div className="about-staff-grid">{editors.map((contributor) => <StaffCard key={contributor.slug} slug={contributor.slug} name={contributor.name} role={contributor.role} grade={contributor.grade} />)}</div>
-      <h2>Faculty Adviser</h2><p>To be announced.</p>
+      <h2>Faculty Adviser</h2>{facultyAdviser.length ? <div className="about-staff-grid">{facultyAdviser.map((contributor) => <StaffCard key={contributor.slug} slug={contributor.slug} name={contributor.name} role={contributor.role} grade={contributor.grade} />)}</div> : <p>To be announced.</p>}
     </div>
   </div>;
 }

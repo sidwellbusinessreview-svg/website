@@ -24,6 +24,7 @@ export function ArticleCard({
           fill
           preload={featured}
           sizes={featured ? "(max-width: 900px) 100vw, 65vw" : "(max-width: 700px) 100vw, 33vw"}
+          style={article.featuredImage.hotspot ? { objectPosition: `${article.featuredImage.hotspot.x * 100}% ${article.featuredImage.hotspot.y * 100}%` } : undefined}
         />
       </Link>}
       <div className="article-card__body">

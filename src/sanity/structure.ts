@@ -1,6 +1,7 @@
 import type { StructureResolver } from "sanity/structure";
 import { ArticleStateList } from "./components/ArticleStateList";
 import { ContributorStateList } from "./components/ContributorStateList";
+import { SingletonPane } from "./components/SingletonPane";
 import { ABOUT_ID, SITE_SETTINGS_ID } from "./singletons";
 
 const articleDescriptions = {
@@ -33,7 +34,17 @@ export const structure: StructureResolver = (S) => S.list().title("Sidwell Busin
     S.listItem().title("Archived Contributors").child(contributorPane(S, "Archived Contributors", "archived")),
     S.listItem().title("All Contributors").child(contributorPane(S, "All Contributors", "all")),
   ])),
-  S.listItem().id(ABOUT_ID).title("About").child(S.document().schemaType("staticPage").documentId(ABOUT_ID)),
+  S.listItem().id(ABOUT_ID).title("About").child(S.component(SingletonPane).id("about-lifecycle").title("About").options({
+    documentId: ABOUT_ID,
+    schemaType: "staticPage",
+    title: "About",
+    initialValue: { title: "About", slug: { _type: "slug", current: "about" } },
+  })),
   S.divider(),
-  S.listItem().id(SITE_SETTINGS_ID).title("Site Settings").child(S.document().schemaType("siteSettings").documentId(SITE_SETTINGS_ID)),
+  S.listItem().id(SITE_SETTINGS_ID).title("Site Settings").child(S.component(SingletonPane).id("site-settings-lifecycle").title("Site Settings").options({
+    documentId: SITE_SETTINGS_ID,
+    schemaType: "siteSettings",
+    title: "Site Settings",
+    initialValue: {},
+  })),
 ]);

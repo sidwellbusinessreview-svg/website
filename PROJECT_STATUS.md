@@ -1,5 +1,133 @@
 # Project status
 
+## Phase 12J Portable Text lists and cache audit
+
+- **Implemented; full validation and automatic-refresh acceptance pending:** July 23, 2026
+- Root causes for missing list markers were both structural and visual: the Sanity adapter flattened Portable Text list levels/inline marks into strings, and Tailwind's reset removed browser list markers without an explicit replacement.
+- Sanity list blocks now map into the shared domain model with nesting level, bold, italic, and safe links preserved. The renderer builds semantic nested `<ul>`/`<ol>` structures, while centralized article styles restore restrained bullet and number markers at desktop and mobile widths. Local string-list fixtures remain compatible.
+- Centralized the five-minute public cache window and explicit dependency tags. The safe shared `content` tag continues to invalidate every relationship-dependent surface; Feed's shared-cache header now matches the same 300-second window.
+- Added a deterministic read-only `sanity:check-cache` diagnostic comparing origin, CDN, provider detail, and provider collection results without a five-minute sleep.
+- Added unit/component coverage for list semantics, nesting, inline marks/links, schema validation, provider tags, exact cache timing, Feed caching, and XML escaping. CMS Playwright now checks the canonical Article's visible list markers and mobile overflow.
+- Manual evidence confirms a clean server restart after deleting `.next` displayed the newly published Homepage title. This proves Content Lake correctness but not automatic refresh. The prior stale result remains classified as a development cache/session; the transient `ChunkLoadError` has not reproduced after the clean restart.
+- Hosted webhook delivery remains deferred to Phase 15. Automatic refresh within 300 seconds still needs a non-mutating observation of a future approved publish; no Sanity content was changed during Phase 12J.
+
+## Phase 12 CMS browser fixture alignment
+
+- **Completed:** July 23, 2026
+- Updated the CMS-backed Playwright suite to use the current canonical published Article and Contributor, with environment-configurable public titles/slugs and documented defaults.
+- Coverage now verifies Homepage, exact Article and Contributor routes, Search, Latest, Archive, sitemap, feed, About, and exclusion of the local-only sample story.
+- No Sanity content was created, edited, restored, deleted, or published.
+- The token-free provider diagnostic confirmed one valid published Article and Contributor with the canonical values. `npm run test:e2e:sanity` passes both CMS discovery and local-content exclusion tests.
+
+## Phase 12I Studio document-action hook stability
+
+- **Implemented; authenticated manual confirmation pending:** July 23, 2026
+- Fixed the blocking React hook-order crash in the guarded fixed-page discard action. The wrapper previously returned before invoking Sanity's hook-using action when either document version was absent, then invoked it after Studio state changed.
+- The wrapper now invokes the underlying Sanity action on every render and only then suppresses the returned action descriptor unless both published and draft versions exist. It does not execute the action handler or mutate content.
+- Added a rendered regression that transitions through published-only, published-with-unpublished-changes, and unavailable states using a hook-bearing mock action. It verifies one underlying invocation per render, stable labels, and no hook-order warning.
+- The accompanying Structure `undefined.length` error was a cascade from the action-render crash; no separate undefined action array was found in the resolver, which always returns arrays and filters null availability inside the action component.
+- No content was initialized, restored, deleted, reset, or published. The currently published About page remains in place.
+- Validation passed with 200 unit/component tests, production build, and 29 local browser tests with 2 CMS-only skips. The authenticated read-only audit confirms `about` remains published with no current draft. A final hard-refresh/navigation check in the human's authenticated Studio remains required.
+
+## Phase 12H authenticated draft audits
+
+- **Implemented; automated validation complete with one dataset-fixture limitation:** July 21, 2026
+- Root cause: the page and content audits selected raw perspective but did not require an authenticated client. Anonymous raw responses could therefore be mislabeled as authoritative draft absence.
+- `sanity:audit-pages` and `sanity:audit-content` now use the signed-in Sanity CLI user through `--with-user-token`. The scripts fail with a clear authentication message rather than classifying draft state when credentials are unavailable.
+- Added deliberately token-free published-only variants, a CI mode that uses a server-only read token when available and otherwise labels itself published-only, and the previously documented `sanity:check-target` command.
+- Public website/provider checks remain token-free and published-only. No content was created, restored, deleted, initialized, or published.
+- Read-only reproduction on July 21 found that the dataset changed from the prompt's captured state: both audit modes saw published `about`; neither saw `drafts.about`. Only the authenticated run could authoritatively resolve history and draft state. Site Settings had no current version in that read.
+- Validation: TypeGen passed; authenticated and published-only page/content audits passed; provider diagnostics passed; migration/reset diagnostics ran in dry-run mode only; `npm run verify` passed with 199 tests; local Playwright passed 29 tests with 2 CMS-only skips; both local and Sanity production builds passed.
+- `npm run test:e2e:sanity` passed draft/local-content exclusion but its published-fixture flow failed because the previously documented `Contributor Lifecycle Test` Article is no longer published. No content was created or published to mask this external-state limitation.
+
+## Phase 12G About target alignment
+
+- **Implemented; authenticated Studio comparison pending:** July 21, 2026
+- Confirmed `.env.local`, CLI configuration, Studio configuration, the fixed-page client, both read-only audits, provider diagnostics, public provider, TypeGen, and CMS browser tests resolve to public project `bumxf5q6` and dataset `production`.
+- Centralized the fixed-page client and both audits on environment API version `2026-03-01`. The lifecycle pane and About/Site Settings audit now share the exact raw projection from `src/sanity/pageExistence.ts`, including IDs, types, and creation/update timestamps.
+- Added safe target output to read-only diagnostics and development-only Studio console output. Production editors see no target diagnostics.
+- Current CLI evidence for About is `[]`; therefore normal About navigation must show the creation/recovery choices and must not show **Open About**. The current authenticated Studio result still requires comparison after restarting with this code.
+- Target details and perspective/CDN behavior are recorded in `docs/SANITY_TARGET_ALIGNMENT.md`.
+
+## Phase 12E supported fixed-page draft creation
+
+- **Implemented; authenticated action verification pending:** July 20, 2026
+- Replaced the unsupported generic `createIfNotExists` write to `drafts.*` with Sanity’s Document Actions API: `sanity.action.document.create`, fixed `publishedId`, `createDraftId(publishedId)`, exact schema/initial attributes, and `ifExists: "fail"`.
+- The pane reruns the Phase 12D exact raw existence query after the action and does not navigate or claim success unless the expected draft ID/type is returned from current Content Lake state.
+- Added `@sanity/id-utils` as a direct dependency because fixed-page draft IDs must be generated through Sanity’s supported ID utility rather than string construction in the write path.
+- Focused tests verify the exact action payload, confirmation-only execution, and failure behavior when the action resolves but the authoritative raw query remains empty. No dataset action was run by Codex.
+
+### Phase 12E acceptance
+
+- In authenticated Studio, explicitly confirm clean About initialization once. Then run `npm run sanity:audit-pages`; acceptance requires `draft: present`, `state: draftOnly`, and exact raw response `[{"_id":"drafts.about","_type":"staticPage"}]`.
+- Do not publish, restore, delete, reset, or modify unrelated content. If the action fails, preserve the console’s Sanity action error and do not treat the form or navigation as success.
+- **Unexpected external state at handoff:** the final read-only audits returned an empty current dataset, including no prior published Site Settings or Contributor. Both fixed-page exact responses are now `[]`. No Phase 12E code path or automated test invoked `client.action`, and Codex performed no dataset write. Confirm the intended Sanity project/dataset and investigate this state change before any authenticated acceptance action; do not restore or recreate content automatically.
+
+## Phase 12D authoritative fixed-page existence
+
+- **Implemented; authenticated Studio acceptance pending:** July 20, 2026
+- The lifecycle pane now runs a server-filtered exact query for the published/draft IDs and expected schema type, forces `perspective: "raw"` per request, uses `useCdn: false`, requests only `_id`/`_type`, and disables response caching.
+- Returned values are defensively filtered again. Wrong IDs, wrong types, deleted-history shapes, empty objects, and non-arrays cannot enable **Open About**. A request-generation guard prevents pane reuse or out-of-order responses from replacing the active fixed-page result.
+- Safe Studio console diagnostics record the requested IDs/type, received `_id`/`_type` projection, accepted records, and public project/dataset client target; no token or document content is logged.
+- The read-only fixed-page audit now prints the same exact raw existence response. Current result: About `[]`; Site Settings `[{"_id":"siteSettings","_type":"siteSettings"}]`.
+- Regression coverage includes exact ID/type rejection and Site Settings → About pane reuse. `npm run verify` passes with 186 tests; local-provider Playwright passes 29 tests with two CMS-only tests intentionally skipped.
+
+### Phase 12D acceptance
+
+- In authenticated Studio, reproduce Site Settings → About, hard refresh, away/back, and direct About navigation. Every path must show initialization while the exact raw response is empty; **Open About** must never appear.
+- Compare Studio’s safe `Fixed page existence response` console record with `npm run sanity:audit-pages`. Acceptance requires both to report an empty About result. Do not initialize, restore, create, publish, or delete content during this phase.
+
+## Phase 12C fixed-page deleted-history recovery
+
+- **Implemented; authenticated clean-initialization click pending:** July 20, 2026
+- Corrected the Phase 12B assumption that absence from GROQ means a fixed-ID editor will open as a new document. Sanity can resolve a discarded/deleted fixed-ID tombstone even when `about` and `drafts.about` are absent from ordinary queries.
+- Replaced direct fixed-page Structure editors with lifecycle panes. Existing fixed pages open normally; an absent pair offers two explicit paths: inspect Sanity revision history or confirm creation of a clean unpublished draft at the same fixed ID. Nothing is restored, created, published, or deleted automatically.
+- Expanded the state model and audit vocabulary for never-created, current version pairs, discarded drafts, deleted/restorable history, restored drafts, and indeterminate history. The current CLI can read document/event history but is not authorized for transaction history, so About is correctly reported as `historyIndeterminate` rather than falsely `missing` or `neverCreated`.
+- Disabled Scheduled Drafts as well as Releases in Studio configuration.
+- Focused tests prove that opening the recovery pane performs no mutation and that clean initialization requires a second explicit confirmation before creating `drafts.about` and navigating to its editor.
+
+### Phase 12C acceptance
+
+- Sign into the local embedded Studio, open **About**, and confirm the lifecycle pane appears instead of the deleted-document tombstone.
+- Choose **Open revision history** and confirm Sanity still exposes the existing tombstone/recovery UI without restoring it.
+- Return to **About**, choose **Create clean About draft**, cancel once, then confirm once. Verify the draft opens with title `About`, slug `about`, no old body/staff content restored, and no published About version created. Leave it as a draft.
+- Refresh the **About** pane; verify it now reports the fixed page exists and **Open About** reaches the normal editor. Confirm Scheduled Drafts is absent from the top navigation.
+
+## Phase 12B durable fixed-page lifecycle (superseded in part by Phase 12C)
+
+- **Superseded after authenticated testing:** July 20, 2026
+- Confirmed authoritative IDs `about` (`staticPage`) and `siteSettings` (`siteSettings`). Both Structure entries already use direct fixed-ID editors and never depend on query results.
+- Added one typed fixed-page state machine covering missing, draft-only, published-only, and published-with-changes states, plus explicit status badges.
+- Fixed-page actions now use an allowlist: Publish is always retained, and Discard unpublished changes is retained only when draft and published versions both exist. Delete, permanent delete, duplicate, copy, unpublish, and draft-only discard are absent.
+- The direct fixed-ID editor and initial values were insufficient after deleted/discarded history; Phase 12C replaces that path with an explicit lifecycle pane.
+- Added the read-only `npm run sanity:audit-pages` command and regression tests for all state/action and malformed-dataset cases.
+- Raw current-document result: About has neither variant; Site Settings is published-only. Phase 12C records About history as indeterminate because Studio resolves a tombstone that the authenticated CLI history endpoints do not expose completely.
+
+### Phase 12B follow-up
+
+- Sign into the local Studio and confirm the missing About entry opens an editable form, first edit creates `drafts.about`, refresh remains editable, and only Publish is offered. Do not publish test content merely for verification.
+- On Site Settings, make a harmless unpublished edit, verify the changed-state badge and Discard action, discard it, and confirm the pane immediately returns to published values. Restore the original value if needed.
+- The automated browser reached the configured Sanity login screen but had no authenticated session, so these editor interactions remain manual.
+
+## Phase 12 Sanity content provider acceptance
+
+- **Implementation complete; dataset acceptance pending:** July 19, 2026
+- Added a stable domain-facing `ContentProvider` with separate validated local and published-only Sanity implementations selected by `CONTENT_SOURCE`.
+- Added focused GROQ projections, runtime adapters, Portable Text mapping, deterministic ordering, CMS search, contributor/About relationships, Sanity image metadata, tagged caching, and secret-authenticated revalidation.
+- Preserved `CONTENT_SOURCE=local` as a temporary rollback until migration acceptance. Explicit Sanity mode never silently falls back and never uses a public read token.
+- Generated schema/query types and added provider, projection, adapter, failure, revalidation, and CMS-backed browser coverage.
+- The dataset contains one domain-valid published test Article, two published Contributors, and managed About. The valid Article is `Contributor Lifecycle Test` by `manual 2`.
+- Revised acceptance physically removed all Issue and Category compatibility types, methods, GROQ queries, tests, and documentation claims from the provider.
+- Diagnostics now identify invalid published records with field-level failures and distinguish them from draft-only records. They intentionally exit unsuccessfully while such a record exists.
+
+### Phase 12 follow-up
+
+- Human confirmation is required before deleting the apparently disposable published test Article `feawfweaf` (`fwaefw`). It has no draft pair and fails because its summary/dek is below 20 characters. Exact safe Studio steps are in `docs/PHASE_12_ACCEPTANCE.md`.
+- The accepted Phase 11 launch model has no Issue, Category, or Tag schemas/routes, so those migration checks are not applicable unless ADR-014 is superseded.
+- Complete the documented manual draft-isolation and 300-second cache tests. There are currently no draft-only Articles or unpublished-change pairs in the dataset.
+- Verify a real editorial image with caption and credit after one is added; adapter fixtures cover image-free and complete-image mapping now.
+- After editorial acceptance and real-content migration, set production `CONTENT_SOURCE=sanity`, verify the publishing webhook, and schedule local fallback removal.
+
 ## Phase 11H final text-only Contributor identity
 
 - **Completed:** July 19, 2026
