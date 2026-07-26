@@ -1,22 +1,22 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import type { SiteSettings } from "@/content/types";
 import { JsonLd } from "./json-ld";
 import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
-import { siteConfig } from "@/config/site";
 import { absoluteUrl } from "@/lib/metadata";
 
-export function SiteShell({ children }: { children: React.ReactNode }) {
+export function SiteShell({ children, settings }: { children: React.ReactNode; settings: SiteSettings }) {
   const pathname = usePathname();
   if (pathname === "/studio" || pathname.startsWith("/studio/")) return children;
   return (
     <>
-      <JsonLd data={{ "@context": "https://schema.org", "@type": "Organization", name: siteConfig.name, url: absoluteUrl("/"), description: siteConfig.description, parentOrganization: { "@type": "EducationalOrganization", name: siteConfig.school } }} />
+      <JsonLd data={{ "@context": "https://schema.org", "@type": "Organization", name: settings.name, url: absoluteUrl("/"), description: settings.description, parentOrganization: { "@type": "EducationalOrganization", name: settings.school } }} />
       <a className="skip-link" href="#main-content">Skip to content</a>
-      <SiteHeader />
+      <SiteHeader settings={settings} />
       <main id="main-content">{children}</main>
-      <SiteFooter />
+      <SiteFooter settings={settings} />
     </>
   );
 }

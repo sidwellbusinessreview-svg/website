@@ -2,6 +2,7 @@
 
 import { defineConfig } from "sanity";
 import { structureTool } from "sanity/structure";
+import { presentationTool } from "sanity/presentation";
 import { getSanityEnvironment } from "./src/sanity/env";
 import { schemaTypes } from "./src/sanity/schemaTypes";
 import {
@@ -14,6 +15,7 @@ import { structure } from "./src/sanity/structure";
 import { ArticleStatusBadge, ContributorAvailabilityBadge, resolveDocumentActions, SingletonStatusBadge } from "./src/sanity/documentStatus";
 
 const environment = getSanityEnvironment();
+const previewOrigin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export default environment.configured
   ? defineConfig({
@@ -24,6 +26,54 @@ export default environment.configured
       dataset: environment.dataset,
       plugins: [
         structureTool({ structure }),
+        presentationTool({
+          name: "preview",
+          title: "Preview",
+          allowOrigins: [previewOrigin],
+          previewUrl: {
+            initial: previewOrigin,
+            previewMode: { enable: "/api/draft-mode/enable", shareAccess: false },
+          },
+          resolve: {
+            mainDocuments: [
+              { route: "/", type: "siteSettings" },
+              { route: "/about", type: "staticPage" },
+              {
+                route: "/articles/:slug",
+                filter: `_type == "article" && slug.current == $slug`,
+                params: ({ params }) => ({ slug: params.slug }),
+              },
+              {
+                route: "/authors/:slug",
+                filter: `_type == "contributor" && slug.current == $slug`,
+                params: ({ params }) => ({ slug: params.slug }),
+              },
+            ],
+            locations: {
+              siteSettings: {
+                locations: [{ title: "Homepage and site settings", href: "/", showHref: false }],
+              },
+              article: {
+                select: { title: "title", slug: "slug.current" },
+                resolve: (value) => value?.slug ? {
+                  locations: [{ title: value.title || "Article preview", href: `/articles/${value.slug}` }],
+                } : { message: "Generate the Article slug to open its frontend preview.", tone: "caution" },
+              },
+              contributor: {
+                select: { name: "name", slug: "slug.current" },
+                resolve: (value) => value?.slug ? {
+                  locations: [{ title: value.name || "Contributor preview", href: `/authors/${value.slug}` }],
+                } : { message: "Generate the Contributor slug to open its frontend preview.", tone: "caution" },
+              },
+              staticPage: {
+                select: { title: "title", slug: "slug.current" },
+                resolve: (value) => value?.slug === "about" ? {
+                  locations: [{ title: "About page", href: "/about" }],
+                } : { message: "This page does not have a public preview route.", tone: "caution" },
+              },
+            },
+          },
+        }),
       ],
       releases: { enabled: false },
       scheduledDrafts: { enabled: false },

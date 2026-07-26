@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
-import { getArticles, getContributors } from "@/content";
+import { getPublishedArticles, getPublishedContributors } from "@/content";
 import { absoluteUrl } from "@/lib/metadata";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [articles, authors] = await Promise.all([
-    getArticles(),
-    getContributors(),
+    getPublishedArticles(),
+    getPublishedContributors(),
   ]);
   const staticRoutes = [
     "",

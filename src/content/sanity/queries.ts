@@ -12,7 +12,7 @@ const bodyProjection = `body[]{
 }`;
 
 const articleProjection = `{
-  _id,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,
+  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,
   seoTitle,seoDescription,
   "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},
   "featuredImage": featuredImage${imageProjection},
@@ -20,43 +20,46 @@ const articleProjection = `{
   ${bodyProjection}
 }`;
 
-const publishedArticleFilter = `_type == "article" && !(_id in path("drafts.**")) && defined(slug.current)`;
+// Visibility is controlled by the authenticated client's perspective. The
+// published client cannot see drafts; the preview client resolves draft
+// versions without maintaining a second set of queries.
+const articleFilter = `_type == "article" && defined(slug.current)`;
 
 export const SITE_SETTINGS_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "siteSettings"][0]{
-  publicationName,shortName,description,affiliationText,tagline,location,logoMode,textWordmark,
+  _id,_type,publicationName,shortName,description,affiliationText,tagline,location,logoMode,textWordmark,
   "logoImage": logoImage${imageProjection},logoImageAlt,contactLabel,contactTarget,
   socialLinks[]{label,url},defaultSeo,homepageTagline
 }`);
 
 export const ALL_PUBLISHED_ARTICLES_QUERY = defineQuery(
-  `*[${publishedArticleFilter}]|order(publicationDate desc, slug.current asc)${articleProjection}`,
+  `*[${articleFilter}]|order(publicationDate desc, slug.current asc)${articleProjection}`,
 );
 export const ARTICLE_BY_SLUG_QUERY = defineQuery(
-  `*[${publishedArticleFilter} && slug.current == $slug][0]${articleProjection}`,
+  `*[${articleFilter} && slug.current == $slug][0]${articleProjection}`,
 );
 export const PINNED_ARTICLE_QUERY = defineQuery(
-  `*[${publishedArticleFilter} && pinned == true]|order(featuredRank asc, publicationDate desc, slug.current asc)[0]${articleProjection}`,
+  `*[${articleFilter} && pinned == true]|order(featuredRank asc, publicationDate desc, slug.current asc)[0]${articleProjection}`,
 );
 export const LATEST_ARTICLES_QUERY = defineQuery(
-  `*[${publishedArticleFilter}]|order(publicationDate desc, slug.current asc)[0...$limit]${articleProjection}`,
+  `*[${articleFilter}]|order(publicationDate desc, slug.current asc)[0...$limit]${articleProjection}`,
 );
 export const ARTICLES_BY_CONTRIBUTOR_QUERY = defineQuery(
-  `*[${publishedArticleFilter} && $slug in contributors[]->slug.current]|order(publicationDate desc, slug.current asc)${articleProjection}`,
+  `*[${articleFilter} && $slug in contributors[]->slug.current]|order(publicationDate desc, slug.current asc)${articleProjection}`,
 );
 export const SEARCH_ARTICLES_QUERY = defineQuery(
-  `*[${publishedArticleFilter} && [title,subtitle,summary,pt::text(body),contributors[]->name] match $term]|order(publicationDate desc, slug.current asc)${articleProjection}`,
+  `*[${articleFilter} && [title,subtitle,summary,pt::text(body),contributors[]->name] match $term]|order(publicationDate desc, slug.current asc)${articleProjection}`,
 );
 
 export const CONTRIBUTORS_QUERY = defineQuery(`*[
-  _type == "contributor" && !(_id in path("drafts.**")) && defined(slug.current)
-]|order(name asc){_id,name,"slug":slug.current,role,graduationYear,active}`);
+  _type == "contributor" && defined(slug.current)
+]|order(name asc){_id,_type,name,"slug":slug.current,role,graduationYear,active}`);
 export const CONTRIBUTOR_BY_SLUG_QUERY = defineQuery(`*[
-  _type == "contributor" && !(_id in path("drafts.**")) && slug.current == $slug
-][0]{_id,name,"slug":slug.current,role,graduationYear,active}`);
+  _type == "contributor" && slug.current == $slug
+][0]{_id,_type,name,"slug":slug.current,role,graduationYear,active}`);
 
 export const STATIC_PAGE_BY_SLUG_QUERY = defineQuery(`*[
-  _type == "staticPage" && !(_id in path("drafts.**")) && slug.current == $slug
-][0]{title,"slug":slug.current,eyebrow,summary,${bodyProjection},
+  _type == "staticPage" && slug.current == $slug
+][0]{_id,_type,title,"slug":slug.current,eyebrow,summary,${bodyProjection},
   editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}},
   editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}},
   facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}}

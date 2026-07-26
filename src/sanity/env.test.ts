@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getSanityEnvironment, readPublicSanityEnvironment } from "@/sanity/env";
-import { createPublicSanityClient } from "@/sanity/lib/client";
+import { createDraftSanityClient, createPublicSanityClient } from "@/sanity/lib/client";
 
 const validEnvironment = {
   NEXT_PUBLIC_SANITY_PROJECT_ID: "abc123xy",
@@ -86,5 +86,16 @@ describe("Sanity environment", () => {
     expect(config.useCdn).toBe(true);
     expect(config.perspective).toBe("published");
     expect(config.token).toBeUndefined();
+  });
+
+  it("creates a server-authenticated draft client with stega and no CDN", () => {
+    const environment = getSanityEnvironment(validEnvironment);
+    expect(environment.configured).toBe(true);
+    if (!environment.configured) throw new Error("Expected configured test environment");
+    const config = createDraftSanityClient(environment, "server-only-test-token").config();
+    expect(config.perspective).toBe("drafts");
+    expect(config.useCdn).toBe(false);
+    expect(config.token).toBe("server-only-test-token");
+    expect(config.stega).toMatchObject({ enabled: true, studioUrl: "/studio" });
   });
 });

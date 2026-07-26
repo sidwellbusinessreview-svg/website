@@ -27,6 +27,16 @@ describe("Sanity content provider", () => {
     expect(fetch.mock.calls[0][2]).toEqual({ next: { revalidate: 300, tags: ["content", "articles"] } });
     expect(JSON.stringify(fetch.mock.calls[0][2])).not.toMatch(/token|perspective/);
   });
+  it("uses uncached drafts perspective only for the authenticated preview provider", async () => {
+    const fetch = vi.fn().mockResolvedValue([]);
+    const provider = createSanityContentProvider({ fetch } as unknown as SanityClient, "drafts");
+    await provider.getArticles();
+    expect(fetch).toHaveBeenCalledWith(
+      expect.any(String),
+      {},
+      { cache: "no-store", perspective: "drafts", useCdn: false },
+    );
+  });
   it("applies shared Article and Contributor relationship tags to every dependent query", async () => {
     const fetch = vi.fn().mockResolvedValue([]);
     const provider = createSanityContentProvider({ fetch } as unknown as SanityClient);

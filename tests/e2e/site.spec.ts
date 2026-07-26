@@ -28,6 +28,14 @@ test("homepage loads and main navigation works", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Latest articles" })).toBeVisible();
 });
 
+test("a guest cannot activate Draft Mode without a valid secret", async ({ page }) => {
+  const response = await page.request.get("/api/draft-mode/enable");
+  expect(response.status()).toBe(401);
+  await page.goto("/");
+  await expect(page.getByText("Previewing unpublished content")).toHaveCount(0);
+  await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
+});
+
 test("removed issue routes use not-found behavior", async ({ page }) => {
   const response = await page.goto("/issues/spring-2026");
   expect(response?.status()).toBe(404);

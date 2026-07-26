@@ -28,6 +28,8 @@ Then open [http://localhost:3000](http://localhost:3000). The development server
 
 The environment file may remain blank to use the temporary local-content rollback mode. Set `CONTENT_SOURCE=sanity` only after adding approved public Sanity values; follow `docs/CONTENT_PROVIDER.md`. Never commit `.env.local` or real secrets.
 
+Draft preview also requires server-only `SANITY_API_READ_TOKEN` and `SANITY_PREVIEW_SECRET` values. Editors enter through Studio’s **Preview** tool; see `docs/PREVIEW_WORKFLOW.md`. Neither secret may use a `NEXT_PUBLIC_` prefix.
+
 ## Sanity Studio foundation
 
 The optional editorial Studio is mounted at [http://localhost:3000/studio](http://localhost:3000/studio) and is intentionally absent from public navigation. Without Sanity environment values it shows safe setup guidance; public pages continue using local content. With an approved project configured, Sanity authentication restricts editing to invited project members.

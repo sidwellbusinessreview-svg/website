@@ -11,8 +11,15 @@ export function getConfiguredContentSource(value = process.env.CONTENT_SOURCE): 
   return parsed.data;
 }
 
-export async function getContentProvider(): Promise<ContentProvider> {
+export async function getContentProvider(options: { publishedOnly?: boolean } = {}): Promise<ContentProvider> {
   if (getConfiguredContentSource() === "local") return localContentProvider;
-  const { getSanityContentProvider } = await import("./sanity/provider");
+  const { createSanityContentProvider, getSanityContentProvider } = await import("./sanity/provider");
+  if (options.publishedOnly) return getSanityContentProvider();
+  const { draftMode } = await import("next/headers");
+  const { isEnabled } = await draftMode();
+  if (isEnabled) {
+    const { getDraftSanityClient } = await import("@/sanity/lib/client");
+    return createSanityContentProvider(getDraftSanityClient(), "drafts");
+  }
   return getSanityContentProvider();
 }

@@ -6,11 +6,11 @@ import { ArticleMeta } from "@/components/article-meta";
 import { ImageCaption } from "@/components/image-caption";
 import { JsonLd } from "@/components/json-ld";
 import { siteConfig } from "@/config/site";
-import { getArticleBySlug, getArticles, getContributors } from "@/content";
+import { getArticleBySlug, getPublishedArticles, getContributors } from "@/content";
 import { absoluteUrl, createPageMetadata } from "@/lib/metadata";
 
 export async function generateStaticParams() {
-  return (await getArticles()).map(({ slug }) => ({ slug }));
+  return (await getPublishedArticles()).map(({ slug }) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

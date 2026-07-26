@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { getArticleValidationFailures, mapArticle, mapContributor, mapPortableText, mapStaticPage } from "./adapters";
+import { getArticleValidationFailures, mapArticle, mapContributor, mapPortableText, mapSiteSettings, mapStaticPage } from "./adapters";
 
 const span = (text: string, marks: string[] = []) => ({ _type: "span", _key: text, text, marks });
 const paragraph = (text: string, overrides = {}) => ({ _type: "block", _key: text, style: "normal", children: [span(text)], markDefs: [], ...overrides });
@@ -8,11 +8,60 @@ const rawArticle = (overrides = {}) => ({
   slug: "cms-test", title: "CMS Test Article", summary: "A sufficiently complete summary for the public article card.",
   publicationDate: "2026-05-01", pinned: false, contributors: [contributor], body: [paragraph("A complete paragraph of test article content for adapter verification.")], ...overrides,
 });
+const stega = (value: string) => `${value}\u200b\u200c\u200d\ufeff\u200b\u200c\u200d\ufeff`;
 
 describe("Sanity domain adapters", () => {
   it("maps published Article and Contributor records into the existing domain", () => {
     expect(mapContributor(contributor)).toEqual({ slug: "maya-chen", name: "Maya Chen", role: "Editor", grade: "Class of 2027" });
     expect(mapArticle(rawArticle())).toMatchObject({ slug: "cms-test", contributorSlugs: ["maya-chen"], status: "published" });
+  });
+  it("uses the required summary for cards and routing instead of an optional short subtitle", () => {
+    expect(mapArticle(rawArticle({
+      subtitle: "Tiny",
+      summary: "A complete required summary that remains valid for preview cards.",
+    }))).toMatchObject({
+      dek: "A complete required summary that remains valid for preview cards.",
+    });
+  });
+  it("validates semantic content while preserving stega on visible preview fields", () => {
+    const encodedContributor = { ...contributor, slug: stega(contributor.slug), name: stega(contributor.name) };
+    const encoded = rawArticle({
+      slug: stega("cms-test"),
+      title: stega("CMS Test Article"),
+      summary: stega("A sufficiently complete summary for the public article card."),
+      publicationDate: stega("2026-05-01"),
+      contributors: [encodedContributor],
+      body: [paragraph(stega("A complete paragraph of test article content for adapter verification."))],
+    });
+    const mapped = mapArticle(encoded);
+    expect(getArticleValidationFailures(encoded)).toEqual([]);
+    expect(mapped).toMatchObject({
+      slug: "cms-test",
+      title: expect.stringContaining("\u200b"),
+      contributorSlugs: ["maya-chen"],
+      publishedAt: "2026-05-01",
+    });
+    expect(mapped?.content[0]).toMatchObject({ text: expect.stringContaining("\u200b") });
+    expect(mapContributor(encodedContributor)).toMatchObject({ slug: "maya-chen", name: expect.stringContaining("\u200b") });
+  });
+  it("keeps stega out of routing, URLs, and strict settings validation", () => {
+    const settings = mapSiteSettings({
+      publicationName: stega("Preview Publication"),
+      shortName: stega("PP"),
+      description: stega("A sufficiently detailed preview publication description."),
+      affiliationText: stega("A school publication"),
+      tagline: stega("Business reporting"),
+      contactLabel: stega("Contact"),
+      contactTarget: stega("editors@example.com"),
+      socialLinks: [{ label: stega("Social"), url: stega("https://example.com") }],
+    });
+    expect(settings).toMatchObject({
+      name: "Preview Publication",
+      tagline: expect.stringContaining("\u200b"),
+      contact: { email: "editors@example.com" },
+      socialLinks: [{ href: "https://example.com" }],
+      logo: { mode: "text" },
+    });
   });
   it("fails closed when a required Contributor reference is missing", () => expect(mapArticle(rawArticle({ contributors: [null] }))).toBeUndefined());
   it("provides actionable developer diagnostics for invalid published records", () => {

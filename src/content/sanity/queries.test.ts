@@ -6,7 +6,9 @@ import {
 } from "./queries";
 
 describe("public Sanity queries", () => {
-  it.each([ALL_PUBLISHED_ARTICLES_QUERY, ARTICLE_BY_SLUG_QUERY, ARTICLES_BY_CONTRIBUTOR_QUERY, SEARCH_ARTICLES_QUERY, CONTRIBUTORS_QUERY, STATIC_PAGE_BY_SLUG_QUERY])("explicitly excludes drafts", (query) => expect(query).toContain('!(_id in path("drafts.**"))'));
+  it.each([ALL_PUBLISHED_ARTICLES_QUERY, ARTICLE_BY_SLUG_QUERY, ARTICLES_BY_CONTRIBUTOR_QUERY, SEARCH_ARTICLES_QUERY, CONTRIBUTORS_QUERY, STATIC_PAGE_BY_SLUG_QUERY])("delegates visibility to the client perspective", (query) => {
+    expect(query).not.toContain('path("drafts.**")');
+  });
   it("projects only public image metadata and resolved contributors", () => {
     expect(articleProjectionForTests).toContain("contributors[]->");
     expect(articleProjectionForTests).toContain("metadata{dimensions");

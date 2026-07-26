@@ -9,7 +9,7 @@ Phase 11B keeps the Studio deliberately small. Phase 12 can serve published publ
 - **About**
 - **Site Settings**
 
-Vision, Releases, issues, categories, tags, and technical tools are absent. About and Site Settings are fixed pages protected from ordinary duplicate/delete actions. Duplicate is also removed from Articles and Contributors. Studio has a dedicated full-screen shell without the public header or footer.
+Vision, Releases, issues, categories, tags, and technical tools are absent. A separate **Preview** tool securely loads saved drafts on the frontend; it does not replace the Structure editing workflow and does not promise live updates while typing. About and Site Settings are fixed pages protected from ordinary duplicate/delete actions. Duplicate is also removed from Articles and Contributors. Studio has a dedicated full-screen shell without the public header or footer.
 
 Each Article pane shows a count, search field, sort control, New article button, status and pinned badges, title, subtitle or shortened summary, contributors, publication date, and an optional compact thumbnail. Search is case-insensitive and does not alter draft/published classification. Sorting supports newest date, oldest date, title, and recently updated. Image-free records use a deliberate compact text layout.
 

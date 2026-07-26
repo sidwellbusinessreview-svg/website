@@ -1,5 +1,49 @@
 # Project status
 
+## Phase 13 secure draft preview
+
+- **Implemented; authenticated manual acceptance pending:** July 23, 2026
+- Added secure App Router Draft Mode enable/disable routes, Sanity preview-secret validation, local-only redirects, no-store draft reads, preview noindex metadata, and an accessible unpublished-content banner.
+- Added a separate Studio **Preview** tool for Homepage, Articles, Contributors, About, and Site Settings. Structure remains the editing workflow; Vision, Releases, and removed content models remain absent.
+- Public clients remain token-free, published-perspective, and CDN-backed. Draft clients are server-only, use the Viewer token, drafts perspective, CDN disabled, and no cache. Feed and sitemap force published-only access even in preview.
+- Live typing updates are not claimed. Saved drafts become visible after refreshing Preview.
+- Authenticated editor and clean-guest manual checks remain required.
+
+### Phase 13A Presentation connection
+
+- Added the missing `VisualEditing` bridge during Draft Mode and enabled Content Source Maps/stega on the server-only draft client with the embedded `/studio` target.
+- This repairs the Presentation iframe handshake and document-location channel while preserving save-and-refresh behavior. No `SanityLive`, browser token, or live subscription was added.
+- Public client configuration remains published, CDN-backed, token-free, and stega-free.
+
+### Phase 13B public-only preview chrome
+
+- **Implemented; authenticated manual Studio acceptance pending:** July 24, 2026
+- Root cause: the Phase 13A root layout rendered the preview banner and `VisualEditing` whenever the origin-wide Draft Mode cookie was enabled. Because embedded Studio shares that layout, Studio and every nested tool inherited frontend preview chrome.
+- Added one pathname-aware preview boundary. It mounts the banner and Presentation bridge only on public frontend page paths and renders nothing on Studio, nested Studio tools, API routes, feed, sitemap, or robots. The root layout also no longer queries draft Site Settings solely for the banner.
+- Hardened preview exit redirects: safe public paths are retained, preview-secret parameters are removed, and Studio/API/external/protocol-relative/non-page targets fall back to Homepage.
+- Added focused coverage for public pages, all relevant Studio paths, non-page routes, Draft Mode conditional rendering, and safe exit redirects. No live subscriptions, browser token, CMS mutation, provider behavior change, or visual redesign was introduced.
+- Authenticated manual acceptance must still hard-refresh and navigate across Structure, About, Site Settings, an Article editor, and Preview while Draft Mode is active, confirming Studio has no frontend banner or bridge and public Preview remains connected after refresh.
+
+### Phase 13C preview content retention and reliable exit
+
+- **Implemented; final authenticated browser acceptance pending:** July 24, 2026
+- Exact root cause: draft-perspective GROQ returned the canonical published Article, but stega source-map metadata inflated strict title/dek lengths and contaminated Contributor validation. The Article adapter rejected the otherwise valid record, so Homepage, Article, Latest, Archive, Search, and Contributor Article results became empty in Preview.
+- Adapters now validate stega-clean semantic content and keep control values such as slugs, dates, URLs, references, and internal links clean, while preserving stega on visible editorial strings for Presentation overlays. Empty stega-only body spans are ignored safely.
+- Added `sanity:diagnose-preview`, an authenticated read-only metadata diagnostic. After the fix, published and draft perspectives each report one raw, adapted, validated, and final canonical Article across every required discovery surface, with no exclusions; Contributor, About, and Site Settings also remain available.
+- Exit Preview now targets the top-level browser rather than remaining inside Presentation’s iframe, preserves a safe public path, strips preview parameters, and documents the origin-wide browser-session effect. A Guest or Private window remains required for simultaneous true-public comparison.
+- No Sanity content was created, edited, restored, deleted, or published.
+
+### Phase 13D Site Settings and draft-only Article preview
+
+- **Implemented; final authenticated browser acceptance pending:** July 26, 2026
+- Preserved and diagnosed the current dataset without mutation. Site Settings is `publishedWithChanges`; both variants validate, and the draft provider selects the draft tagline. The frontend failure came from site-wide components importing static configuration instead of consuming provider-selected Site Settings.
+- Header, footer, logo, organization JSON-LD, preview label, and root metadata now use the selected Site Settings. Public mode remains published/token-free/CDN-backed; Draft Mode remains server-token/drafts/no-CDN/no-store. Structural publication values are stega-clean while the visible tagline may retain overlay metadata.
+- Provider-driven logo mode now requires a resolved CMS logo asset; an image-mode setting without an asset safely falls back to the text wordmark and produces no broken image request.
+- The draft-only Article `drafts.fa62b097-88bc-41d2-bc51-147be597884d` has slug `preview-draft-article`, no missing required fields, one valid Contributor reference, a four-character optional subtitle, and a 25-character required summary. The adapter incorrectly preferred the subtitle and rejected `dek`; it now correctly uses required `summary`.
+- The authenticated read-only diagnostic now reports two valid Preview Articles with no exclusions. The draft-only Article passes clean validation and individual slug lookup, while published mode still returns only the canonical published Article.
+- Added explicit Presentation locations for **Homepage and site settings**, Articles, Contributors, and the About page. There is intentionally no public Site Settings route.
+- No editorial content was created, edited, restored, deleted, or published.
+
 ## Phase 12J Portable Text lists and cache audit
 
 - **Implemented; full validation and automatic-refresh acceptance pending:** July 23, 2026

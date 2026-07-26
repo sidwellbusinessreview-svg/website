@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
-import { getArticlesByContributor, getContributorBySlug, getContributors } from "@/content";
+import { getArticlesByContributor, getContributorBySlug, getPublishedContributors } from "@/content";
 import { createPageMetadata } from "@/lib/metadata";
 
 export async function generateStaticParams() {
-  return (await getContributors()).map(({ slug }) => ({ slug }));
+  return (await getPublishedContributors()).map(({ slug }) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

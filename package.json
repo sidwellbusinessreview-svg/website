@@ -16,6 +16,7 @@
     "test:e2e:ui": "CONTENT_SOURCE=local playwright test --ui",
     "sanity:check": "node --import tsx scripts/check-sanity.ts",
     "sanity:check-provider": "node --import tsx scripts/check-content-provider.ts",
+    "sanity:diagnose-preview": "node --import tsx scripts/diagnose-preview-provider.ts",
     "sanity:check-cache": "node --import tsx scripts/check-sanity-cache.ts",
     "sanity:check-target": "node --import tsx scripts/check-sanity-target.ts",
     "sanity:schema": "sanity schema extract --enforce-required-fields --force",
@@ -36,6 +37,7 @@
   "dependencies": {
     "@sanity/id-utils": "^1.0.0",
     "@sanity/image-url": "^2.1.1",
+    "@sanity/preview-url-secret": "4.1.1",
     "@sanity/ui": "^3.3.5",
     "@sanity/vision": "^6.5.0",
     "next": "16.2.10",

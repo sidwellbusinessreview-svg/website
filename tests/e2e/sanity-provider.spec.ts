@@ -7,6 +7,7 @@ const contributorName = fixtureValue("CMS_TEST_CONTRIBUTOR_NAME", "CMS Integrati
 const contributorSlug = fixtureValue("CMS_TEST_CONTRIBUTOR_SLUG", "cms-integration-test-contributor");
 const localOnlyTitle = "The New Economics of School Lunch";
 const localOnlySlug = "the-new-economics-of-school-lunch";
+const draftOnlySlug = fixtureValue("CMS_TEST_DRAFT_ONLY_ARTICLE_SLUG", "preview-draft-article");
 
 test.describe("Sanity-backed public routes", () => {
   test.skip(process.env.CONTENT_SOURCE !== "sanity", "Run with npm run test:e2e:sanity.");
@@ -17,6 +18,7 @@ test.describe("Sanity-backed public routes", () => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: articleTitle })).toBeVisible();
     await expect(page.getByText(localOnlyTitle)).toHaveCount(0);
+    await expect(page.locator(`a[href="/articles/${draftOnlySlug}"]`)).toHaveCount(0);
 
     await page.getByRole("link", { name: articleTitle }).first().click();
     await expect(page).toHaveURL(`/articles/${articleSlug}`);
@@ -63,6 +65,8 @@ test.describe("Sanity-backed public routes", () => {
 
   test("local-only stories and drafts are not exposed by the CMS provider", async ({ page }) => {
     await page.goto(`/articles/${localOnlySlug}`);
+    await expect(page.getByRole("heading", { name: "This story is not in our archive." })).toBeVisible({ timeout: 20_000 });
+    await page.goto(`/articles/${draftOnlySlug}`);
     await expect(page.getByRole("heading", { name: "This story is not in our archive." })).toBeVisible({ timeout: 20_000 });
   });
 });

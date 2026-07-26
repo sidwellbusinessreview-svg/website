@@ -1,36 +1,51 @@
 import type { Metadata } from "next";
+import { draftMode } from "next/headers";
+import { PreviewChrome } from "@/components/preview-chrome";
 import { SiteShell } from "@/components/site-shell";
-import { siteConfig } from "@/config/site";
+import { getSiteSettings } from "@/content";
+import type { SiteSettings } from "@/content/types";
 import { absoluteUrl } from "@/lib/metadata";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.siteUrl),
-  title: { default: siteConfig.name, template: `%s | ${siteConfig.name}` },
-  description: siteConfig.description,
-  alternates: {
-    canonical: "/",
-    types: { "application/rss+xml": absoluteUrl("/feed.xml") },
-  },
-  openGraph: {
-    type: "website",
-    title: siteConfig.name,
-    description: siteConfig.description,
-    url: "/",
-    siteName: siteConfig.name,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: siteConfig.name,
-    description: siteConfig.description,
-  },
-};
+function metadataFor(settings: SiteSettings): Metadata {
+  return {
+    metadataBase: new URL(settings.siteUrl),
+    title: { default: settings.name, template: `%s | ${settings.name}` },
+    description: settings.description,
+    alternates: {
+      canonical: "/",
+      types: { "application/rss+xml": absoluteUrl("/feed.xml") },
+    },
+    openGraph: {
+      type: "website",
+      title: settings.name,
+      description: settings.description,
+      url: "/",
+      siteName: settings.name,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: settings.name,
+      description: settings.description,
+    },
+  };
+}
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export async function generateMetadata(): Promise<Metadata> {
+  const [preview, settings] = await Promise.all([(await draftMode()).isEnabled, getSiteSettings()]);
+  const publicMetadata = metadataFor(settings);
+  return preview
+    ? { ...publicMetadata, robots: { index: false, follow: false, nocache: true } }
+    : publicMetadata;
+}
+
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const [preview, settings] = await Promise.all([(await draftMode()).isEnabled, getSiteSettings()]);
   return (
     <html lang="en">
       <body>
-        <SiteShell>{children}</SiteShell>
+        {preview && <PreviewChrome publicationName={settings.name} />}
+        <SiteShell settings={settings}>{children}</SiteShell>
       </body>
     </html>
   );

@@ -1,5 +1,5 @@
 import { siteConfig } from "@/config/site";
-import { getArticles, getContributors } from "@/content";
+import { getPublishedArticles, getPublishedContributors } from "@/content";
 import { absoluteUrl } from "@/lib/metadata";
 import { PUBLIC_CONTENT_REVALIDATE_SECONDS } from "@/content/sanity/cache";
 
@@ -13,7 +13,7 @@ export function escapeXml(value: string): string {
 }
 
 export async function GET() {
-  const [articles, authors] = await Promise.all([getArticles(), getContributors()]);
+  const [articles, authors] = await Promise.all([getPublishedArticles(), getPublishedContributors()]);
   const authorBySlug = new Map(authors.map((author) => [author.slug, author.name]));
   const items = articles.map((article) => `
     <item>

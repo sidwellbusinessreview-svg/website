@@ -23,6 +23,25 @@ Contributor reference arrays are projected in their editorial order. Neither Art
 
 ADR-014 removed Issue, Category, and Tag schemas and routes from the accepted launch model. The provider contains no methods or queries for those models.
 
+## Draft preview
+
+The same domain adapter and queries serve both modes. Visibility comes from the client perspective:
+
+- Public: `published`, token-free, CDN enabled, tagged 300-second cache.
+- Draft Mode: `drafts`, server-only Viewer token, CDN disabled, `no-store`.
+
+The draft client enables Content Source Maps/stega with the embedded `/studio` URL. During Draft Mode, the root layout delegates preview chrome to a pathname-aware client boundary that mounts the banner and `VisualEditing` only on public frontend pages. It renders nothing on `/studio`, nested Studio tools, API routes, feed, sitemap, or robots, and the root no longer performs a draft Site Settings query merely to label the banner. This provides Presentation’s communication and document-location bridge without adding Sanity Live subscriptions. Feed and sitemap explicitly request the published provider even when the requesting browser has a Draft Mode cookie. Preview never writes content and never falls back to drafts when credentials are missing.
+
+Sanity stega metadata is retained on visible editorial strings so Presentation can locate content. Before runtime validation and routing comparisons, adapters clean that metadata from semantic values. Slugs, publication dates, URLs, references, search inputs, and other control values remain clean. This prevents valid published documents from being rejected solely because invisible source-map metadata changes JavaScript string length.
+
+Site-wide frontend chrome receives Site Settings from the same selected provider as page content. Published mode supplies the published Site Settings page; Draft Mode supplies its draft overlay with `drafts`, a server-only Viewer token, CDN disabled, and `no-store`. Publication name, URLs, metadata values, logo structure, and contact targets are cleaned before use; the visible Homepage tagline may retain stega for Presentation.
+
+Image-logo mode is honored only when the selected Site Settings variant resolves an actual CMS image asset. If it does not, the header safely uses the configured text wordmark rather than requesting a nonexistent fallback image.
+
+The required Article `summary` is the domain card description. Optional `subtitle` does not override it. This permits a valid draft-only Article with a brief subtitle and complete summary to pass the same adapter and route contract as published work.
+
+Run `npm run sanity:diagnose-preview` for a safe development comparison of published and draft-perspective provider behavior. It prints only query names, counts, IDs/types, mode, adapter/validation results, and exclusion reasons—never content bodies, stega payloads, tokens, or preview secrets.
+
 ## Caching and publishing
 
 Reads use Next/Sanity fetch integration with an exact 300-second backstop. Every fetch receives the shared `content` tag plus explicit dependency tags for Articles, Contributors, pages, settings, and relationship queries. The shared tag is the deliberately safe invalidation boundary: a publish can affect Homepage, Latest, Archive, Search, an Article, its Contributor, feed, sitemap, About, or Site Settings, so invalidating the whole public-content set prevents partially stale relationships.

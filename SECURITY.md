@@ -10,6 +10,8 @@ Include a concise description, the affected page or service, steps to reproduce 
 
 Secrets must never be committed to this repository. This includes passwords, API tokens, private keys, webhook secrets, service-account files, recovery codes, and populated environment files. Store local values in ignored `.env` files and keep hosted values in the deployment provider’s protected environment settings.
 
+Draft preview credentials are server-only. `SANITY_API_READ_TOKEN` and `SANITY_PREVIEW_SECRET` must never enter client components, browser JavaScript, public environment variables, logs, screenshots, or issue reports. Preview validates an expiring Studio-generated secret or a long administrator fallback secret, restricts redirects to this site, disables draft caching, and discourages indexing. Rate-limit repeated invalid preview requests at the hosting edge when deployed.
+
 If a secret is exposed:
 
 1. Revoke or rotate it immediately in the affected service.

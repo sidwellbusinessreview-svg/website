@@ -57,6 +57,10 @@ body {
   font-size: var(--font-size-base);
   line-height: var(--line-height-copy);
 }
+.preview-banner { position: relative; z-index: 50; display: flex; align-items: center; justify-content: center; gap: var(--space-3); border-bottom: 2px solid var(--color-ink); padding: .7rem var(--space-page-gutter); background: var(--color-accent); color: var(--color-white); }
+.preview-banner p { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin: 0; }
+.preview-banner button { min-height: var(--touch-target); border: 1px solid var(--color-white); padding: .45rem .8rem; background: transparent; color: var(--color-white); cursor: pointer; }
+.preview-banner button:focus-visible { outline-color: var(--color-white); }
 img { object-fit: cover; }
 button, input { font: inherit; }
 a { color: inherit; text-decoration-thickness: 0.08em; text-underline-offset: 0.18em; }

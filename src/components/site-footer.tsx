@@ -1,14 +1,14 @@
 import Link from "next/link";
-import { siteConfig } from "@/config/site";
+import type { SiteSettings } from "@/content/types";
 import { SiteLogo } from "./site-logo";
 
-export function SiteFooter() {
+export function SiteFooter({ settings }: { settings: SiteSettings }) {
   return (
     <footer className="site-footer">
       <div className="container footer-grid">
         <div>
-          <SiteLogo />
-          <p>{siteConfig.description}</p>
+          <SiteLogo settings={settings} />
+          <p>{settings.description}</p>
         </div>
         <div>
           <p className="eyebrow">Publication</p>
@@ -17,11 +17,11 @@ export function SiteFooter() {
         </div>
         <div>
           <p className="eyebrow">Contact</p>
-          <a href={`mailto:${siteConfig.contact.email}`}>
-            {siteConfig.contact.label}
+          <a href={`mailto:${settings.contact.email}`}>
+            {settings.contact.label}
           </a>
-          <p>{siteConfig.affiliation}</p>
-          {siteConfig.socialLinks.map((link) => (
+          <p>{settings.affiliation}</p>
+          {settings.socialLinks.map((link) => (
             <a key={link.href} href={link.href} rel="noreferrer">
               {link.label}
             </a>
@@ -29,7 +29,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="container footer-bottom">
-        <span>© {new Date().getFullYear()} {siteConfig.name}</span>
+        <span>© {new Date().getFullYear()} {settings.name}</span>
         <span>Student-run. Editorially independent.</span>
       </div>
     </footer>

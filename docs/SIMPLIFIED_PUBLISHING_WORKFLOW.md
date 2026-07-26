@@ -1,5 +1,7 @@
 # Simplified publishing workflow
 
+Before publishing, use Studio’s **Preview** tool. Draft-only Articles and unpublished changes remain hidden from ordinary visitors. Save changes in Structure, refresh Preview, complete the review checklist in `PREVIEW_WORKFLOW.md`, and publish only after approval.
+
 ## First-time contributor setup
 
 1. Open `/studio` and choose **Contributors**.

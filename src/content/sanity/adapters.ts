@@ -1,4 +1,5 @@
 import { siteConfig } from "@/config/site";
+import { stegaClean } from "next-sanity";
 import { articleSchema, contributorSchema, siteSettingsSchema, type Article, type ArticleContentBlock, type Contributor, type SiteSettings } from "../schemas";
 import type { StaticPageContent, StaffEntry } from "../provider";
 
@@ -34,7 +35,11 @@ export type RawSanityArticle = {
   featuredImageAltText?: unknown; featuredImageCaption?: unknown; featuredImageCredit?: unknown; body?: unknown;
 };
 
-const text = (value: unknown) => typeof value === "string" && value.trim() ? value.trim() : undefined;
+const text = (value: unknown) =>
+  typeof value === "string" && stegaClean(value).trim() ? value.trim() : undefined;
+const inlineText = (value: unknown) =>
+  typeof value === "string" && stegaClean(value).trim() ? value : undefined;
+const cleanText = (value: unknown) => text(stegaClean(value));
 const number = (value: unknown) => typeof value === "number" && Number.isFinite(value) ? value : undefined;
 
 function spans(value: unknown): RawSpan[] {
@@ -42,7 +47,8 @@ function spans(value: unknown): RawSpan[] {
 }
 
 function blockText(block: RawBlock): string {
-  return spans(block.children).map((span) => typeof span.text === "string" ? span.text : "").join("").trim();
+  const value = spans(block.children).map((span) => typeof span.text === "string" ? span.text : "").join("");
+  return text(value) ?? "";
 }
 
 function markDefs(value: unknown): RawMark[] {
@@ -56,26 +62,29 @@ function wholeBlockLink(block: RawBlock): string | undefined {
   const shared = markKeys[0].find((key) => markKeys.every((keys) => keys.includes(key)));
   if (!shared) return undefined;
   const definition = markDefs(block.markDefs).find((mark) => mark._key === shared);
-  if (typeof definition?.href === "string" && /^https?:\/\//.test(definition.href)) return definition.href;
+  const href = cleanText(definition?.href);
+  if (href && /^https?:\/\//.test(href)) return href;
   return undefined;
 }
 
 type RichListItem = Extract<ArticleContentBlock, { type: "bulletedList" | "numberedList" }>["items"][number];
 
 function safeMarkHref(mark: RawMark | undefined): string | undefined {
-  if (typeof mark?.href === "string" && /^https?:\/\//.test(mark.href)) return mark.href;
-  const slug = text(mark?.internalSlug);
+  const href = cleanText(mark?.href);
+  if (href && /^https?:\/\//.test(href)) return href;
+  const slug = cleanText(mark?.internalSlug);
   if (!slug) return undefined;
-  if (mark?.internalType === "article") return `/articles/${slug}`;
-  if (mark?.internalType === "contributor") return `/authors/${slug}`;
-  if (mark?.internalType === "staticPage") return `/${slug}`;
+  const internalType = cleanText(mark?.internalType);
+  if (internalType === "article") return `/articles/${slug}`;
+  if (internalType === "contributor") return `/authors/${slug}`;
+  if (internalType === "staticPage") return `/${slug}`;
   return undefined;
 }
 
 function inlineContent(block: RawBlock): Extract<RichListItem, { content: unknown }>["content"] {
   const definitions = markDefs(block.markDefs);
   return spans(block.children).flatMap((span) => {
-    const spanText = typeof span.text === "string" && span.text.trim() ? span.text : undefined;
+    const spanText = inlineText(span.text);
     if (!spanText) return [];
     const markKeys = Array.isArray(span.marks) ? span.marks.filter((mark): mark is string => typeof mark === "string") : [];
     const marks = [...new Set(markKeys.flatMap((mark) => mark === "strong" ? ["strong" as const] : mark === "em" ? ["em" as const] : []))];
@@ -90,7 +99,7 @@ function listItemText(item: RichListItem): string {
 
 function imageBlock(block: RawBlock): ArticleContentBlock | undefined {
   const image = block as RawBlock & RawImage;
-  const src = image.asset && text(image.asset.url);
+  const src = image.asset && cleanText(image.asset.url);
   const alt = text(block.altText);
   if (!src || !alt) return undefined;
   const dimensions = image.asset?.metadata?.dimensions;
@@ -152,11 +161,12 @@ export function mapPortableText(value: unknown): ArticleContentBlock[] {
 export function mapContributor(value: unknown): Contributor | undefined {
   if (!value || typeof value !== "object") return undefined;
   const raw = value as RawContributor;
-  const parsed = contributorSchema.safeParse({
-    slug: text(raw.slug), name: text(raw.name), role: text(raw.role),
+  const candidate = {
+    slug: cleanText(raw.slug), name: text(raw.name), role: text(raw.role),
     grade: number(raw.graduationYear) ? `Class of ${number(raw.graduationYear)}` : undefined,
-  });
-  return parsed.success ? parsed.data : undefined;
+  };
+  const parsed = contributorSchema.safeParse(stegaClean(candidate));
+  return parsed.success ? candidate as Contributor : undefined;
 }
 
 function articleCandidate(value: unknown): { candidate?: Record<string, unknown>; failures: string[] } {
@@ -172,15 +182,15 @@ function articleCandidate(value: unknown): { candidate?: Record<string, unknown>
   if (raw.featuredImage && !featured) failures.push("featuredImage: asset URL and alternative text are required when an image is present");
   const wordCount = body.flatMap((block) => "text" in block ? block.text.split(/\s+/) : "items" in block ? block.items.flatMap((item) => listItemText(item).split(/\s+/)) : []).filter(Boolean).length;
   const candidate = {
-    slug: text(raw.slug), title: text(raw.title), dek: text(raw.subtitle) ?? text(raw.summary),
+    slug: cleanText(raw.slug), title: text(raw.title), dek: text(raw.summary) ?? text(raw.subtitle),
     contributorSlugs: contributors.flatMap((contributor) => contributor ? [contributor.slug] : []),
-    publishedAt: text(raw.publicationDate), readTime: Math.max(1, Math.ceil(wordCount / 220)), status: "published",
+    publishedAt: cleanText(raw.publicationDate), readTime: Math.max(1, Math.ceil(wordCount / 220)), status: "published",
     pinned: raw.pinned === true, featuredRank: number(raw.featuredRank), featuredImage: featured,
     content: body,
   };
-  const parsed = articleSchema.safeParse(candidate);
+  const parsed = articleSchema.safeParse(stegaClean(candidate));
   if (!parsed.success) failures.push(...parsed.error.issues.map((issue) => `${issue.path.join(".") || "article"}: ${issue.message}`));
-  return { candidate: parsed.success ? parsed.data : candidate, failures: [...new Set(failures)] };
+  return { candidate, failures: [...new Set(failures)] };
 }
 
 export function getArticleValidationFailures(value: unknown): string[] {
@@ -190,24 +200,25 @@ export function getArticleValidationFailures(value: unknown): string[] {
 export function mapArticle(value: unknown): Article | undefined {
   const result = articleCandidate(value);
   if (result.failures.length) return undefined;
-  const parsed = articleSchema.safeParse(result.candidate);
-  return parsed.success ? parsed.data : undefined;
+  return result.candidate as Article;
 }
 
 export function mapSiteSettings(value: unknown): SiteSettings | undefined {
   if (!value || typeof value !== "object") return undefined;
   const raw = value as Record<string, unknown>;
   const logoImage = raw.logoImage as RawImage | undefined;
-  const parsed = siteSettingsSchema.safeParse({
-    name: text(raw.publicationName), shortName: text(raw.shortName), description: text(raw.description) ?? siteConfig.description,
-    affiliation: text(raw.affiliationText), tagline: text(raw.homepageTagline) ?? text(raw.tagline) ?? siteConfig.tagline,
-    contact: { label: text(raw.contactLabel), email: text(raw.contactTarget) },
-    socialLinks: Array.isArray(raw.socialLinks) ? raw.socialLinks.flatMap((item) => item && typeof item === "object" && text((item as Record<string, unknown>).label) && text((item as Record<string, unknown>).url) ? [{ label: text((item as Record<string, unknown>).label)!, href: text((item as Record<string, unknown>).url)! }] : []) : [],
-    logo: { mode: raw.logoMode === "image" ? "image" : "text", textWordmark: text(raw.textWordmark) ?? text(raw.publicationName), imageSrc: text(logoImage?.asset?.url) ?? siteConfig.logo.imageSrc, imageAlt: text(raw.logoImageAlt) ?? text(raw.publicationName), imageWidth: number(logoImage?.asset?.metadata?.dimensions?.width) ?? siteConfig.logo.imageWidth, imageHeight: number(logoImage?.asset?.metadata?.dimensions?.height) ?? siteConfig.logo.imageHeight },
-    school: siteConfig.school, location: text(raw.location) ?? siteConfig.location, siteUrl: siteConfig.siteUrl,
-    navigation: siteConfig.navigation,
-  });
-  return parsed.success ? parsed.data : undefined;
+  const logoImageSrc = cleanText(logoImage?.asset?.url);
+  const candidate = {
+    name: cleanText(raw.publicationName), shortName: cleanText(raw.shortName), description: cleanText(raw.description) ?? siteConfig.description,
+    affiliation: cleanText(raw.affiliationText), tagline: text(raw.homepageTagline) ?? text(raw.tagline) ?? siteConfig.tagline,
+    contact: { label: cleanText(raw.contactLabel), email: cleanText(raw.contactTarget) },
+    socialLinks: Array.isArray(raw.socialLinks) ? raw.socialLinks.flatMap((item) => item && typeof item === "object" && cleanText((item as Record<string, unknown>).label) && cleanText((item as Record<string, unknown>).url) ? [{ label: cleanText((item as Record<string, unknown>).label)!, href: cleanText((item as Record<string, unknown>).url)! }] : []) : [],
+    logo: { mode: cleanText(raw.logoMode) === "image" && logoImageSrc ? "image" : "text", textWordmark: cleanText(raw.textWordmark) ?? cleanText(raw.publicationName), imageSrc: logoImageSrc ?? siteConfig.logo.imageSrc, imageAlt: cleanText(raw.logoImageAlt) ?? cleanText(raw.publicationName), imageWidth: number(logoImage?.asset?.metadata?.dimensions?.width) ?? siteConfig.logo.imageWidth, imageHeight: number(logoImage?.asset?.metadata?.dimensions?.height) ?? siteConfig.logo.imageHeight },
+    school: siteConfig.school, location: cleanText(raw.location) ?? siteConfig.location, siteUrl: siteConfig.siteUrl,
+    navigation: siteConfig.navigation.map((item) => ({ ...item })),
+  };
+  const parsed = siteSettingsSchema.safeParse(stegaClean(candidate));
+  return parsed.success ? candidate as SiteSettings : undefined;
 }
 
 function staff(value: unknown): StaffEntry[] {
@@ -215,14 +226,14 @@ function staff(value: unknown): StaffEntry[] {
   return value.flatMap((entry) => {
     if (!entry || typeof entry !== "object") return [];
     const record = entry as Record<string, unknown>; const contributor = record.contributor as Record<string, unknown> | undefined;
-    const slug = text(contributor?.slug); if (!slug) return [];
+    const slug = cleanText(contributor?.slug); if (!slug) return [];
     return [{ contributorSlug: slug, ...(text(record.displayedRole) ? { displayedRole: text(record.displayedRole) } : {}) }];
   });
 }
 
 export function mapStaticPage(value: unknown): StaticPageContent | undefined {
   if (!value || typeof value !== "object") return undefined;
-  const raw = value as Record<string, unknown>; const slug = text(raw.slug); const title = text(raw.title); const body = mapPortableText(raw.body);
+  const raw = value as Record<string, unknown>; const slug = cleanText(raw.slug); const title = text(raw.title); const body = mapPortableText(raw.body);
   if (!slug || !title || !body.length) return undefined;
   return { slug, title, ...(text(raw.eyebrow) ? { eyebrow: text(raw.eyebrow) } : {}), ...(text(raw.summary) ? { summary: text(raw.summary) } : {}), body, staff: { editorsInChief: staff(raw.editorsInChief), editors: staff(raw.editors), facultyAdviser: staff(raw.facultyAdviser) } };
 }

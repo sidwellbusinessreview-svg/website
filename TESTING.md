@@ -90,6 +90,42 @@ npm run sanity:audit-contributors
 
 It writes a dry-run report and never repairs or deletes dataset content.
 
+## Preview chrome regression checks
+
+With Draft Mode enabled, public Homepage, Article, Contributor, and About paths must show **Previewing unpublished content** and mount the Presentation bridge. The same browser session must not show the banner or mount that bridge on:
+
+- `/studio`
+- `/studio/structure`
+- nested document editors
+- the Studio Preview tool shell
+- `/api/...`
+- `/feed.xml`, `/sitemap.xml`, or `/robots.txt`
+
+Hard refresh Studio and move between Structure, About, Site Settings, an Article editor, and Preview. Studio’s header, tool tabs, document pane, and form controls must remain undisplaced. **Exit preview** should retain the current public Article path, but unsafe Studio, API, external, or protocol-relative redirect targets must return to Homepage. Unit coverage for these rules lives in `preview-chrome.test.tsx`, `preview.test.ts`, and the Draft Mode route tests.
+
+For provider-loss investigations, run:
+
+```bash
+npm run sanity:diagnose-preview
+```
+
+The authenticated, read-only diagnostic compares the canonical Article across Homepage/articles, Article by slug, Latest, Archive, Search, Contributor, Contributor Articles, About, and Site Settings in published and draft perspectives. Every valid surface should report equal raw, clean-validation, adapter, and final counts with `excluded: []`.
+
+It also reports each current draft-only Article using only safe fields: ID, type, slug, lifecycle, missing-field names, reference IDs, string lengths, validation state, and provider presence. For Site Settings it reports the current variants and whether the selected preview tagline matches the draft without printing the tagline itself.
+
+When testing **Exit preview**, begin on a canonical Article route. The control must leave the Presentation iframe, navigate the top-level browser to the same clean Article path, remove the banner, and remain out of Draft Mode after refresh. Because localhost Draft Mode is shared across tabs in one browser session, use a Guest or Private window for the simultaneous public comparison.
+
+For Site Settings and draft-only routing:
+
+1. Save an unpublished Homepage tagline in the Site Settings page.
+2. Open **Homepage and site settings** in Preview and refresh.
+3. Confirm the preview header uses the draft tagline while a Guest/Private public window uses the published tagline.
+4. Open the saved draft-only Article through its Article preview location.
+5. Confirm its clean slug route renders in Preview and appears on Preview Homepage.
+6. Confirm the same route is not found in the Guest/Private public window.
+
+The CMS browser suite uses `CMS_TEST_DRAFT_ONLY_ARTICLE_SLUG` when set and otherwise checks the current acceptance slug `preview-draft-article`. Update that environment value if the preserved acceptance draft changes; never publish or recreate content merely to satisfy the test.
+
 ## Common failures
 
 ### `node` or `npm` is not found
