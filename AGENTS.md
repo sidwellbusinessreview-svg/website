@@ -84,3 +84,11 @@ Before completion:
 - Report every changed file.
 - Report unresolved warnings, security concerns, manual checks, and architecture risks.
 - Do not commit unless the user explicitly asks.
+
+## Archive migration safety
+
+- Treat `migration-input/` as immutable source evidence. Generate normalized records and reports only in `migration-staging/`.
+- Run `npm run sanity:migration:validate` and `npm run sanity:migration:dry-run` before reviewing a migration batch.
+- Migration commands are dry-run by default. Never run `sanity:migration:apply` without explicit user authorization, an unblocked batch, the required apply flag, and the documented typed confirmation.
+- Create Contributor drafts before Article drafts, preserve source IDs and byline order, and never overwrite a published document.
+- Never invent missing authors, exact publication days, citations, endings, image rights, captions, credits, or alt text.
