@@ -54,6 +54,18 @@ test("article route loads", async ({ page }) => {
   await expect(page.getByRole("complementary", { name: "Contributors" })).toHaveCount(0);
 });
 
+test("reader-facing Article dates use Month Year across discovery routes", async ({ page }) => {
+  for (const path of ["/", "/latest", "/archive", "/search?q=Maya", "/authors/maya-chen", "/articles/the-new-economics-of-school-lunch"]) {
+    await page.goto(path);
+    const dates = await page.locator("time").allTextContents();
+    expect(dates.length, `${path} should expose at least one Article date`).toBeGreaterThan(0);
+    for (const date of dates) {
+      expect(date).toMatch(/^[A-Z][a-z]+ \d{4}$/);
+      expect(date).not.toMatch(/\b\d{1,2},\s+\d{4}$/);
+    }
+  }
+});
+
 test("author route loads", async ({ page }) => {
   await page.goto("/authors/maya-chen");
   await expect(page.getByText("Maya Chen", { exact: true }).first()).toBeVisible();

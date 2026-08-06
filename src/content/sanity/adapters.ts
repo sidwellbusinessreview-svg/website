@@ -30,7 +30,7 @@ type RawImage = {
 };
 type RawContributor = { slug?: unknown; name?: unknown; role?: unknown; graduationYear?: unknown; active?: unknown };
 export type RawSanityArticle = {
-  _id?: unknown; slug?: unknown; title?: unknown; subtitle?: unknown; summary?: unknown; publicationDate?: unknown;
+  _id?: unknown; slug?: unknown; title?: unknown; subtitle?: unknown; summary?: unknown; publicationDate?: unknown; publicationDatePrecision?: unknown;
   pinned?: unknown; featuredRank?: unknown; contributors?: unknown; featuredImage?: RawImage | null;
   featuredImageAltText?: unknown; featuredImageCaption?: unknown; featuredImageCredit?: unknown; body?: unknown;
 };
@@ -184,7 +184,9 @@ function articleCandidate(value: unknown): { candidate?: Record<string, unknown>
   const candidate = {
     slug: cleanText(raw.slug), title: text(raw.title), dek: text(raw.summary) ?? text(raw.subtitle),
     contributorSlugs: contributors.flatMap((contributor) => contributor ? [contributor.slug] : []),
-    publishedAt: cleanText(raw.publicationDate), readTime: Math.max(1, Math.ceil(wordCount / 220)), status: "published",
+    publishedAt: cleanText(raw.publicationDate),
+    publicationDatePrecision: cleanText(raw.publicationDatePrecision) === "month" ? "month" : "day",
+    readTime: Math.max(1, Math.ceil(wordCount / 220)), status: "published",
     pinned: raw.pinned === true, featuredRank: number(raw.featuredRank), featuredImage: featured,
     content: body,
   };

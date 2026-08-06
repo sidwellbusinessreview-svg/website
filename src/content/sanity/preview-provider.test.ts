@@ -67,4 +67,9 @@ describe("draft provider isolation", () => {
       expect.objectContaining({ perspective: "drafts", useCdn: false, cache: "no-store" }),
     );
   });
+
+  it("preserves month precision in Preview", async () => {
+    const provider = createSanityContentProvider({ fetch: vi.fn().mockResolvedValue({ ...article("Month Article"), publicationDate: "2025-03-01", publicationDatePrecision: "month" }) } as unknown as SanityClient, "drafts");
+    await expect(provider.getArticleBySlug("draft-story")).resolves.toMatchObject({ publishedAt: "2025-03-01", publicationDatePrecision: "month" });
+  });
 });

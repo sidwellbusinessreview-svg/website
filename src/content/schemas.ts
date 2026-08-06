@@ -117,12 +117,13 @@ export const articleSchema = z
   .object({
     slug: slugSchema,
     title: z.string().trim().min(5).max(180),
-    dek: z.string().trim().min(20).max(320),
+    dek: z.string().trim().min(20).max(300),
     contributorSlugs: z.array(slugSchema).min(1).refine(
       (values) => new Set(values).size === values.length,
       "contributors must not be duplicated",
     ),
     publishedAt: publicationDateSchema,
+    publicationDatePrecision: z.enum(["day", "month"]).optional(),
     readTime: z.number().int().positive(),
     status: z.enum(["draft", "published"]).default("published"),
     pinned: z.boolean().default(false),

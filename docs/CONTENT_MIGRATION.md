@@ -9,45 +9,53 @@ No Issues, Categories, or Tags are inferred from source sections. No Article ima
 ```bash
 npm run sanity:migration:validate
 npm run sanity:migration:dry-run
+npm run sanity:migration:report
+npm run sanity:migration:rollback
 ```
 
 Both commands are read-only with respect to Sanity. They regenerate staging files from the immutable bundle. The dry run reports zero mutations and shows the exact drafts that would be considered after blockers are resolved.
 
-An apply entry point exists for a later, separately authorized phase:
+Guarded apply and rollback-apply entry points exist but must not be run during preparation:
 
 ```bash
-SBR_MIGRATION_CONFIRMATION='IMPORT SBR PILOT AS DRAFTS' npm run sanity:migration:apply
+SBR_MIGRATION_CONFIRMATION='IMPORT SBR PILOT AS DRAFTS' npm run sanity:migration:apply -- --expect-project=PROJECT_ID --backup=/absolute/path/to/export.tar.gz
+SBR_MIGRATION_ROLLBACK_CONFIRMATION='ROLL BACK SBR PILOT DRAFTS' npm run sanity:migration:rollback:apply -- --expect-project=PROJECT_ID
 ```
 
-Do not run that command now. It refuses to proceed while any pilot Article lacks required data. A future implementation/acceptance step must also query current raw IDs, abort on published conflicts, create Contributors before Articles through supported Sanity document actions, and record the resulting rollback mapping. The current Phase 14 intake does not contain or execute a dataset mutation path.
+Do not run either apply command now. Apply requires a server-only `SANITY_API_WRITE_TOKEN`, exact confirmation, expected production target, non-empty target-matching backup plus manifest, current checksum approvals, and a clean preflight before its first action. It creates Contributors before draft Articles, rejects published/source/slug conflicts, remains idempotent for matching drafts, uploads no images, and writes an applied-operation report. Rollback selects only current drafts carrying this batch ID.
 
 ## Current intake
 
 - Eight unique source Articles and nine stable Contributor identities were detected.
-- Four Articles are pilot candidates, but all four lack an exact publication day and the pilot remains blocked.
+- Four Articles are pilot candidates. Their month-only dates are now valid under the approved precision policy; the pilot remains blocked until all four revised summary checksums are approved.
 - Two Articles have neither a proven author nor a publication date.
 - The housing opinion is held because its supplied source lacks a trustworthy ending.
 - The NFL Article is held as an unfinished draft; its two-author attribution is inferred from the filename.
-- All proposed summaries are neutral, at most 300 characters, and marked for editorial review.
+- All revised proposed summaries are one neutral sentence, at most 300 characters, and contain no migration/readiness language. `editor-approvals.json` starts every checksum as unapproved and automatically invalidates approval when its summary changes.
 - All Articles are staged image-free. Extracted images and rendered pages are reference material only.
 
-## Date decisions
+## Date policy
 
-For each month-only or unknown date, an editor must choose one of these approaches before import:
+Every reader-facing date is Month Year. Known exact dates remain exact internally with `day` precision. Month-only sources preserve `YYYY-MM`, use `YYYY-MM-01` solely as an internal sorting anchor, and carry `month` precision. JSON-LD and Open Graph use reduced `YYYY-MM`; sitemap omits unverified month-only `lastModified`; RSS 2.0 requires a complete RFC date and uses the anchor as a documented machine-only compromise. Completely missing months remain blocked.
 
-1. Obtain the exact historical publication date.
-2. Approve an explicit month-precision content-model change.
-3. Approve and document an archival sorting convention that does not display an invented day.
+## Backup and approval
 
-No convention has been selected in Phase 14.
+Create the ignored production export before apply:
+
+```bash
+mkdir -p migration-backups
+npx sanity dataset export production migration-backups/sbr-production-YYYY-MM-DD.tar.gz
+```
+
+Create the sibling `.manifest.json` with project ID, dataset, timestamp, and checksum. Review each proposed summary, then set `approved: true`, `approvedBy`, and `approvedAt` only without changing its generated checksum. Regenerate the dry run; any changed summary resets approval.
 
 ## Review sequence
 
 1. Review `reports/BUNDLE_VALIDATION.md` and resolve source inconsistencies, if any.
 2. Confirm Contributor identities and ordered bylines.
 3. Approve or revise proposed summaries.
-4. Resolve dates and all hold-list fields.
+4. Confirm date precision and resolve missing months for held records.
 5. Review normalized bodies against the supplied PDFs and Markdown.
 6. Decide image mapping and rights separately.
 7. Regenerate and review the dry run.
-8. Obtain explicit authorization before adding a real, draft-only apply implementation or running any import.
+8. Export and verify a backup, obtain explicit authorization, then run the guarded apply command separately.

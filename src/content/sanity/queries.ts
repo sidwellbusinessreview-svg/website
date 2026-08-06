@@ -12,7 +12,7 @@ const bodyProjection = `body[]{
 }`;
 
 const articleProjection = `{
-  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,
+  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,publicationDatePrecision,pinned,featuredRank,
   seoTitle,seoDescription,
   "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},
   "featuredImage": featuredImage${imageProjection},

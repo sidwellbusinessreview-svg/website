@@ -2,13 +2,15 @@
 
 ## Phase 14 archive migration intake
 
-- **Underway; dry-run preparation only:** August 5, 2026. Phase 13 is committed and Phase 15 has not begun.
+- **Intake complete; guarded pilot preparation underway:** August 5, 2026. Phase 13 is committed and Phase 15 has not begun.
 - Received and validated eight unique source Articles in the supplied migration-preparation bundle. No source Article, Contributor, or asset has been imported, created, patched, deleted, restored, or published in Sanity.
 - Added one source-evidence-first staging workflow with immutable input, stable source IDs, normalized structured bodies, checksums, proposed summaries requiring editorial review, review reports, a blocked pilot manifest, and rollback mappings.
-- Four Articles are proposed for the first draft-only pilot. All four remain blocked because only month-level dates were supplied; no exact day or archival date convention was invented.
+- Approved date policy: every reader-facing Article date is Month Year. Exact dates remain stored; month-only sources use a first-day sorting anchor plus `month` precision and never claim that day historically.
+- Eight revised proposed summaries were generated. None is automatically approved; approval is tied to the current summary checksum.
+- Four Articles are proposed for the first image-free, draft-only pilot and remain blocked on summary approval. Four remain metadata-blocked, source-held, or unfinished.
 - Two Articles are blocked on missing author and publication-date metadata. One housing Article is held for source recovery. One NFL Article remains an unfinished draft with filename-inferred authorship.
 - Image migration is deferred pending human confirmation of Article mapping, reuse permission, alt text, caption, and credit. All staged Articles are currently image-free.
-- The migration tooling is dry-run-only in this phase. The guarded apply entry point cannot pass validation while dates are unresolved and contains no active dataset mutation path.
+- No archive Article has been imported and no migration asset has been uploaded. A guarded apply/rollback implementation exists but was not executed; it requires explicit flags, exact confirmations, current checksum approvals, target checks, a verified backup, and full preflight before mutation.
 
 ## Phase 13 secure draft preview
 

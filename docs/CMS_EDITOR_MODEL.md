@@ -31,7 +31,7 @@ The normal draft/publish workflow remains enabled. Draft-only fixed pages can be
 
 ## Article form
 
-The main group follows the editorial workflow: Title, Slug, Subtitle, Summary, Contributors, Publication date, optional Featured image, conditional Alt text, Caption, Photo credit, Article body, Pin to homepage, and conditional Featured order. Summary is required, has no minimum length, has a 300-character maximum, and displays a character counter. Publication date is a date-only `YYYY-MM-DD` value.
+The main group follows the editorial workflow: Title, Slug, Subtitle, Summary, Contributors, Publication date, Date precision, optional Featured image, conditional Alt text, Caption, Photo credit, Article body, Pin to homepage, and conditional Featured order. Summary is required, has no minimum length, has a 300-character maximum, and displays a character counter. Choose **Day** when the exact date is known. Choose **Month** when only month/year are known and use the first solely as an internal sorting anchor. Readers always see Month Year.
 
 Contributor selection is one authoritative custom array input. It does not render Sanity's default **Add item** control or default item menus. **Add contributors** opens a searchable multi-select of active published Contributors showing name, role, and graduation year. Selection stays temporary until **Confirm selection**; X, Escape, outside click, and **Cancel** make no content change. Confirmed references receive stable keys, duplicates are blocked, and explicit text controls handle opening, removing, and reordering byline rows without avatars.
 

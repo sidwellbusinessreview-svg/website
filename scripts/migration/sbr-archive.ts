@@ -1,12 +1,15 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { createDraftId } from "@sanity/id-utils";
+import type { SanityClient } from "next-sanity";
 
 export const BUNDLE_ROOT = resolve("migration-input/SBR_All_Articles_Migration_Bundle");
 export const STAGING_ROOT = resolve("migration-staging/sbr-archive-2026-08");
 export const IMPORT_BATCH_ID = "sbr-archive-2026-08-pilot-01";
 export const CONFIRMATION_PHRASE = "IMPORT SBR PILOT AS DRAFTS";
+export const ROLLBACK_CONFIRMATION_PHRASE = "ROLL BACK SBR PILOT DRAFTS";
+export const EXPECTED_DATASET = "production";
 
 type Frontmatter = {
   title: string; slug: string; authors: string[]; date: string | null; section: string;
@@ -23,9 +26,11 @@ export type StagedBlock =
   | { type: "link"; label: string; href: string };
 export type StagedArticle = {
   sourceId: string; title: string; slug: string; subtitle?: string;
-  proposedSummary: { text: string; needsEditorialReview: true };
+  proposedSummary: { text: string; needsEditorialReview: true; checksum: string; approved: boolean };
   contributorSourceIds: string[]; originalAuthors: string[];
-  publicationDate: null; sourceDate: string | null; datePrecision: "month" | "unknown";
+  publicationDate: string | null; sourcePublicationDate: string | null;
+  publicationDatePrecision: "month" | "unknown"; publicationDateDisplay: string | null;
+  machineMetadataDate: string | null;
   structuredBody: StagedBlock[]; featuredImage: null; imagePermissionStatus: "unresolved" | "resolved";
   possibleImageMatches: string[]; sourcePdf: string; sourcePages: number[];
   migrationStatus: string; readiness: Readiness; migrationNotes: string[];
@@ -40,6 +45,8 @@ export type MigrationPlan = {
   pilotSourceIds: string[]; pilotBlocked: boolean; pilotBlockers: Record<string, string[]>;
   rollbackMappings: Array<{ sourceId: string; sanityId: string; draftId: string; type: "contributor" | "article" }>;
 };
+type Approval = { summaryChecksum: string; approved: boolean; approvedBy: string | null; approvedAt: string | null };
+type ApprovalFile = { version: 1; articles: Record<string, Approval> };
 
 export function getArticleBlockers(article: StagedArticle): string[] {
   const blockers: string[] = [];
@@ -47,7 +54,7 @@ export function getArticleBlockers(article: StagedArticle): string[] {
   if (!article.proposedSummary.text.trim()) blockers.push("summary: required");
   if (article.proposedSummary.text.length > 300) blockers.push("summary: exceeds 300 characters");
   if (!article.contributorSourceIds.length) blockers.push("contributors: author decision required");
-  if (!article.publicationDate) blockers.push("publicationDate: exact day unresolved");
+  if (!article.publicationDate) blockers.push("publicationDate: publication month unresolved");
   if (article.featuredImage && article.imagePermissionStatus !== "resolved") blockers.push("featuredImage: permission and metadata unresolved");
   if (article.readiness === "sourceRecoveryHold") blockers.push("body: trustworthy ending unavailable");
   if (article.readiness === "unfinishedDraft") blockers.push("body: unfinished; authorship confirmation required");
@@ -67,14 +74,34 @@ const readinessBySlug: Record<string, Readiness> = {
 
 const summaries: Record<string, string> = {
   "economic-implications-trumps-mass-deportations": "An analysis of how mass deportation proposals could affect labor markets, consumer demand, agriculture, construction, prices, and economic growth.",
-  "opinion-wall-street-single-family-homes": "An opinion arguing that institutional purchases of single-family homes can reduce access to homeownership and worsen affordability for individual buyers.",
+  "opinion-wall-street-single-family-homes": "An argument against large financial firms purchasing single-family homes and the effects that ownership may have on housing access.",
   "trump-memecoin-guy-down-the-street": "An examination of the launch, market activity, and ethical questions surrounding Donald Trump’s memecoin.",
   "environmental-economic-perspective-ai": "An analysis of artificial intelligence’s environmental demands and its potential economic benefits and costs.",
-  "nfl-salary-cap-inflation-free-agency": "An unfinished exploration of NFL salary-cap growth, player compensation, and free-agency trends.",
+  "nfl-salary-cap-inflation-free-agency": "An examination of how salary cap growth affects NFL free agency, team spending, and player contracts.",
   "effects-russo-ukraine-war": "An analysis of the war’s effects on inflation, energy, food, trade, supply chains, investment, and economic growth.",
   "business-of-nil-deals": "An overview of how name, image, and likeness compensation is changing college athletics, advertising, recruiting, and athlete-brand partnerships.",
-  "archive-shohei-ohtani-contract-prediction": "An archival analysis estimating Shohei Ohtani’s contract value, followed by a retrospective note on his agreement with the Los Angeles Dodgers.",
+  "archive-shohei-ohtani-contract-prediction": "A prediction and analysis of the market forces that could shape Shohei Ohtani’s contract.",
 };
+
+export function summaryChecksum(value: string): string { return checksum(value); }
+
+function existingApprovals(): ApprovalFile {
+  const path = join(STAGING_ROOT, "editor-approvals.json");
+  if (!existsSync(path)) return { version: 1, articles: {} };
+  try { return JSON.parse(readFileSync(path, "utf8")) as ApprovalFile; }
+  catch { return { version: 1, articles: {} }; }
+}
+
+export function approvalFor(sourceIdValue: string, summary: string, approvals: ApprovalFile): Approval {
+  const checksumValue = summaryChecksum(summary);
+  const prior = approvals.articles[sourceIdValue];
+  if (prior?.summaryChecksum === checksumValue && prior.approved && prior.approvedBy?.trim() && prior.approvedAt?.trim()) return prior;
+  return { summaryChecksum: checksumValue, approved: false, approvedBy: null, approvedAt: null };
+}
+
+function monthDisplay(value: string): string {
+  return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}-01T12:00:00Z`));
+}
 
 export function slugify(value: string): string {
   return value.normalize("NFKD").replace(/[’']/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
@@ -180,10 +207,11 @@ function parseCsv(source: string): InventoryRow[] {
   return rows.map((cells) => Object.fromEntries(headers.map((header, index) => [header, cells[index] ?? ""])) as unknown as InventoryRow);
 }
 
-function checksum(source: string): string { return createHash("sha256").update(source).digest("hex"); }
+function checksum(source: string | Buffer): string { return createHash("sha256").update(source).digest("hex"); }
 function sourceId(type: "article" | "contributor", slug: string): string { return `sbr-${type}-${slug}`; }
 
 export function buildMigrationPlan(): MigrationPlan {
+  const approvals = existingApprovals();
   const manifest = JSON.parse(readFileSync(join(BUNDLE_ROOT, "migration_manifest.json"), "utf8")) as Manifest;
   const inventory = parseCsv(readFileSync(join(BUNDLE_ROOT, "article_inventory.csv"), "utf8"));
   const files = manifest.articles.map((_, index) => join(BUNDLE_ROOT, "articles", `${String(index + 1).padStart(2, "0")}-${[
@@ -228,13 +256,20 @@ export function buildMigrationPlan(): MigrationPlan {
     const readiness = readinessBySlug[meta.slug];
     const reviewWarnings = [...normalized.warnings];
     if (!meta.authors.length) reviewWarnings.push("Author is unresolved; do not invent a staff byline.");
-    if (!meta.date || /^\d{4}-\d{2}$/.test(meta.date)) reviewWarnings.push("Exact publication date is unresolved.");
+    if (!meta.date) reviewWarnings.push("Publication month is unresolved.");
+    else reviewWarnings.push("The first day is an internal sorting anchor, not a verified historical publication day.");
     if (readiness === "sourceRecoveryHold") reviewWarnings.push("Source ending is untrustworthy; preserve but do not import.");
     if (readiness === "unfinishedDraft") reviewWarnings.push("Outline notes and inferred authorship require editorial completion and confirmation.");
+    const sourcePublicationDate = meta.date;
+    const publicationDate = sourcePublicationDate ? `${sourcePublicationDate}-01` : null;
+    const proposedText = summaries[meta.slug];
+    const approval = approvalFor(articleSourceId, proposedText, approvals);
     return {
       sourceId: articleSourceId, title: meta.title, slug: meta.slug,
-      proposedSummary: { text: summaries[meta.slug], needsEditorialReview: true }, contributorSourceIds, originalAuthors: meta.authors,
-      publicationDate: null, sourceDate: meta.date, datePrecision: meta.date ? "month" : "unknown",
+      proposedSummary: { text: proposedText, needsEditorialReview: true, checksum: approval.summaryChecksum, approved: approval.approved }, contributorSourceIds, originalAuthors: meta.authors,
+      publicationDate, sourcePublicationDate, publicationDatePrecision: sourcePublicationDate ? "month" : "unknown",
+      publicationDateDisplay: sourcePublicationDate ? monthDisplay(sourcePublicationDate) : null,
+      machineMetadataDate: sourcePublicationDate,
       structuredBody: normalized.blocks, featuredImage: null, imagePermissionStatus: "unresolved",
       possibleImageMatches: meta.issuePages.length ? ["Review extracted March issue images against rendered source pages; no automatic match approved."] : [],
       sourcePdf: meta.sourcePdf, sourcePages: meta.issuePages, migrationStatus: meta.migrationStatus, readiness,
@@ -243,7 +278,10 @@ export function buildMigrationPlan(): MigrationPlan {
   });
   const contributors = [...contributorMap.values()].sort((a, b) => a.slug.localeCompare(b.slug));
   const pilot = articles.filter((article) => article.readiness === "pilotCandidate");
-  const pilotBlockers = Object.fromEntries(pilot.map((article) => [article.sourceId, getArticleBlockers(article)]));
+  const pilotBlockers = Object.fromEntries(pilot.map((article) => [article.sourceId, [
+    ...getArticleBlockers(article),
+    ...(!article.proposedSummary.approved ? ["summary: current checksum is not editor-approved"] : []),
+  ]]));
   const rollbackMappings = [
     ...contributors.filter((contributor) => pilot.some((article) => article.contributorSourceIds.includes(contributor.sourceId))).map((contributor) => ({ sourceId: contributor.sourceId, sanityId: contributor.sourceId, draftId: createDraftId(contributor.sourceId), type: "contributor" as const })),
     ...pilot.map((article) => ({ sourceId: article.sourceId, sanityId: article.sourceId, draftId: createDraftId(article.sourceId), type: "article" as const })),
@@ -261,18 +299,34 @@ export function writeStaging(plan: MigrationPlan): void {
   mkdirSync(join(STAGING_ROOT, "reports"), { recursive: true });
   writeJson(join(STAGING_ROOT, "contributors.json"), plan.contributors);
   writeJson(join(STAGING_ROOT, "articles.json"), plan.articles);
+  const priorApprovals = existingApprovals();
+  const approvals: ApprovalFile = { version: 1, articles: Object.fromEntries(plan.articles.map((article) => [article.sourceId, approvalFor(article.sourceId, article.proposedSummary.text, priorApprovals)])) };
+  writeJson(join(STAGING_ROOT, "editor-approvals.json"), approvals);
   writeJson(join(STAGING_ROOT, "rollback-map.json"), plan.rollbackMappings);
   const pilot = plan.articles.filter((article) => article.readiness === "pilotCandidate");
-  writeJson(join(STAGING_ROOT, "pilot-batch.json"), { batchId: IMPORT_BATCH_ID, applyAllowed: !plan.pilotBlocked, blocked: plan.pilotBlocked, blockers: plan.pilotBlockers, contributorSourceIds: [...new Set(pilot.flatMap((article) => article.contributorSourceIds))], articleSourceIds: plan.pilotSourceIds, creationOrder: ["contributors", "articles"], documentState: "draft" });
+  writeJson(join(STAGING_ROOT, "pilot-batch.json"), {
+    batchId: IMPORT_BATCH_ID, applyAllowed: !plan.pilotBlocked, blocked: plan.pilotBlocked, blockers: plan.pilotBlockers,
+    contributorSourceIds: [...new Set(pilot.flatMap((article) => article.contributorSourceIds))], articleSourceIds: plan.pilotSourceIds,
+    creationOrder: ["contributors", "articles"], documentState: "draft", images: [],
+    articles: pilot.map((article) => ({
+      sourceId: article.sourceId, draftId: createDraftId(article.sourceId), title: article.title, slug: article.slug,
+      proposedSummary: article.proposedSummary.text, summaryChecksum: article.proposedSummary.checksum,
+      summaryApproved: article.proposedSummary.approved, contributorSourceIds: article.contributorSourceIds,
+      publicationDate: article.publicationDate, publicationDatePrecision: article.publicationDatePrecision,
+      sourcePublicationDate: article.sourcePublicationDate, structuredBody: article.structuredBody,
+      sourceDocumentChecksum: article.originalSourceChecksum, importBatchId: article.importBatchId,
+      rollback: plan.rollbackMappings.find(({ sourceId: id }) => id === article.sourceId),
+    })),
+  });
   writeJson(join(STAGING_ROOT, "dry-run.json"), { mutationCount: 0, wouldCreate: plan.rollbackMappings, pilotBlocked: plan.pilotBlocked, blockers: plan.pilotBlockers });
   writeFileSync(reportPath("BUNDLE_VALIDATION.md"), `# Bundle validation report\n\nArticles detected: ${plan.articles.length}\n\nInconsistencies: ${plan.inconsistencies.length ? plan.inconsistencies.map((item) => `\n- ${item}`).join("") : "none"}\n`);
   writeFileSync(reportPath("CONTRIBUTOR_MAPPING.md"), `# Contributor mapping report\n\n${markdownTable(["Source ID", "Name", "Slug", "Graduation year", "Source Articles", "Warnings"], plan.contributors.map((item) => [item.sourceId, item.name, item.slug, String(item.graduationYear ?? "unresolved"), item.sourceArticleIds.join("<br>"), item.identityWarnings.join("; ") || "none"]))}`);
-  writeFileSync(reportPath("ARTICLE_READINESS.md"), `# Article readiness report\n\n${markdownTable(["Article", "Readiness", "Source status", "Date", "Import blockers"], plan.articles.map((item) => [item.title, item.readiness, item.migrationStatus, item.sourceDate ?? "unknown", getArticleBlockers(item).join("; ") || "none"]))}`);
-  writeFileSync(reportPath("PROPOSED_SUMMARIES.md"), `# Proposed-summary review report\n\nEvery summary requires editorial review and is at most 300 characters.\n\n${plan.articles.map((item) => `## ${item.title}\n\n${item.proposedSummary.text}\n\n- needsEditorialReview: true\n- characters: ${item.proposedSummary.text.length}\n`).join("\n")}`);
-  writeFileSync(reportPath("DATE_RESOLUTION.md"), `# Date-resolution report\n\nNo exact day was supplied for any Article. Choose per Article: obtain the exact date; approve a month-precision model; or approve a documented archival sorting convention that does not display an invented day.\n\n${markdownTable(["Article", "Source date", "Precision", "Status"], plan.articles.map((item) => [item.title, item.sourceDate ?? "unknown", item.datePrecision, "blocked until editor decision"]))}`);
+  writeFileSync(reportPath("ARTICLE_READINESS.md"), `# Article readiness report\n\n${markdownTable(["Article", "Readiness", "Source status", "Date", "Import blockers"], plan.articles.map((item) => [item.title, item.readiness, item.migrationStatus, item.sourcePublicationDate ?? "unknown", [...getArticleBlockers(item), ...(!item.proposedSummary.approved ? ["summary: current checksum not approved"] : [])].join("; ") || "none"]))}`);
+  writeFileSync(reportPath("PROPOSED_SUMMARIES.md"), `# Proposed-summary review report\n\nPublic summaries describe content only. Internal status is listed separately.\n\n${plan.articles.map((item) => `## ${item.title}\n\n${item.proposedSummary.text}\n\n- Characters: ${item.proposedSummary.text.length}\n- Approval: ${item.proposedSummary.approved ? "approved" : "not approved"}\n- Summary checksum: \`${item.proposedSummary.checksum}\`\n\n### Internal migration status\n\n- Readiness: ${item.readiness}\n- Source status: ${item.migrationStatus}\n- Warnings: ${item.reviewWarnings.join("; ") || "none"}\n`).join("\n")}`);
+  writeFileSync(reportPath("DATE_RESOLUTION.md"), `# Date-resolution report\n\nReader-facing dates use Month Year. Month-only sources use the first day solely as an internal sorting anchor; it is not a verified historical day. Completely missing months remain blocked.\n\n${markdownTable(["Article", "Original source", "Sorting anchor", "Precision", "Display", "Machine metadata"], plan.articles.map((item) => [item.title, item.sourcePublicationDate ?? "unknown", item.publicationDate ?? "blocked", item.publicationDatePrecision, item.publicationDateDisplay ?? "blocked", item.machineMetadataDate ?? "blocked"]))}`);
   writeFileSync(reportPath("IMAGE_REVIEW.md"), `# Image-review report\n\nNo assets were uploaded or assigned. All Articles may remain image-free. Rendered issue pages are not featured images.\n\n${markdownTable(["Article", "Possible match", "Permission", "Required decision"], plan.articles.map((item) => [item.title, item.possibleImageMatches.join("; ") || "none identified", item.imagePermissionStatus, "Confirm mapping, alt text, caption, credit, and reuse permission before upload"]))}`);
   writeFileSync(reportPath("DRY_RUN.md"), `# Dry-run report\n\nSanity mutations performed: **0**\n\nPilot status: **${plan.pilotBlocked ? "BLOCKED" : "READY"}**\n\nWould create ${plan.rollbackMappings.filter((item) => item.type === "contributor").length} Contributor drafts before ${plan.rollbackMappings.filter((item) => item.type === "article").length} Article drafts. Published conflicts must abort apply.\n\n${Object.entries(plan.pilotBlockers).map(([id, blockers]) => `- ${id}: ${blockers.join("; ") || "none"}`).join("\n")}\n`);
-  writeFileSync(reportPath("PILOT_BATCH.md"), `# Pilot-batch manifest\n\nBatch: ${IMPORT_BATCH_ID}\n\nThe four candidates remain drafts and the batch is blocked by unresolved exact dates.\n\n${pilot.map((item) => `- ${item.title} (${item.sourceId})`).join("\n")}\n`);
+  writeFileSync(reportPath("PILOT_BATCH.md"), `# Pilot-batch manifest\n\nBatch: ${IMPORT_BATCH_ID}\n\nThe four candidates remain draft-only and the batch is blocked until every current summary checksum is explicitly approved.\n\n${pilot.map((item) => `- ${item.title} (${item.sourceId}) — ${item.publicationDateDisplay}; summary ${item.proposedSummary.approved ? "approved" : "not approved"}`).join("\n")}\n`);
   writeFileSync(reportPath("HOLD_LIST.md"), `# Hold-list report\n\n${plan.articles.filter((item) => item.readiness !== "pilotCandidate").map((item) => `- **${item.title}** — ${item.readiness}: ${getArticleBlockers(item).join("; ")}`).join("\n")}\n`);
 }
 
@@ -280,6 +334,58 @@ export function assertApplyGuards(options: { apply: boolean; confirmation?: stri
   if (!options.apply) throw new Error("Apply flag is required.");
   if (options.confirmation !== CONFIRMATION_PHRASE) throw new Error(`Typed confirmation phrase is required: ${CONFIRMATION_PHRASE}`);
   if (options.plan.pilotBlocked) throw new Error("Pilot batch is blocked by unresolved required fields.");
+}
+
+export function verifyBackup(path: string | undefined, expectedProject: string, expectedDataset: string): void {
+  if (!path || !existsSync(path) || statSync(path).size === 0) throw new Error("A non-empty verified dataset backup file is required.");
+  const manifestPath = `${path}.manifest.json`;
+  if (!existsSync(manifestPath)) throw new Error("The backup manifest is required beside the export file.");
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { projectId?: string; dataset?: string; checksum?: string };
+  if (manifest.projectId !== expectedProject || manifest.dataset !== expectedDataset) throw new Error("Backup target does not match the expected Sanity project and dataset.");
+  if (!manifest.checksum || manifest.checksum !== checksum(readFileSync(path))) throw new Error("Backup checksum does not match its verification manifest.");
+}
+
+export function selectRollbackRecords(records: Array<{ _id: string; importBatchId?: string }>) {
+  if (records.some((record) => record.importBatchId !== IMPORT_BATCH_ID)) throw new Error("Rollback selection contains a document outside the selected migration batch.");
+  return records;
+}
+
+export function portableBody(blocks: StagedBlock[]) {
+  return blocks.map((block, index) => block.type === "paragraph" ? { _type: "block", _key: `p${index}`, style: "normal", markDefs: [], children: [{ _type: "span", _key: `s${index}`, text: block.text, marks: [] }] }
+    : block.type === "heading" ? { _type: "block", _key: `h${index}`, style: `h${block.level}`, markDefs: [], children: [{ _type: "span", _key: `s${index}`, text: block.text, marks: [] }] }
+    : block.type === "link" ? { _type: "block", _key: `l${index}`, style: "normal", markDefs: [{ _type: "link", _key: `m${index}`, href: block.href }], children: [{ _type: "span", _key: `s${index}`, text: block.label, marks: [`m${index}`] }] }
+    : block.items.map((textValue, itemIndex) => ({ _type: "block", _key: `li${index}-${itemIndex}`, style: "normal", listItem: block.type === "orderedList" ? "number" : "bullet", level: 1, markDefs: [], children: [{ _type: "span", _key: `s${index}-${itemIndex}`, text: textValue, marks: [] }] }))
+  ).flat();
+}
+
+type MigrationClient = {
+  fetch: (query: string, params?: Record<string, unknown>) => Promise<Array<{ _id: string; _type: string; slug?: string }>>;
+  action: SanityClient["action"];
+  delete?: SanityClient["delete"];
+};
+
+export async function applyPilot(options: { client: MigrationClient; plan: MigrationPlan; projectId: string; dataset: string; expectedProject: string; backupPath: string; confirmation?: string; apply: boolean }) {
+  assertApplyGuards({ apply: options.apply, confirmation: options.confirmation, plan: options.plan });
+  if (options.projectId !== options.expectedProject) throw new Error("Unexpected Sanity project.");
+  if (options.dataset !== EXPECTED_DATASET) throw new Error("Unexpected Sanity dataset.");
+  verifyBackup(options.backupPath, options.expectedProject, EXPECTED_DATASET);
+  const pilotArticles = options.plan.articles.filter(({ sourceId: id }) => options.plan.pilotSourceIds.includes(id));
+  if (pilotArticles.some(({ proposedSummary }) => !proposedSummary.approved)) throw new Error("Every pilot summary must be approved against its current checksum.");
+  const existing = await options.client.fetch('*[_id in $ids || (_type == "article" && slug.current in $slugs)]{_id,_type,"slug":slug.current}', { ids: options.plan.rollbackMappings.flatMap(({ sanityId, draftId }) => [sanityId, draftId]), slugs: pilotArticles.map(({ slug }) => slug) });
+  const actions = planIdempotentActions(existing, options.plan);
+  const foreignSlug = existing.find((record) => record.slug && pilotArticles.some((article) => article.slug === record.slug) && !options.plan.rollbackMappings.some(({ sanityId, draftId }) => record._id === sanityId || record._id === draftId));
+  if (foreignSlug) throw new Error(`Published slug conflict: ${foreignSlug.slug}`);
+  const contributorById = new Map(options.plan.contributors.map((item) => [item.sourceId, item]));
+  for (const mapping of actions) {
+    const contributor = contributorById.get(mapping.sourceId);
+    const article = pilotArticles.find(({ sourceId: id }) => id === mapping.sourceId);
+    const attributes = contributor ? { _id: mapping.draftId, _type: "contributor", name: contributor.name, slug: { _type: "slug", current: contributor.slug }, graduationYear: contributor.graduationYear, role: contributor.role, active: contributor.active, migrationSourceId: contributor.sourceId, importBatchId: IMPORT_BATCH_ID }
+      : article ? { _id: mapping.draftId, _type: "article", title: article.title, slug: { _type: "slug", current: article.slug }, summary: article.proposedSummary.text, contributors: article.contributorSourceIds.map((_ref, index) => ({ _type: "reference", _key: `c${index}`, _ref })), publicationDate: article.publicationDate, publicationDatePrecision: article.publicationDatePrecision, body: portableBody(article.structuredBody), pinned: false, migrationSourceId: article.sourceId, importBatchId: IMPORT_BATCH_ID }
+      : undefined;
+    if (!attributes) throw new Error(`Missing staged document for ${mapping.sourceId}`);
+    await options.client.action({ actionType: "sanity.action.document.create", publishedId: mapping.sanityId, attributes, ifExists: "fail" });
+  }
+  return actions;
 }
 
 export function planIdempotentActions(existing: Array<{ _id: string; _type: string }>, plan: MigrationPlan) {
@@ -296,9 +402,40 @@ export async function main(argv = process.argv.slice(2)) {
   const plan = buildMigrationPlan();
   writeStaging(plan);
   const apply = argv.includes("--apply");
+  const rollback = argv.includes("--rollback");
+  if (rollback) {
+    const rollbackApply = argv.includes("--rollback-apply");
+    writeJson(join(STAGING_ROOT, "rollback-dry-run.json"), { batchId: IMPORT_BATCH_ID, mutationCount: 0, selectedDraftIds: plan.rollbackMappings.map(({ draftId }) => draftId) });
+    if (!rollbackApply) { console.log(`Rollback dry run complete. Sanity mutations: 0. Batch: ${IMPORT_BATCH_ID}.`); return; }
+    if (process.env.SBR_MIGRATION_ROLLBACK_CONFIRMATION !== ROLLBACK_CONFIRMATION_PHRASE) throw new Error(`Typed rollback confirmation is required: ${ROLLBACK_CONFIRMATION_PHRASE}`);
+    const environment = (await import("../../src/sanity/env")).getSanityEnvironment();
+    const token = process.env.SANITY_API_WRITE_TOKEN?.trim();
+    const expectedProject = argv.find((value) => value.startsWith("--expect-project="))?.slice("--expect-project=".length);
+    if (!environment.configured || !token || expectedProject !== environment.projectId || environment.dataset !== EXPECTED_DATASET) throw new Error("Rollback apply target or write-token configuration is invalid.");
+    const { createClient } = await import("next-sanity");
+    const client = createClient({ projectId: environment.projectId, dataset: environment.dataset, apiVersion: environment.apiVersion, useCdn: false, token, perspective: "raw" });
+    const selected = await client.fetch<Array<{ _id: string; importBatchId?: string }>>('*[_id in $ids]{_id,importBatchId}', { ids: plan.rollbackMappings.map(({ draftId }) => draftId) });
+    for (const record of selectRollbackRecords(selected)) await client.delete(record._id);
+    writeJson(join(STAGING_ROOT, "rollback-applied-report.json"), { batchId: IMPORT_BATCH_ID, appliedAt: new Date().toISOString(), deletedDraftIds: selected.map(({ _id }) => _id) });
+    console.log(`Rolled back ${selected.length} draft documents from batch ${IMPORT_BATCH_ID}.`);
+    return;
+  }
+  if (argv.includes("--report")) {
+    console.log(`Migration reports: ${join(STAGING_ROOT, "reports")}`);
+    return;
+  }
   if (apply) {
-    assertApplyGuards({ apply, confirmation: process.env.SBR_MIGRATION_CONFIRMATION, plan });
-    throw new Error("Apply is guarded and intentionally unavailable while the pilot has unresolved dates.");
+    const backupArg = argv.find((value) => value.startsWith("--backup="))?.slice("--backup=".length);
+    const expectedProject = argv.find((value) => value.startsWith("--expect-project="))?.slice("--expect-project=".length);
+    const environment = (await import("../../src/sanity/env")).getSanityEnvironment();
+    const token = process.env.SANITY_API_WRITE_TOKEN?.trim();
+    if (!environment.configured || !token || !expectedProject || !backupArg) throw new Error("Apply requires configured Sanity, SANITY_API_WRITE_TOKEN, --expect-project, and --backup.");
+    const { createClient } = await import("next-sanity");
+    const client = createClient({ projectId: environment.projectId, dataset: environment.dataset, apiVersion: environment.apiVersion, useCdn: false, token, perspective: "raw" });
+    const actions = await applyPilot({ client, plan, projectId: environment.projectId, dataset: environment.dataset, expectedProject, backupPath: backupArg, confirmation: process.env.SBR_MIGRATION_CONFIRMATION, apply });
+    writeJson(join(STAGING_ROOT, "applied-operation-report.json"), { batchId: IMPORT_BATCH_ID, appliedAt: new Date().toISOString(), operations: actions });
+    console.log(`Applied ${actions.length} draft creation actions for batch ${IMPORT_BATCH_ID}.`);
+    return;
   }
   if (argv.includes("--validate")) {
     if (plan.articles.length !== 8 || new Set(plan.articles.map(({ slug }) => slug)).size !== 8 || plan.inconsistencies.length) process.exitCode = 1;

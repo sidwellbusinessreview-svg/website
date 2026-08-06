@@ -1,13 +1,22 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   CONFIRMATION_PHRASE,
+  approvalFor,
+  applyPilot,
   assertApplyGuards,
   buildMigrationPlan,
   getArticleBlockers,
   normalizeBody,
   parseGraduationYear,
   planIdempotentActions,
+  summaryChecksum,
+  selectRollbackRecords,
+  verifyBackup,
 } from "./sbr-archive";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createHash } from "node:crypto";
 
 describe("SBR archive migration intake", () => {
   const plan = buildMigrationPlan();
@@ -37,16 +46,27 @@ describe("SBR archive migration intake", () => {
 
   it("warns rather than inventing exact dates for month-only sources", () => {
     const item = article("economic-implications-trumps-mass-deportations");
-    expect(item.sourceDate).toBe("2025-03");
-    expect(item.publicationDate).toBeNull();
-    expect(item.reviewWarnings).toContain("Exact publication date is unresolved.");
+    expect(item.sourcePublicationDate).toBe("2025-03");
+    expect(item.publicationDate).toBe("2025-03-01");
+    expect(item.publicationDatePrecision).toBe("month");
+    expect(item.publicationDateDisplay).toBe("March 2025");
   });
 
   it("keeps every proposed summary within 300 characters and marked for review", () => {
+    const forbidden = /unfinished|incomplete|draft article|opinion article|source-recovery|migration|archival piece/i;
     for (const item of plan.articles) {
       expect(item.proposedSummary.text.length).toBeLessThanOrEqual(300);
       expect(item.proposedSummary.needsEditorialReview).toBe(true);
+      expect(item.proposedSummary.text).not.toMatch(forbidden);
+      expect((item.proposedSummary.text.match(/[.!?]/g) ?? [])).toHaveLength(1);
+      expect(item.proposedSummary.checksum).toBe(summaryChecksum(item.proposedSummary.text));
     }
+  });
+
+  it("invalidates approval when a summary checksum changes", () => {
+    const sourceId = plan.articles[0].sourceId;
+    const old = { version: 1 as const, articles: { [sourceId]: { summaryChecksum: "old", approved: true, approvedBy: "Editor", approvedAt: "2026-08-01" } } };
+    expect(approvalFor(sourceId, "Revised summary.", old)).toMatchObject({ approved: false, approvedBy: null, approvedAt: null });
   });
 
   it("preserves ordered multi-contributor bylines", () => {
@@ -99,5 +119,44 @@ describe("SBR archive migration intake", () => {
     expect(plan.pilotBlocked).toBe(true);
     expect(plan.pilotSourceIds).toHaveLength(4);
     expect(Object.values(plan.pilotBlockers).flat()).toHaveLength(4);
+  });
+
+  it("creates contributors before draft Articles only after complete preflight", async () => {
+    const approvedArticles = plan.articles.map((item) => plan.pilotSourceIds.includes(item.sourceId) ? { ...item, proposedSummary: { ...item.proposedSummary, approved: true } } : item);
+    const approvedPlan = { ...plan, articles: approvedArticles, pilotBlocked: false, pilotBlockers: Object.fromEntries(plan.pilotSourceIds.map((id) => [id, []])) };
+    const directory = mkdtempSync(join(tmpdir(), "sbr-backup-"));
+    const backup = join(directory, "production.tar.gz");
+    writeFileSync(backup, "verified export fixture");
+    writeFileSync(`${backup}.manifest.json`, JSON.stringify({ projectId: "project", dataset: "production", checksum: "" }));
+    const backupChecksum = createHash("sha256").update("verified export fixture").digest("hex");
+    writeFileSync(`${backup}.manifest.json`, JSON.stringify({ projectId: "project", dataset: "production", checksum: backupChecksum }));
+    const action = vi.fn().mockResolvedValue({});
+    const client = { fetch: vi.fn().mockResolvedValue([]), action };
+    const actions = await applyPilot({ client, plan: approvedPlan, projectId: "project", dataset: "production", expectedProject: "project", backupPath: backup, confirmation: CONFIRMATION_PHRASE, apply: true });
+    expect(actions).toHaveLength(plan.rollbackMappings.length);
+    type ActionPayload = { attributes: { _type: string; publicationDatePrecision?: string; contributors?: Array<{ _ref: string }>; featuredImage?: unknown } };
+    const payloads: ActionPayload[] = action.mock.calls.map((call) => call[0] as ActionPayload);
+    const firstArticle = payloads.findIndex(({ attributes }) => attributes._type === "article");
+    expect(payloads.slice(0, firstArticle).every(({ attributes }) => attributes._type === "contributor")).toBe(true);
+    expect(payloads.slice(firstArticle).every(({ attributes }) => attributes._type === "article")).toBe(true);
+    expect(payloads[firstArticle].attributes.publicationDatePrecision).toBe("month");
+    expect(payloads[firstArticle].attributes.contributors?.map(({ _ref }) => _ref)).toEqual(approvedArticles.find(({ slug }) => slug === "economic-implications-trumps-mass-deportations")?.contributorSourceIds);
+    expect(payloads.every(({ attributes }) => !("featuredImage" in attributes))).toBe(true);
+  });
+
+  it("rollback accepts only records from the selected batch", () => {
+    expect(selectRollbackRecords([{ _id: "drafts.one", importBatchId: "sbr-archive-2026-08-pilot-01" }])).toHaveLength(1);
+    expect(() => selectRollbackRecords([{ _id: "drafts.other", importBatchId: "other" }])).toThrow("outside the selected migration batch");
+  });
+
+  it("rejects missing, empty, and target-mismatched backups", () => {
+    expect(() => verifyBackup("/definitely/missing/export.tar.gz", "project", "production")).toThrow("non-empty");
+    const directory = mkdtempSync(join(tmpdir(), "sbr-empty-backup-"));
+    const backup = join(directory, "production.tar.gz");
+    writeFileSync(backup, "");
+    expect(() => verifyBackup(backup, "project", "production")).toThrow("non-empty");
+    writeFileSync(backup, "export");
+    writeFileSync(`${backup}.manifest.json`, JSON.stringify({ projectId: "wrong", dataset: "production", checksum: createHash("sha256").update("export").digest("hex") }));
+    expect(() => verifyBackup(backup, "project", "production")).toThrow("target");
   });
 });

@@ -1364,6 +1364,20 @@
           "type": "boolean"
         },
         "optional": true
+      },
+      "migrationSourceId": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      "importBatchId": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": true
       }
     }
   },
@@ -1457,6 +1471,23 @@
         "type": "objectAttribute",
         "value": {
           "type": "string"
+        },
+        "optional": false
+      },
+      "publicationDatePrecision": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "union",
+          "of": [
+            {
+              "type": "string",
+              "value": "day"
+            },
+            {
+              "type": "string",
+              "value": "month"
+            }
+          ]
         },
         "optional": false
       },
@@ -1558,6 +1589,20 @@
         "optional": true
       },
       "seoDescription": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      "migrationSourceId": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      "importBatchId": {
         "type": "objectAttribute",
         "value": {
           "type": "string"

@@ -15,6 +15,10 @@ describe("Sanity domain adapters", () => {
     expect(mapContributor(contributor)).toEqual({ slug: "maya-chen", name: "Maya Chen", role: "Editor", grade: "Class of 2027" });
     expect(mapArticle(rawArticle())).toMatchObject({ slug: "cms-test", contributorSlugs: ["maya-chen"], status: "published" });
   });
+  it("preserves month precision and defaults legacy records to day precision", () => {
+    expect(mapArticle(rawArticle({ publicationDatePrecision: "month" }))).toMatchObject({ publicationDatePrecision: "month", publishedAt: "2026-05-01" });
+    expect(mapArticle(rawArticle())).toMatchObject({ publicationDatePrecision: "day", publishedAt: "2026-05-01" });
+  });
   it("uses the required summary for cards and routing instead of an optional short subtitle", () => {
     expect(mapArticle(rawArticle({
       subtitle: "Tiny",

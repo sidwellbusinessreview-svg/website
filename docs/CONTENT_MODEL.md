@@ -42,9 +42,10 @@ Active controls eligibility for new Article/About selections, not historical vis
 | title | String | Yes | 5–180; public | Headline |
 | slug | Slug | Yes | Unique, stable; public | Canonical path |
 | subtitle | String | No | Max 220; public | Optional deck |
-| summary | String | Yes | 20–320; public/SEO fallback | Local `dek` maps here |
+| summary | String | Yes | 20–300; public/SEO fallback | Local `dek` maps here |
 | contributors | Ordered references | Yes | At least one, unique, published before article publication | Local `contributorSlugs` map here |
-| publicationDate | Date | Yes to publish | Valid `YYYY-MM-DD`; public | Existing datetimes migrate by retaining the first 10 characters after timezone review |
+| publicationDate | Date | Yes to publish | Exact date or internal first-of-month sorting anchor | Exact dates remain exact; month-only sources use `YYYY-MM-01` solely for sorting |
+| publicationDatePrecision | `day` or `month` | No for legacy; defaults to `day` | Preserves source accuracy; public display is always Month Year | `month` for a month-only archive source |
 | featuredImage | Image asset | Yes | Rights-cleared; public | Local URL maps during migration |
 | featuredImageAltText | String | Yes | Contextual, meaningful; public alt | Required separately in CMS |
 | featuredImageCaption / featuredImageCredit | String | No | Max 500/300; public | Existing nested values map here |

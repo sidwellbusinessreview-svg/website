@@ -19,7 +19,7 @@ Before publishing, use Studio’s **Preview** tool. Draft-only Articles and unpu
    - X, Escape, outside click, or **Cancel** closes the selector without saving.
    - Reorder and remove people with the explicit controls on each text-only byline row. Default Copy, Duplicate, Replace, and Add-before/after menus are intentionally unavailable.
    - If a historical malformed-entry warning appears, use **Repair invalid entries** only after reviewing the retained valid byline. Other valid bylines and their order remain unchanged.
-5. Enter the date as `YYYY-MM-DD`.
+5. Enter the date as `YYYY-MM-DD` and choose Date precision. Use **Day** for a known exact date. If only month/year are known, enter the first as the internal sorting anchor and choose **Month**. Readers always see Month Year.
 6. Optionally add a JPEG, PNG, or WebP featured image. When present, add contextual alt text and optional caption/credit. Add the required structured body.
 7. Optionally pin the article and set Featured order. Leave Advanced / SEO blank unless an editor has a specific reason to override automatic metadata.
 8. Preview and review accuracy, links, accessibility, image rights, byline order, and date.

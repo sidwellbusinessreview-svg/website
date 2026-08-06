@@ -6,7 +6,7 @@ Contributor identity is text-only. Do not upload or store Contributor portraits,
 
 ## Required article metadata
 
-Every article needs a unique slug, clear title, summary of no more than 300 characters, at least one contributor, valid `YYYY-MM-DD` publication date, reading time in local mode, and non-empty structured body. A featured image is optional; when one is present it needs meaningful alt text. Publish the contributor record before publishing an article that references it. Preserve contributor byline order and never select the same person twice.
+Every article needs a unique slug, clear title, summary of no more than 300 characters, at least one contributor, valid `YYYY-MM-DD` publication date/sorting anchor, reading time in local mode, and non-empty structured body. A featured image is optional; when one is present it needs meaningful alt text. Publish the contributor record before publishing an article that references it. Preserve contributor byline order and never select the same person twice.
 
 Version 1 has no categories, tags, or issues. Do not encode these concepts in titles or recreate them as ad hoc reference documents.
 
@@ -22,6 +22,8 @@ Use descriptive link labels and safe HTTP(S) or approved internal destinations. 
 
 ## Dates, placement, and SEO
 
-Use the intended public calendar date with no time. Same-date stories sort by slug, so slugs must remain stable. Only one published story should be pinned; featured order is allowed only for pinned stories. Most editors should leave Advanced / SEO overrides blank because title, summary, optional featured image, and canonical URL are automatic.
+The website always displays Article dates as Month Year. Choose `day` when the exact date is known and retain that exact ISO date. Choose `month` when only month/year are known and use the first day only as an internal sorting anchor; never describe it as the historical publication day. Existing records without precision default internally to `day`. Same-date stories sort by slug, so slugs must remain stable. Only one published story should be pinned; featured order is allowed only for pinned stories.
+
+Summaries describe the Article’s subject, question, analysis, or argument in one neutral sentence. Never put source condition, readiness, migration status, missing metadata, inferred authorship, or editorial workflow language in a public summary.
 
 Run `npm run validate:content` after local content edits and `npm run sanity:typegen` after CMS schema changes.

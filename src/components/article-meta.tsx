@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Article, Contributor } from "@/content";
+import { articleDateTimeValue, formatArticleDate } from "@/lib/article-date";
 
 export function ArticleMeta({
   article,
@@ -19,12 +20,8 @@ export function ArticleMeta({
         ))}
       </span>
       <span aria-hidden="true">•</span>
-      <time dateTime={article.publishedAt}>
-        {new Intl.DateTimeFormat("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        }).format(new Date(`${article.publishedAt}T12:00:00`))}
+      <time dateTime={articleDateTimeValue(article.publishedAt, article.publicationDatePrecision)}>
+        {formatArticleDate(article.publishedAt)}
       </time>
       <span aria-hidden="true">•</span>
       <span>{article.readTime} min read</span>

@@ -92,3 +92,6 @@ Before completion:
 - Migration commands are dry-run by default. Never run `sanity:migration:apply` without explicit user authorization, an unblocked batch, the required apply flag, and the documented typed confirmation.
 - Create Contributor drafts before Article drafts, preserve source IDs and byline order, and never overwrite a published document.
 - Never invent missing authors, exact publication days, citations, endings, image rights, captions, credits, or alt text.
+- Reader-facing Article dates always use the shared Month Year formatter. Preserve exact internal dates; mark month-only sources with `month` precision and never present their first-day sorting anchors as verified historical days.
+- Public summaries contain content descriptions only. Migration/editorial status stays in internal reports, and summary approval is valid only for the current checksum.
+- Never run migration apply or rollback apply without explicit user authorization and a verified target-matching dataset export.

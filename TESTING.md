@@ -25,6 +25,8 @@ Run the fast blocking checks:
 
 ```bash
 npm run verify
+npm run sanity:migration:validate
+npm run sanity:migration:dry-run
 ```
 
 This runs lint, typecheck, unit/component tests, and the production build in that order. It intentionally does not start a browser because browser tests are slower and may need a downloaded Chromium binary.
@@ -173,6 +175,8 @@ The CMS suite defaults to the canonical published records:
 The test covers Homepage, Article, Contributor, Search, Latest, Archive, sitemap, feed, About, and exclusion of local-only sample content. If an approved replacement fixture is introduced, override `CMS_TEST_ARTICLE_TITLE`, `CMS_TEST_ARTICLE_SLUG`, `CMS_TEST_CONTRIBUTOR_NAME`, and `CMS_TEST_CONTRIBUTOR_SLUG` in the shell running Playwright. These are public test labels, not secrets; do not use them to pass tokens.
 
 It also verifies that the canonical CMS Article renders a real bulleted list with semantic `<ul>/<li>` markup, visible markers, and no mobile horizontal overflow.
+
+Migration tests use injected clients and temporary backup fixtures. They exercise preflight and action ordering without real tokens or Sanity mutations. Apply and rollback-apply commands must never run during tests, CI, builds, installation, deployment, or server startup.
 
 ### CMS cache diagnostic
 

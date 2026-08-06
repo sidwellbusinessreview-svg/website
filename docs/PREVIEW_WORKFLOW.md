@@ -21,7 +21,7 @@ The Draft Mode cookie applies to the local origin, but preview UI is deliberatel
 ## Faculty adviser review
 
 - Confirm the preview banner is visible.
-- Review headline, byline order, dates, body, links, captions, credits, and alt text.
+- Review headline, byline order, dates, body, links, captions, credits, and alt text. Every visible Article date must use Month Year; a month-precision sorting anchor must never appear as a day.
 - Check Homepage placement, Contributor profile, About, and mobile width.
 - In a clean browser without preview, confirm drafts are absent.
 - Confirm Search, sitemap, and feed remain published-only.

@@ -41,6 +41,15 @@ describe("article presentation", () => {
     const links = screen.getAllByRole("link");
     expect(links.map((link) => link.textContent)).toEqual(["Maya Chen", "Jonah Patel"]);
     expect(screen.getByText(/and/)).toBeInTheDocument();
+    expect(screen.getByText("January 2026")).toBeInTheDocument();
+    expect(screen.getByText("January 2026")).not.toHaveTextContent("January 26");
+  });
+
+  it("renders month precision without exposing its first-day sorting anchor", () => {
+    render(<ArticleMeta article={{ ...article, publishedAt: "2025-03-01", publicationDatePrecision: "month" }} authors={authors} />);
+    const time = screen.getByText("March 2025");
+    expect(time).toHaveAttribute("datetime", "2025-03");
+    expect(time).not.toHaveTextContent("1");
   });
 
   it("renders an article card when the optional contract subtitle is absent", () => {

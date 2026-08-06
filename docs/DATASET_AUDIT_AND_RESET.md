@@ -27,3 +27,12 @@ npx sanity exec scripts/sanity/reset-test-content.ts --with-user-token -- --appl
 ```
 
 Production mode additionally requires `--production-override "I ACCEPT PRODUCTION DATA LOSS"`. Neither command deletes assets by default or runs during install, test, build, or deployment. Review the target and report before applying.
+
+Before a guarded archive pilot, create a restricted ignored export and its verification manifest:
+
+```bash
+mkdir -p migration-backups
+npx sanity dataset export production migration-backups/sbr-production-YYYY-MM-DD.tar.gz
+```
+
+Beside the export, create `sbr-production-YYYY-MM-DD.tar.gz.manifest.json` containing the configured public project ID, dataset `production`, export timestamp, and export checksum. Migration preflight rejects missing, empty, target-mismatched, or placeholder backups. Tests never run exports.

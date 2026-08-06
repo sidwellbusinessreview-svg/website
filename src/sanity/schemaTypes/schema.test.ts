@@ -11,7 +11,7 @@ import { validateUniqueStaff } from "./documents/staticPage";
 import { isSupportedImageAsset } from "./shared/mediaValidation";
 import { pairContributorVersions } from "../components/ContributorStateList";
 
-type RawField = { name: string; type: string; fields?: RawField[]; of?: Array<{ type: string; to?: Array<{ type: string }>; fields?: RawField[] }>; options?: { dateFormat?: string } };
+type RawField = { name: string; type: string; readOnly?: boolean; initialValue?: unknown; fields?: RawField[]; of?: Array<{ type: string; to?: Array<{ type: string }>; fields?: RawField[] }>; options?: { dateFormat?: string } };
 const fieldsFor = (name: string) => ((schemaTypes.find((type) => type.name === name) as { fields?: RawField[] } | undefined)?.fields ?? []);
 const action = (name: string, label = name): DocumentActionComponent => Object.assign(() => ({ label, onHandle: () => undefined }), { action: name }) as DocumentActionComponent;
 const props = (draft: object | null, published: object | null) => ({ id: "test", type: "article", draft, published, liveEdit: false, onComplete: () => undefined } as never);
@@ -30,7 +30,7 @@ describe("article document states", () => {
 describe("simplified Sanity editor model", () => {
   it("registers no Masthead document", () => expect(schemaTypes.filter((type) => type.type === "document").map((type) => type.name)).toEqual(["siteSettings", "contributor", "article", "staticPage"]));
   it.each(["masthead", "author", "issue", "category", "tag"])("has no legacy %s schema file", (type) => expect(existsSync(`src/sanity/schemaTypes/documents/${type}.ts`)).toBe(false));
-  it("keeps the contributor form compact and supports archiving", () => expect(fieldsFor("contributor").map(({ name }) => name)).toEqual(["name", "slug", "role", "graduationYear", "active"]));
+  it("keeps the contributor form compact with hidden migration identity", () => { const fields = fieldsFor("contributor"); expect(fields.map(({ name }) => name)).toEqual(["name", "slug", "role", "graduationYear", "active", "migrationSourceId", "importBatchId"]); expect(fields.filter(({ name }) => ["migrationSourceId", "importBatchId"].includes(name)).every(({ readOnly }) => readOnly)).toBe(true); });
   it("places staff sections on About", () => expect(fieldsFor("staticPage").map(({ name }) => name)).toEqual(expect.arrayContaining(["editorsInChief", "editors", "facultyAdviser"])));
   it("has no Contributor or About person-image fields", () => {
     expect(fieldsFor("contributor").map(({ name }) => name)).not.toEqual(expect.arrayContaining(["photo", "image", "portrait", "avatar"]));
@@ -38,7 +38,7 @@ describe("simplified Sanity editor model", () => {
     expect(staffFields.map(({ name }) => name)).not.toEqual(expect.arrayContaining(["portrait", "portraitAltText", "photo", "image", "avatar"]));
   });
   it("warns when About repeats a contributor across sections", () => expect(validateUniqueStaff({ editorsInChief: [{ contributor: { _ref: "a" } }], editors: [{ contributor: { _ref: "a" } }] })).toMatch(/only once/i));
-  it("uses date-only articles and contributors", () => { const fields = fieldsFor("article"); expect(fields.find(({ name }) => name === "publicationDate")).toMatchObject({ type: "date", options: { dateFormat: "YYYY-MM-DD" } }); expect(fields.find(({ name }) => name === "contributors")?.of?.[0]).toMatchObject({ type: "reference", to: [{ type: "contributor" }] }); });
+  it("uses date-only articles with explicit precision", () => { const fields = fieldsFor("article"); expect(fields.find(({ name }) => name === "publicationDate")).toMatchObject({ type: "date", options: { dateFormat: "YYYY-MM-DD" } }); expect(fields.find(({ name }) => name === "publicationDatePrecision")).toMatchObject({ type: "string", initialValue: "day" }); expect(fields.find(({ name }) => name === "contributors")?.of?.[0]).toMatchObject({ type: "reference", to: [{ type: "contributor" }] }); });
   it("keeps approved Portable Text", () => expect((articleBody as unknown as { of: Array<{ type: string }> }).of.map(({ type }) => type)).toEqual(["block", "pullQuote", "editorialImage", "callout", "divider"]));
   it("prepares clear previews", () => expect(prepareArticlePreview({ id: "drafts.test", title: "A test", firstContributor: "Maya", pinned: true })).toMatchObject({ subtitle: "Draft · Pinned · Maya" }));
   it("warns for unpublished contributors", async () => { const fetch = vi.fn().mockResolvedValue(["a"]); await expect(validatePublishedContributors([{ _ref: "a" }, { _ref: "b" }], { getClient: () => ({ fetch }) })).resolves.toMatch(/publish every/i); });

@@ -2,6 +2,7 @@ import { siteConfig } from "@/config/site";
 import { getPublishedArticles, getPublishedContributors } from "@/content";
 import { absoluteUrl } from "@/lib/metadata";
 import { PUBLIC_CONTENT_REVALIDATE_SECONDS } from "@/content/sanity/cache";
+import { rssArticleDate } from "@/lib/article-date";
 
 export function escapeXml(value: string): string {
   return value
@@ -21,7 +22,7 @@ export async function GET() {
       <link>${absoluteUrl(`/articles/${article.slug}`)}</link>
       <guid isPermaLink="true">${absoluteUrl(`/articles/${article.slug}`)}</guid>
       <description>${escapeXml(article.dek)}</description>
-      <pubDate>${new Date(`${article.publishedAt}T12:00:00Z`).toUTCString()}</pubDate>
+      <pubDate>${rssArticleDate(article.publishedAt)}</pubDate>
       ${article.contributorSlugs.map((slug) => `<author>${escapeXml(authorBySlug.get(slug) ?? slug)}</author>`).join("")}
     </item>`).join("");
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

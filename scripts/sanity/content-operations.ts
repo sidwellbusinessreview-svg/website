@@ -6,8 +6,8 @@ export const legacySingletonIds = new Set(["masthead"]);
 export const editorialTypes = new Set([...currentDocumentTypes, ...legacyDocumentTypes]);
 
 const allowedFields: Record<string, Set<string>> = {
-  article: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "title", "slug", "subtitle", "summary", "contributors", "publicationDate", "featuredImage", "featuredImageAltText", "featuredImageCaption", "featuredImageCredit", "body", "pinned", "featuredRank", "seoTitle", "seoDescription"]),
-  contributor: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "name", "slug", "role", "graduationYear", "active"]),
+  article: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "title", "slug", "subtitle", "summary", "contributors", "publicationDate", "publicationDatePrecision", "featuredImage", "featuredImageAltText", "featuredImageCaption", "featuredImageCredit", "body", "pinned", "featuredRank", "seoTitle", "seoDescription", "migrationSourceId", "importBatchId"]),
+  contributor: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "name", "slug", "role", "graduationYear", "active", "migrationSourceId", "importBatchId"]),
   staticPage: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "title", "slug", "eyebrow", "summary", "body", "editorsInChief", "editors", "facultyAdviser", "updatedDate", "seo"]),
   siteSettings: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "publicationName", "shortName", "description", "affiliationText", "tagline", "location", "logoMode", "textWordmark", "logoImage", "logoImageAlt", "contactLabel", "contactTarget", "socialLinks", "defaultSeo", "homepageTagline"]),
 };
