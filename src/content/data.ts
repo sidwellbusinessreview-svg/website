@@ -60,7 +60,7 @@ export const articles: ArticleInput[] = [
     title: "The New Economics of School Lunch",
     dek: "Rising costs, tighter budgets, and changing tastes are reshaping one of the school day’s most familiar institutions.",
     contributorSlugs: ["maya-chen", "jonah-patel"],
-    publishedAt: "2026-05-18",
+    publicationMonth: "2026-05",
     readTime: 8,
     pinned: true,
     featuredImage: {
@@ -117,7 +117,7 @@ export const articles: ArticleInput[] = [
       "Semiconductors and the Geography of Risk in a World That Can No Longer Take Frictionless Trade for Granted",
     dek: "The chip supply chain reveals how efficiency, national security, and resilience now compete for corporate attention.",
     contributorSlugs: ["lena-brooks"],
-    publishedAt: "2026-05-11",
+    publicationMonth: "2026-05",
     readTime: 13,
     featuredImage: {
       src: photos.chips,
@@ -178,7 +178,7 @@ export const articles: ArticleInput[] = [
     title: "Small Businesses, Big Rates",
     dek: "For local entrepreneurs, higher borrowing costs turn ordinary decisions into consequential bets.",
     contributorSlugs: ["samir-okafor"],
-    publishedAt: "2026-04-28",
+    publicationMonth: "2026-04",
     readTime: 6,
     featuredImage: {
       src: photos.shop,
@@ -203,7 +203,7 @@ export const articles: ArticleInput[] = [
     title: "What Metro Ridership Can Tell Us About Washington’s New Workweek",
     dek: "Transit patterns provide a surprisingly clear view of hybrid work, downtown demand, and a region still finding its rhythm.",
     contributorSlugs: ["jonah-patel"],
-    publishedAt: "2026-02-12",
+    publicationMonth: "2026-02",
     readTime: 7,
     featuredImage: {
       src: photos.metro,
@@ -244,7 +244,7 @@ export const articles: ArticleInput[] = [
     title: "Reading the Fed Without Reading Tea Leaves",
     dek: "A practical guide to separating central-bank signals from market noise.",
     contributorSlugs: ["maya-chen"],
-    publishedAt: "2026-01-26",
+    publicationMonth: "2026-01",
     readTime: 5,
     featuredImage: {
       src: photos.books,
@@ -269,7 +269,7 @@ export const articles: ArticleInput[] = [
     title: "How a Student Solar Proposal Became a Capital-Budget Lesson",
     dek: "A campus sustainability idea shows why payback periods are only the beginning of an investment case.",
     contributorSlugs: ["lena-brooks"],
-    publishedAt: "2025-12-08",
+    publicationMonth: "2025-12",
     readTime: 6,
     featuredImage: {
       src: photos.solar,

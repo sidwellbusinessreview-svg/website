@@ -31,6 +31,35 @@ describe("ArticleBody", () => {
     expect(container.querySelector("hr")).toBeInTheDocument();
   });
 
+  it("renders stable superscript footnotes, one Sources entry, and a backlink", () => {
+    const { container } = render(<ArticleBody
+      blocks={[{ type: "paragraph", text: "First claim. Second claim.", content: [{ text: "First claim.", sourceKey: "report" }, { text: " Second claim.", sourceKey: "report" }] }]}
+      sources={[{ key: "report", citation: "Researcher, “A useful report.”", url: "https://example.com/report" }]}
+    />);
+    expect(container.querySelectorAll("sup.footnote-ref")).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: "Footnote 1" })).toHaveLength(2);
+    expect(screen.getByRole("heading", { name: "Sources" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Researcher, “A useful report.”" })).toHaveAttribute("href", "https://example.com/report");
+    expect(screen.getByRole("link", { name: "Back to footnote 1" })).toHaveAttribute("href", "#source-ref-1-1");
+    expect(container.querySelectorAll(".article-sources li")).toHaveLength(1);
+  });
+
+  it("renders a cursor-inserted footnote directly after punctuation with no whitespace gap", () => {
+    const { container } = render(<ArticleBody
+      blocks={[{ type: "paragraph", text: "Sentence.", content: [{ text: "Sentence. " }, { text: "", sourceKey: "source" }] }]}
+      sources={[{ key: "source", citation: "A source" }]}
+    />);
+    const paragraph = container.querySelector(".article-body p")!;
+    expect(paragraph.textContent).toBe("Sentence.1");
+    expect(paragraph.innerHTML).toContain('Sentence.<sup class="footnote-ref">');
+  });
+
+  it("omits Sources when empty and fails safely for a missing source reference", () => {
+    const { container } = render(<ArticleBody blocks={[{ type: "paragraph", text: "Claim.", content: [{ text: "Claim.", sourceKey: "missing" }] }]} />);
+    expect(screen.queryByRole("heading", { name: "Sources" })).not.toBeInTheDocument();
+    expect(container.querySelector(".footnote-ref--missing")).toHaveTextContent("?");
+  });
+
   it("renders paragraphs around semantic bullet and numbered lists", () => {
     const { container } = render(<ArticleBody blocks={[
       { type: "paragraph", text: "Before the lists." },

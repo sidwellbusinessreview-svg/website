@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Fragment, type ReactNode } from "react";
-import type { ArticleContentBlock } from "@/content";
+import type { Article, ArticleContentBlock } from "@/content";
 import { ImageCaption } from "./image-caption";
 
 type ListBlock = Extract<ArticleContentBlock, { type: "bulletedList" | "numberedList" }>;
@@ -53,14 +53,40 @@ function ArticleList({ block }: { block: ListBlock }) {
   return <List>{renderItems(listTree(block.items))}</List>;
 }
 
-export function ArticleBody({ blocks }: { blocks: ArticleContentBlock[] }) {
+type ArticleSource = Article["sources"][number];
+
+function ParagraphContent({ block, sourceNumbers, occurrences }: { block: Extract<ArticleContentBlock, { type: "paragraph" }>; sourceNumbers: Map<string, number>; occurrences: Map<string, number> }) {
+  if (!block.content?.length) return block.text;
+  return block.content.map((span, index) => {
+    const nextIsFootnote = Boolean(block.content?.[index + 1]?.sourceKey);
+    const displayText = span.sourceKey || nextIsFootnote ? span.text.replace(/\s+$/, "") : span.text;
+    let content: ReactNode = displayText;
+    if (span.marks?.includes("strong")) content = <strong>{content}</strong>;
+    if (span.marks?.includes("em")) content = <em>{content}</em>;
+    if (span.href) content = <a href={span.href}>{content}</a>;
+    if (span.sourceKey) {
+      const number = sourceNumbers.get(span.sourceKey);
+      if (!number) return <Fragment key={`${span.text}-${index}`}>{content}<sup className="footnote-ref footnote-ref--missing" title={`Missing source: ${span.sourceKey}`}>?</sup></Fragment>;
+      const occurrence = (occurrences.get(span.sourceKey) ?? 0) + 1;
+      occurrences.set(span.sourceKey, occurrence);
+      content = <>{content}<sup className="footnote-ref"><a id={`source-ref-${number}-${occurrence}`} href={`#source-${number}`} aria-label={`Footnote ${number}`}>{number}</a></sup></>;
+    }
+    return <Fragment key={`${span.text}-${index}`}>{content}</Fragment>;
+  });
+}
+
+export function ArticleBody({ blocks, sources = [] }: { blocks: ArticleContentBlock[]; sources?: ArticleSource[] }) {
+  const sourceNumbers = new Map(sources.map((source, index) => [source.key, index + 1]));
+  const occurrences = new Map<string, number>();
+  const referencedSourceKeys = new Set(blocks.flatMap((block) => block.type === "paragraph" ? (block.content ?? []).flatMap((span) => span.sourceKey ? [span.sourceKey] : []) : []));
   return (
+    <>
     <div className="article-body">
       {blocks.map((block, index) => {
         const key = `${block.type}-${index}`;
         switch (block.type) {
           case "paragraph":
-            return <p key={key}>{block.text}</p>;
+            return <p key={key}><ParagraphContent block={block} sourceNumbers={sourceNumbers} occurrences={occurrences} /></p>;
           case "heading":
             return block.level === 2 ? <h2 key={key}>{block.text}</h2> : <h3 key={key}>{block.text}</h3>;
           case "bulletedList":
@@ -96,5 +122,13 @@ export function ArticleBody({ blocks }: { blocks: ArticleContentBlock[] }) {
         }
       })}
     </div>
+    {sources.length > 0 && <section className="article-sources" aria-labelledby="sources-heading">
+      <h2 id="sources-heading">Sources</h2>
+      <ol>{sources.map((source, index) => <li id={`source-${index + 1}`} key={source.key}>
+        {source.url ? <a href={source.url} target="_blank" rel="noopener noreferrer">{source.citation}</a> : source.citation}
+        {referencedSourceKeys.has(source.key) && <> <a className="source-backlink" href={`#source-ref-${index + 1}-1`} aria-label={`Back to footnote ${index + 1}`}>↩</a></>}
+      </li>)}</ol>
+    </section>}
+    </>
   );
 }

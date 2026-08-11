@@ -7,7 +7,7 @@ const article = (title: string) => ({
   slug: "draft-story",
   title,
   summary: "A complete draft summary used to verify isolated preview behavior.",
-  publicationDate: "2026-07-23",
+  publicationMonth: "2026-07",
   contributors: [contributor],
   body: [{ _type: "block", style: "normal", children: [{ _type: "span", text: "Draft body", marks: [] }] }],
 });
@@ -69,7 +69,7 @@ describe("draft provider isolation", () => {
   });
 
   it("preserves month precision in Preview", async () => {
-    const provider = createSanityContentProvider({ fetch: vi.fn().mockResolvedValue({ ...article("Month Article"), publicationDate: "2025-03-01", publicationDatePrecision: "month" }) } as unknown as SanityClient, "drafts");
-    await expect(provider.getArticleBySlug("draft-story")).resolves.toMatchObject({ publishedAt: "2025-03-01", publicationDatePrecision: "month" });
+    const provider = createSanityContentProvider({ fetch: vi.fn().mockResolvedValue({ ...article("Month Article"), publicationMonth: "2025-03" }) } as unknown as SanityClient, "drafts");
+    await expect(provider.getArticleBySlug("draft-story")).resolves.toMatchObject({ publicationMonth: "2025-03" });
   });
 });

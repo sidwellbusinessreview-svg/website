@@ -20,8 +20,8 @@ export function ArticleMeta({
         ))}
       </span>
       <span aria-hidden="true">•</span>
-      <time dateTime={articleDateTimeValue(article.publishedAt, article.publicationDatePrecision)}>
-        {formatArticleDate(article.publishedAt)}
+      <time dateTime={articleDateTimeValue(article.publicationMonth)}>
+        {formatArticleDate(article.publicationMonth)}
       </time>
       <span aria-hidden="true">•</span>
       <span>{article.readTime} min read</span>

@@ -165,6 +165,14 @@ a:hover { color: var(--color-accent); }
 .callout h3 { margin: 0 0 .4rem; font-family: var(--font-body); font-size: .78rem; letter-spacing: .09em; text-transform: uppercase; }
 .callout p { margin: 0; }
 .article-body hr { width: 5rem; margin: 3rem auto; border: 0; border-top: 1px solid var(--color-ink); }
+.footnote-ref { display: inline; margin: 0; padding: 0; font-family: var(--font-body); font-size: .65em; line-height: 0; vertical-align: super; }
+.footnote-ref a { text-decoration: none; }
+.footnote-ref--missing { color: var(--color-accent); }
+.article-sources { max-width: var(--reading-width); margin: var(--space-6) auto 0; border-top: var(--border-ink); padding-top: var(--space-3); }
+.article-sources h2 { font-family: var(--font-display); font-size: 1.8rem; }
+.article-sources ol { padding-left: 1.5rem; }
+.article-sources li { margin-bottom: .75rem; }
+.source-backlink { font-size: .8em; text-decoration: none; }
 .article-figure { margin: 2.8rem -5rem; }
 .article-figure__image { position: relative; aspect-ratio: 16/10; }
 .issues-list { display: grid; gap: var(--space-6); }

@@ -1,4 +1,5 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
+import { FootnoteSourceInput } from "../../components/FootnoteSourceInput";
 
 const richTextBlock = defineArrayMember({
   type: "block",
@@ -19,6 +20,7 @@ const richTextBlock = defineArrayMember({
     ],
     annotations: [{ type: "linkAnnotation" }],
   },
+  of: [defineArrayMember({ type: "footnoteReference" })],
 });
 
 export const simplePortableText = defineType({
@@ -126,4 +128,22 @@ export const articleBody = defineType({
     defineArrayMember({ type: "divider" }),
   ],
   validation: (Rule) => Rule.required().min(1).error("Add at least one substantive body block."),
+});
+
+export const footnoteReference = defineType({
+  name: "footnoteReference",
+  title: "Add footnote",
+  type: "object",
+  description: "Choose an item from this Article’s Sources list. The website generates its number.",
+  fields: [defineField({
+    name: "sourceKey", title: "Source", type: "string",
+    description: "Choose the citation this footnote should use. Do not type a number or brackets.",
+    components: { input: FootnoteSourceInput },
+    validation: (Rule) => Rule.required().custom((value, context) => {
+      if (!value || typeof value !== "string") return "Choose a source key.";
+      const sources = Array.isArray(context.document?.sources) ? context.document.sources : [];
+      return sources.some((source) => source && typeof source === "object" && (source as { _key?: string })._key === value) || "This source key does not exist in Sources.";
+    }),
+  })],
+  preview: { prepare: () => ({ title: "Footnote" }) },
 });

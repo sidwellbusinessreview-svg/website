@@ -20,7 +20,7 @@ export type StagedContributor = {
   active: true; sourceArticleIds: string[]; identityWarnings: string[];
 };
 export type StagedBlock =
-  | { type: "paragraph"; text: string }
+  | { type: "paragraph"; text: string; content?: Array<{ text: string; sourceKey?: string }> }
   | { type: "heading"; level: 2 | 3; text: string }
   | { type: "orderedList" | "unorderedList"; items: string[] }
   | { type: "link"; label: string; href: string };
@@ -28,9 +28,8 @@ export type StagedArticle = {
   sourceId: string; title: string; slug: string; subtitle?: string;
   proposedSummary: { text: string; needsEditorialReview: true; checksum: string; approved: boolean };
   contributorSourceIds: string[]; originalAuthors: string[];
-  publicationDate: string | null; sourcePublicationDate: string | null;
-  publicationDatePrecision: "month" | "unknown"; publicationDateDisplay: string | null;
-  machineMetadataDate: string | null;
+  publicationMonth: string | null; sourcePublicationDate: string | null; publicationMonthDisplay: string | null;
+  sources: Array<{ key: string; citation: string; url?: string }>;
   structuredBody: StagedBlock[]; featuredImage: null; imagePermissionStatus: "unresolved" | "resolved";
   possibleImageMatches: string[]; sourcePdf: string; sourcePages: number[];
   migrationStatus: string; readiness: Readiness; migrationNotes: string[];
@@ -54,7 +53,7 @@ export function getArticleBlockers(article: StagedArticle): string[] {
   if (!article.proposedSummary.text.trim()) blockers.push("summary: required");
   if (article.proposedSummary.text.length > 300) blockers.push("summary: exceeds 300 characters");
   if (!article.contributorSourceIds.length) blockers.push("contributors: author decision required");
-  if (!article.publicationDate) blockers.push("publicationDate: publication month unresolved");
+  if (!article.publicationMonth) blockers.push("publicationMonth: required");
   if (article.featuredImage && article.imagePermissionStatus !== "resolved") blockers.push("featuredImage: permission and metadata unresolved");
   if (article.readiness === "sourceRecoveryHold") blockers.push("body: trustworthy ending unavailable");
   if (article.readiness === "unfinishedDraft") blockers.push("body: unfinished; authorship confirmation required");
@@ -101,6 +100,50 @@ export function approvalFor(sourceIdValue: string, summary: string, approvals: A
 
 function monthDisplay(value: string): string {
   return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}-01T12:00:00Z`));
+}
+
+export function extractStructuredSources(bodySource: string): { bodySource: string; sources: Array<{ key: string; citation: string }> } {
+  const lines = bodySource.split(/\r?\n/);
+  const removed = new Set<number>();
+  const byNumber = new Map<number, string>();
+  const candidate = (value: string) => value.length >= 8 && value.length <= 320 && /[“"][^”"]+[”"]/.test(value);
+  for (let index = 0; index < lines.length; index++) {
+    const match = lines[index].trim().match(/^(\d{1,2})$/);
+    if (!match) continue;
+    const numberValue = Number(match[1]);
+    const neighbors = [index + 1, index - 1].filter((position) => position >= 0 && position < lines.length && candidate(lines[position].trim()));
+    const citationIndex = neighbors[0];
+    if (citationIndex !== undefined) {
+      byNumber.set(numberValue, lines[citationIndex].trim());
+      removed.add(citationIndex);
+    }
+    removed.add(index);
+  }
+  return {
+    bodySource: lines.filter((_, index) => !removed.has(index)).join("\n"),
+    sources: [...byNumber].sort(([a], [b]) => a - b).map(([numberValue, citation]) => ({ key: `source-${numberValue}`, citation })),
+  };
+}
+
+export function mapInlineFootnotes(blocks: StagedBlock[], sources: Array<{ key: string }>): StagedBlock[] {
+  const keys = new Set(sources.map(({ key }) => key));
+  return blocks.map((block) => {
+    if (block.type !== "paragraph") return block;
+    const content: Array<{ text: string; sourceKey?: string }> = [];
+    let cursor = 0;
+    const pattern = /(\d{1,2})(?=\s|$|[.,;:!?])/g;
+    for (const match of block.text.matchAll(pattern)) {
+      const sourceKey = `source-${match[1]}`;
+      if (!keys.has(sourceKey) || match.index === 0 || !/\S/.test(block.text[match.index - 1])) continue;
+      const textValue = block.text.slice(cursor, match.index);
+      if (textValue) content.push({ text: textValue, sourceKey });
+      cursor = match.index + match[0].length;
+    }
+    if (!content.length) return block;
+    const remainder = block.text.slice(cursor);
+    if (remainder) content.push({ text: remainder });
+    return { ...block, text: content.map(({ text }) => text).join(""), content };
+  });
 }
 
 export function slugify(value: string): string {
@@ -252,25 +295,24 @@ export function buildMigrationPlan(): MigrationPlan {
       } else contributorMap.set(id, { sourceId: id, name: parsedAuthor.name, slug, ...(parsedAuthor.graduationYear ? { graduationYear: parsedAuthor.graduationYear } : {}), active: true, sourceArticleIds: [articleSourceId], identityWarnings: meta.slug === "nfl-salary-cap-inflation-free-agency" ? ["Authorship is inferred from a filename and is not proven by the document."] : [] });
       return id;
     });
-    const normalized = normalizeBody(parsed.bodySource, meta.title, meta.authors);
+    const extracted = extractStructuredSources(parsed.bodySource);
+    const normalized = normalizeBody(extracted.bodySource, meta.title, meta.authors);
+    const structuredBody = mapInlineFootnotes(normalized.blocks, extracted.sources);
     const readiness = readinessBySlug[meta.slug];
     const reviewWarnings = [...normalized.warnings];
     if (!meta.authors.length) reviewWarnings.push("Author is unresolved; do not invent a staff byline.");
     if (!meta.date) reviewWarnings.push("Publication month is unresolved.");
-    else reviewWarnings.push("The first day is an internal sorting anchor, not a verified historical publication day.");
     if (readiness === "sourceRecoveryHold") reviewWarnings.push("Source ending is untrustworthy; preserve but do not import.");
     if (readiness === "unfinishedDraft") reviewWarnings.push("Outline notes and inferred authorship require editorial completion and confirmation.");
     const sourcePublicationDate = meta.date;
-    const publicationDate = sourcePublicationDate ? `${sourcePublicationDate}-01` : null;
+    const publicationMonth = sourcePublicationDate;
     const proposedText = summaries[meta.slug];
     const approval = approvalFor(articleSourceId, proposedText, approvals);
     return {
       sourceId: articleSourceId, title: meta.title, slug: meta.slug,
       proposedSummary: { text: proposedText, needsEditorialReview: true, checksum: approval.summaryChecksum, approved: approval.approved }, contributorSourceIds, originalAuthors: meta.authors,
-      publicationDate, sourcePublicationDate, publicationDatePrecision: sourcePublicationDate ? "month" : "unknown",
-      publicationDateDisplay: sourcePublicationDate ? monthDisplay(sourcePublicationDate) : null,
-      machineMetadataDate: sourcePublicationDate,
-      structuredBody: normalized.blocks, featuredImage: null, imagePermissionStatus: "unresolved",
+      publicationMonth, sourcePublicationDate, publicationMonthDisplay: sourcePublicationDate ? monthDisplay(sourcePublicationDate) : null,
+      structuredBody, sources: extracted.sources, featuredImage: null, imagePermissionStatus: "unresolved",
       possibleImageMatches: meta.issuePages.length ? ["Review extracted March issue images against rendered source pages; no automatic match approved."] : [],
       sourcePdf: meta.sourcePdf, sourcePages: meta.issuePages, migrationStatus: meta.migrationStatus, readiness,
       migrationNotes: parsed.notes, importBatchId: IMPORT_BATCH_ID, originalSourceChecksum: checksum(source), reviewWarnings,
@@ -312,7 +354,7 @@ export function writeStaging(plan: MigrationPlan): void {
       sourceId: article.sourceId, draftId: createDraftId(article.sourceId), title: article.title, slug: article.slug,
       proposedSummary: article.proposedSummary.text, summaryChecksum: article.proposedSummary.checksum,
       summaryApproved: article.proposedSummary.approved, contributorSourceIds: article.contributorSourceIds,
-      publicationDate: article.publicationDate, publicationDatePrecision: article.publicationDatePrecision,
+      publicationMonth: article.publicationMonth,
       sourcePublicationDate: article.sourcePublicationDate, structuredBody: article.structuredBody,
       sourceDocumentChecksum: article.originalSourceChecksum, importBatchId: article.importBatchId,
       rollback: plan.rollbackMappings.find(({ sourceId: id }) => id === article.sourceId),
@@ -323,10 +365,10 @@ export function writeStaging(plan: MigrationPlan): void {
   writeFileSync(reportPath("CONTRIBUTOR_MAPPING.md"), `# Contributor mapping report\n\n${markdownTable(["Source ID", "Name", "Slug", "Graduation year", "Source Articles", "Warnings"], plan.contributors.map((item) => [item.sourceId, item.name, item.slug, String(item.graduationYear ?? "unresolved"), item.sourceArticleIds.join("<br>"), item.identityWarnings.join("; ") || "none"]))}`);
   writeFileSync(reportPath("ARTICLE_READINESS.md"), `# Article readiness report\n\n${markdownTable(["Article", "Readiness", "Source status", "Date", "Import blockers"], plan.articles.map((item) => [item.title, item.readiness, item.migrationStatus, item.sourcePublicationDate ?? "unknown", [...getArticleBlockers(item), ...(!item.proposedSummary.approved ? ["summary: current checksum not approved"] : [])].join("; ") || "none"]))}`);
   writeFileSync(reportPath("PROPOSED_SUMMARIES.md"), `# Proposed-summary review report\n\nPublic summaries describe content only. Internal status is listed separately.\n\n${plan.articles.map((item) => `## ${item.title}\n\n${item.proposedSummary.text}\n\n- Characters: ${item.proposedSummary.text.length}\n- Approval: ${item.proposedSummary.approved ? "approved" : "not approved"}\n- Summary checksum: \`${item.proposedSummary.checksum}\`\n\n### Internal migration status\n\n- Readiness: ${item.readiness}\n- Source status: ${item.migrationStatus}\n- Warnings: ${item.reviewWarnings.join("; ") || "none"}\n`).join("\n")}`);
-  writeFileSync(reportPath("DATE_RESOLUTION.md"), `# Date-resolution report\n\nReader-facing dates use Month Year. Month-only sources use the first day solely as an internal sorting anchor; it is not a verified historical day. Completely missing months remain blocked.\n\n${markdownTable(["Article", "Original source", "Sorting anchor", "Precision", "Display", "Machine metadata"], plan.articles.map((item) => [item.title, item.sourcePublicationDate ?? "unknown", item.publicationDate ?? "blocked", item.publicationDatePrecision, item.publicationDateDisplay ?? "blocked", item.machineMetadataDate ?? "blocked"]))}`);
+  writeFileSync(reportPath("DATE_RESOLUTION.md"), `# Publication-month report\n\nArticles store canonical YYYY-MM and readers see Month Year. Completely missing months remain blocked. No sorting day is created.\n\n${markdownTable(["Article", "Original source", "Publication month", "Display"], plan.articles.map((item) => [item.title, item.sourcePublicationDate ?? "unknown", item.publicationMonth ?? "blocked", item.publicationMonthDisplay ?? "blocked"]))}`);
   writeFileSync(reportPath("IMAGE_REVIEW.md"), `# Image-review report\n\nNo assets were uploaded or assigned. All Articles may remain image-free. Rendered issue pages are not featured images.\n\n${markdownTable(["Article", "Possible match", "Permission", "Required decision"], plan.articles.map((item) => [item.title, item.possibleImageMatches.join("; ") || "none identified", item.imagePermissionStatus, "Confirm mapping, alt text, caption, credit, and reuse permission before upload"]))}`);
   writeFileSync(reportPath("DRY_RUN.md"), `# Dry-run report\n\nSanity mutations performed: **0**\n\nPilot status: **${plan.pilotBlocked ? "BLOCKED" : "READY"}**\n\nWould create ${plan.rollbackMappings.filter((item) => item.type === "contributor").length} Contributor drafts before ${plan.rollbackMappings.filter((item) => item.type === "article").length} Article drafts. Published conflicts must abort apply.\n\n${Object.entries(plan.pilotBlockers).map(([id, blockers]) => `- ${id}: ${blockers.join("; ") || "none"}`).join("\n")}\n`);
-  writeFileSync(reportPath("PILOT_BATCH.md"), `# Pilot-batch manifest\n\nBatch: ${IMPORT_BATCH_ID}\n\nThe four candidates remain draft-only and the batch is blocked until every current summary checksum is explicitly approved.\n\n${pilot.map((item) => `- ${item.title} (${item.sourceId}) — ${item.publicationDateDisplay}; summary ${item.proposedSummary.approved ? "approved" : "not approved"}`).join("\n")}\n`);
+  writeFileSync(reportPath("PILOT_BATCH.md"), `# Pilot-batch manifest\n\nBatch: ${IMPORT_BATCH_ID}\n\nThe four candidates remain draft-only and the batch is blocked until every current summary checksum is explicitly approved.\n\n${pilot.map((item) => `- ${item.title} (${item.sourceId}) — ${item.publicationMonthDisplay}; summary ${item.proposedSummary.approved ? "approved" : "not approved"}`).join("\n")}\n`);
   writeFileSync(reportPath("HOLD_LIST.md"), `# Hold-list report\n\n${plan.articles.filter((item) => item.readiness !== "pilotCandidate").map((item) => `- **${item.title}** — ${item.readiness}: ${getArticleBlockers(item).join("; ")}`).join("\n")}\n`);
 }
 
@@ -351,7 +393,14 @@ export function selectRollbackRecords(records: Array<{ _id: string; importBatchI
 }
 
 export function portableBody(blocks: StagedBlock[]) {
-  return blocks.map((block, index) => block.type === "paragraph" ? { _type: "block", _key: `p${index}`, style: "normal", markDefs: [], children: [{ _type: "span", _key: `s${index}`, text: block.text, marks: [] }] }
+  return blocks.map((block, index) => block.type === "paragraph" ? {
+    _type: "block", _key: `p${index}`, style: "normal",
+    markDefs: [],
+    children: block.content?.flatMap((span, spanIndex) => [
+      { _type: "span", _key: `s${index}-${spanIndex}`, text: span.sourceKey ? span.text.replace(/\s+$/, "") : span.text, marks: [] },
+      ...(span.sourceKey ? [{ _type: "footnoteReference", _key: `fn${index}-${spanIndex}`, sourceKey: span.sourceKey }] : []),
+    ]) ?? [{ _type: "span", _key: `s${index}`, text: block.text, marks: [] }],
+  }
     : block.type === "heading" ? { _type: "block", _key: `h${index}`, style: `h${block.level}`, markDefs: [], children: [{ _type: "span", _key: `s${index}`, text: block.text, marks: [] }] }
     : block.type === "link" ? { _type: "block", _key: `l${index}`, style: "normal", markDefs: [{ _type: "link", _key: `m${index}`, href: block.href }], children: [{ _type: "span", _key: `s${index}`, text: block.label, marks: [`m${index}`] }] }
     : block.items.map((textValue, itemIndex) => ({ _type: "block", _key: `li${index}-${itemIndex}`, style: "normal", listItem: block.type === "orderedList" ? "number" : "bullet", level: 1, markDefs: [], children: [{ _type: "span", _key: `s${index}-${itemIndex}`, text: textValue, marks: [] }] }))
@@ -380,7 +429,7 @@ export async function applyPilot(options: { client: MigrationClient; plan: Migra
     const contributor = contributorById.get(mapping.sourceId);
     const article = pilotArticles.find(({ sourceId: id }) => id === mapping.sourceId);
     const attributes = contributor ? { _id: mapping.draftId, _type: "contributor", name: contributor.name, slug: { _type: "slug", current: contributor.slug }, graduationYear: contributor.graduationYear, role: contributor.role, active: contributor.active, migrationSourceId: contributor.sourceId, importBatchId: IMPORT_BATCH_ID }
-      : article ? { _id: mapping.draftId, _type: "article", title: article.title, slug: { _type: "slug", current: article.slug }, summary: article.proposedSummary.text, contributors: article.contributorSourceIds.map((_ref, index) => ({ _type: "reference", _key: `c${index}`, _ref })), publicationDate: article.publicationDate, publicationDatePrecision: article.publicationDatePrecision, body: portableBody(article.structuredBody), pinned: false, migrationSourceId: article.sourceId, importBatchId: IMPORT_BATCH_ID }
+      : article ? { _id: mapping.draftId, _type: "article", title: article.title, slug: { _type: "slug", current: article.slug }, summary: article.proposedSummary.text, contributors: article.contributorSourceIds.map((_ref, index) => ({ _type: "reference", _key: `c${index}`, _ref })), publicationMonth: article.publicationMonth, sources: article.sources.map((source) => ({ _type: "articleSource", _key: source.key, citation: source.citation, url: source.url })), body: portableBody(article.structuredBody), pinned: false, migrationSourceId: article.sourceId, importBatchId: IMPORT_BATCH_ID }
       : undefined;
     if (!attributes) throw new Error(`Missing staged document for ${mapping.sourceId}`);
     await options.client.action({ actionType: "sanity.action.document.create", publishedId: mapping.sanityId, attributes, ifExists: "fail" });

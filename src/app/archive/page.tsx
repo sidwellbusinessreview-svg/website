@@ -10,7 +10,7 @@ type ArchiveSearchParams = { schoolYear?: string; contributor?: string };
 export default async function ArchivePage({ searchParams }: { searchParams: Promise<ArchiveSearchParams> }) {
   const params = await searchParams;
   const [allArticles, contributors] = await Promise.all([getArticles(), getContributors()]);
-  const schoolYears = [...new Set(allArticles.map(({ publishedAt }) => getSchoolYear(publishedAt)))];
+  const schoolYears = [...new Set(allArticles.map(({ publicationMonth }) => getSchoolYear(publicationMonth)))];
   const requestedContributor = params.contributor;
   const filters = { schoolYear: schoolYears.includes(params.schoolYear ?? "") ? params.schoolYear : undefined, contributor: contributors.some(({ slug }) => slug === requestedContributor) ? requestedContributor : undefined };
   const articles = await getArchiveArticles(filters);

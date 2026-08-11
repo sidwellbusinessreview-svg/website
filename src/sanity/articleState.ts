@@ -5,6 +5,7 @@ export type ArticleVersion = {
   title?: string;
   subtitle?: string;
   summary?: string;
+  publicationMonth?: string;
   publicationDate?: string;
   _updatedAt?: string;
   pinned?: boolean;
@@ -17,7 +18,7 @@ export type ArticleStateRecord = {
   title: string;
   subtitle?: string;
   summary?: string;
-  publicationDate?: string;
+  publicationMonth?: string;
   updatedAt?: string;
   pinned: boolean;
   contributorNames: string[];
@@ -44,7 +45,7 @@ export function classifyArticleVersions(versions: ArticleVersion[]): ArticleStat
       title: displayed?.title || "Untitled article",
       subtitle: displayed?.subtitle,
       summary: displayed?.summary,
-      publicationDate: displayed?.publicationDate,
+      publicationMonth: displayed?.publicationMonth ?? displayed?.publicationDate?.slice(0, 7),
       updatedAt: displayed?._updatedAt,
       pinned: Boolean(displayed?.pinned),
       contributorNames: displayed?.contributorNames?.filter((name): name is string => typeof name === "string" && Boolean(name.trim())) ?? [],
@@ -57,7 +58,7 @@ export function classifyArticleVersions(versions: ArticleVersion[]): ArticleStat
 export function searchArticleRecords(records: ArticleStateRecord[], query: string): ArticleStateRecord[] {
   const normalized = query.trim().toLocaleLowerCase();
   if (!normalized) return records;
-  return records.filter((record) => [record.title, record.subtitle, record.summary, record.publicationDate, ...record.contributorNames]
+  return records.filter((record) => [record.title, record.subtitle, record.summary, record.publicationMonth, ...record.contributorNames]
     .filter((value): value is string => typeof value === "string")
     .some((value) => value.toLocaleLowerCase().includes(normalized)));
 }
@@ -67,8 +68,8 @@ export function sortArticleRecords(records: ArticleStateRecord[], sort: ArticleS
   return [...records].sort((a, b) => {
     if (sort === "title") return a.title.localeCompare(b.title) || a.id.localeCompare(b.id);
     if (sort === "updated") return dateValue(b.updatedAt) - dateValue(a.updatedAt) || a.title.localeCompare(b.title) || a.id.localeCompare(b.id);
-    const aDate = dateValue(a.publicationDate);
-    const bDate = dateValue(b.publicationDate);
+    const aDate = dateValue(a.publicationMonth);
+    const bDate = dateValue(b.publicationMonth);
     if (!aDate || !bDate) {
       if (aDate !== bDate) return aDate ? -1 : 1;
       return a.title.localeCompare(b.title) || a.id.localeCompare(b.id);

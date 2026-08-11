@@ -87,12 +87,17 @@ export type SanityImageHotspot = {
 
 export type ArticleBody = Array<
   | {
-      children?: Array<{
-        marks?: Array<string>;
-        text?: string;
-        _type: "span";
-        _key: string;
-      }>;
+      children?: Array<
+        | {
+            marks?: Array<string>;
+            text?: string;
+            _type: "span";
+            _key: string;
+          }
+        | ({
+            _key: string;
+          } & FootnoteReference)
+      >;
       style?: "normal" | "h2" | "h3" | "blockquote";
       listItem?: "bullet" | "number";
       markDefs?: Array<
@@ -117,6 +122,11 @@ export type ArticleBody = Array<
       _key: string;
     } & Divider)
 >;
+
+export type FootnoteReference = {
+  _type: "footnoteReference";
+  sourceKey: string;
+};
 
 export type Divider = {
   _type: "divider";
@@ -254,8 +264,7 @@ export type Article = {
       _key: string;
     } & ContributorReference
   >;
-  publicationDate: string;
-  publicationDatePrecision: "day" | "month";
+  publicationMonth: string;
   featuredImage?: {
     asset?: SanityImageAssetReference;
     media?: unknown;
@@ -267,6 +276,12 @@ export type Article = {
   featuredImageCaption?: string;
   featuredImageCredit?: string;
   body: ArticleBody;
+  sources?: Array<{
+    citation: string;
+    url?: string;
+    _type: "articleSource";
+    _key: string;
+  }>;
   pinned?: boolean;
   featuredRank?: number;
   seoTitle?: string;
@@ -391,6 +406,7 @@ export type AllSanitySchemaTypes =
   | SanityImageCrop
   | SanityImageHotspot
   | ArticleBody
+  | FootnoteReference
   | Divider
   | Callout
   | PullQuote
@@ -455,7 +471,7 @@ export type SITE_SETTINGS_QUERY_RESULT = {
 
 // Source: src/content/sanity/queries.ts
 // Variable: ALL_PUBLISHED_ARTICLES_QUERY
-// Query: *[_type == "article" && defined(slug.current)]|order(publicationDate desc, slug.current asc){  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,publicationDatePrecision,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
+// Query: *[_type == "article" && defined(slug.current)]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc){  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  sources[]{"key":_key,citation,url},  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
 export type ALL_PUBLISHED_ARTICLES_QUERY_RESULT = Array<{
   _id: string;
   _type: "article";
@@ -463,8 +479,8 @@ export type ALL_PUBLISHED_ARTICLES_QUERY_RESULT = Array<{
   slug: string;
   subtitle: string | null;
   summary: string;
-  publicationDate: string;
-  publicationDatePrecision: "day" | "month";
+  publicationMonth: string;
+  publicationDate: null;
   pinned: boolean | null;
   featuredRank: number | null;
   seoTitle: string | null;
@@ -495,14 +511,24 @@ export type ALL_PUBLISHED_ARTICLES_QUERY_RESULT = Array<{
   featuredImageAltText: string | null;
   featuredImageCaption: string | null;
   featuredImageCredit: string | null;
+  sources: Array<{
+    key: string;
+    citation: string;
+    url: string | null;
+  }> | null;
   body: Array<
     | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
         style?: "blockquote" | "h2" | "h3" | "normal";
         listItem?: "bullet" | "number";
         markDefs: Array<{
@@ -569,7 +595,7 @@ export type ALL_PUBLISHED_ARTICLES_QUERY_RESULT = Array<{
 
 // Source: src/content/sanity/queries.ts
 // Variable: ARTICLE_BY_SLUG_QUERY
-// Query: *[_type == "article" && defined(slug.current) && slug.current == $slug][0]{  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,publicationDatePrecision,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
+// Query: *[_type == "article" && defined(slug.current) && slug.current == $slug][0]{  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  sources[]{"key":_key,citation,url},  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
 export type ARTICLE_BY_SLUG_QUERY_RESULT = {
   _id: string;
   _type: "article";
@@ -577,8 +603,8 @@ export type ARTICLE_BY_SLUG_QUERY_RESULT = {
   slug: string;
   subtitle: string | null;
   summary: string;
-  publicationDate: string;
-  publicationDatePrecision: "day" | "month";
+  publicationMonth: string;
+  publicationDate: null;
   pinned: boolean | null;
   featuredRank: number | null;
   seoTitle: string | null;
@@ -609,14 +635,24 @@ export type ARTICLE_BY_SLUG_QUERY_RESULT = {
   featuredImageAltText: string | null;
   featuredImageCaption: string | null;
   featuredImageCredit: string | null;
+  sources: Array<{
+    key: string;
+    citation: string;
+    url: string | null;
+  }> | null;
   body: Array<
     | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
         style?: "blockquote" | "h2" | "h3" | "normal";
         listItem?: "bullet" | "number";
         markDefs: Array<{
@@ -683,7 +719,7 @@ export type ARTICLE_BY_SLUG_QUERY_RESULT = {
 
 // Source: src/content/sanity/queries.ts
 // Variable: PINNED_ARTICLE_QUERY
-// Query: *[_type == "article" && defined(slug.current) && pinned == true]|order(featuredRank asc, publicationDate desc, slug.current asc)[0]{  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,publicationDatePrecision,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
+// Query: *[_type == "article" && defined(slug.current) && pinned == true]|order(featuredRank asc, coalesce(publicationMonth,publicationDate) desc, slug.current asc)[0]{  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  sources[]{"key":_key,citation,url},  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
 export type PINNED_ARTICLE_QUERY_RESULT = {
   _id: string;
   _type: "article";
@@ -691,8 +727,8 @@ export type PINNED_ARTICLE_QUERY_RESULT = {
   slug: string;
   subtitle: string | null;
   summary: string;
-  publicationDate: string;
-  publicationDatePrecision: "day" | "month";
+  publicationMonth: string;
+  publicationDate: null;
   pinned: true;
   featuredRank: number | null;
   seoTitle: string | null;
@@ -723,14 +759,24 @@ export type PINNED_ARTICLE_QUERY_RESULT = {
   featuredImageAltText: string | null;
   featuredImageCaption: string | null;
   featuredImageCredit: string | null;
+  sources: Array<{
+    key: string;
+    citation: string;
+    url: string | null;
+  }> | null;
   body: Array<
     | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
         style?: "blockquote" | "h2" | "h3" | "normal";
         listItem?: "bullet" | "number";
         markDefs: Array<{
@@ -797,7 +843,7 @@ export type PINNED_ARTICLE_QUERY_RESULT = {
 
 // Source: src/content/sanity/queries.ts
 // Variable: LATEST_ARTICLES_QUERY
-// Query: *[_type == "article" && defined(slug.current)]|order(publicationDate desc, slug.current asc)[0...$limit]{  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,publicationDatePrecision,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
+// Query: *[_type == "article" && defined(slug.current)]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)[0...$limit]{  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  sources[]{"key":_key,citation,url},  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
 export type LATEST_ARTICLES_QUERY_RESULT = Array<{
   _id: string;
   _type: "article";
@@ -805,8 +851,8 @@ export type LATEST_ARTICLES_QUERY_RESULT = Array<{
   slug: string;
   subtitle: string | null;
   summary: string;
-  publicationDate: string;
-  publicationDatePrecision: "day" | "month";
+  publicationMonth: string;
+  publicationDate: null;
   pinned: boolean | null;
   featuredRank: number | null;
   seoTitle: string | null;
@@ -837,14 +883,24 @@ export type LATEST_ARTICLES_QUERY_RESULT = Array<{
   featuredImageAltText: string | null;
   featuredImageCaption: string | null;
   featuredImageCredit: string | null;
+  sources: Array<{
+    key: string;
+    citation: string;
+    url: string | null;
+  }> | null;
   body: Array<
     | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
         style?: "blockquote" | "h2" | "h3" | "normal";
         listItem?: "bullet" | "number";
         markDefs: Array<{
@@ -911,7 +967,7 @@ export type LATEST_ARTICLES_QUERY_RESULT = Array<{
 
 // Source: src/content/sanity/queries.ts
 // Variable: ARTICLES_BY_CONTRIBUTOR_QUERY
-// Query: *[_type == "article" && defined(slug.current) && $slug in contributors[]->slug.current]|order(publicationDate desc, slug.current asc){  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,publicationDatePrecision,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
+// Query: *[_type == "article" && defined(slug.current) && $slug in contributors[]->slug.current]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc){  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  sources[]{"key":_key,citation,url},  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
 export type ARTICLES_BY_CONTRIBUTOR_QUERY_RESULT = Array<{
   _id: string;
   _type: "article";
@@ -919,8 +975,8 @@ export type ARTICLES_BY_CONTRIBUTOR_QUERY_RESULT = Array<{
   slug: string;
   subtitle: string | null;
   summary: string;
-  publicationDate: string;
-  publicationDatePrecision: "day" | "month";
+  publicationMonth: string;
+  publicationDate: null;
   pinned: boolean | null;
   featuredRank: number | null;
   seoTitle: string | null;
@@ -951,14 +1007,24 @@ export type ARTICLES_BY_CONTRIBUTOR_QUERY_RESULT = Array<{
   featuredImageAltText: string | null;
   featuredImageCaption: string | null;
   featuredImageCredit: string | null;
+  sources: Array<{
+    key: string;
+    citation: string;
+    url: string | null;
+  }> | null;
   body: Array<
     | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
         style?: "blockquote" | "h2" | "h3" | "normal";
         listItem?: "bullet" | "number";
         markDefs: Array<{
@@ -1025,7 +1091,7 @@ export type ARTICLES_BY_CONTRIBUTOR_QUERY_RESULT = Array<{
 
 // Source: src/content/sanity/queries.ts
 // Variable: SEARCH_ARTICLES_QUERY
-// Query: *[_type == "article" && defined(slug.current) && [title,subtitle,summary,pt::text(body),contributors[]->name] match $term]|order(publicationDate desc, slug.current asc){  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,publicationDatePrecision,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
+// Query: *[_type == "article" && defined(slug.current) && [title,subtitle,summary,pt::text(body),contributors[]->name] match $term]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc){  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  sources[]{"key":_key,citation,url},  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
 export type SEARCH_ARTICLES_QUERY_RESULT = Array<{
   _id: string;
   _type: "article";
@@ -1033,8 +1099,8 @@ export type SEARCH_ARTICLES_QUERY_RESULT = Array<{
   slug: string;
   subtitle: string | null;
   summary: string;
-  publicationDate: string;
-  publicationDatePrecision: "day" | "month";
+  publicationMonth: string;
+  publicationDate: null;
   pinned: boolean | null;
   featuredRank: number | null;
   seoTitle: string | null;
@@ -1065,14 +1131,24 @@ export type SEARCH_ARTICLES_QUERY_RESULT = Array<{
   featuredImageAltText: string | null;
   featuredImageCaption: string | null;
   featuredImageCredit: string | null;
+  sources: Array<{
+    key: string;
+    citation: string;
+    url: string | null;
+  }> | null;
   body: Array<
     | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
         style?: "blockquote" | "h2" | "h3" | "normal";
         listItem?: "bullet" | "number";
         markDefs: Array<{
@@ -1175,12 +1251,17 @@ export type STATIC_PAGE_BY_SLUG_QUERY_RESULT = {
   summary: string | null;
   body: Array<
     | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
         style?: "blockquote" | "h2" | "h3" | "normal";
         listItem?: "bullet" | "number";
         markDefs: Array<{
@@ -1277,12 +1358,12 @@ import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
     '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  _id,_type,publicationName,shortName,description,affiliationText,tagline,location,logoMode,textWordmark,\n  "logoImage": logoImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},logoImageAlt,contactLabel,contactTarget,\n  socialLinks[]{label,url},defaultSeo,homepageTagline\n}': SITE_SETTINGS_QUERY_RESULT;
-    '*[_type == "article" && defined(slug.current)]|order(publicationDate desc, slug.current asc){\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,publicationDatePrecision,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': ALL_PUBLISHED_ARTICLES_QUERY_RESULT;
-    '*[_type == "article" && defined(slug.current) && slug.current == $slug][0]{\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,publicationDatePrecision,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': ARTICLE_BY_SLUG_QUERY_RESULT;
-    '*[_type == "article" && defined(slug.current) && pinned == true]|order(featuredRank asc, publicationDate desc, slug.current asc)[0]{\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,publicationDatePrecision,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': PINNED_ARTICLE_QUERY_RESULT;
-    '*[_type == "article" && defined(slug.current)]|order(publicationDate desc, slug.current asc)[0...$limit]{\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,publicationDatePrecision,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': LATEST_ARTICLES_QUERY_RESULT;
-    '*[_type == "article" && defined(slug.current) && $slug in contributors[]->slug.current]|order(publicationDate desc, slug.current asc){\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,publicationDatePrecision,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': ARTICLES_BY_CONTRIBUTOR_QUERY_RESULT;
-    '*[_type == "article" && defined(slug.current) && [title,subtitle,summary,pt::text(body),contributors[]->name] match $term]|order(publicationDate desc, slug.current asc){\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,publicationDatePrecision,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': SEARCH_ARTICLES_QUERY_RESULT;
+    '*[_type == "article" && defined(slug.current)]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc){\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': ALL_PUBLISHED_ARTICLES_QUERY_RESULT;
+    '*[_type == "article" && defined(slug.current) && slug.current == $slug][0]{\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': ARTICLE_BY_SLUG_QUERY_RESULT;
+    '*[_type == "article" && defined(slug.current) && pinned == true]|order(featuredRank asc, coalesce(publicationMonth,publicationDate) desc, slug.current asc)[0]{\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': PINNED_ARTICLE_QUERY_RESULT;
+    '*[_type == "article" && defined(slug.current)]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)[0...$limit]{\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': LATEST_ARTICLES_QUERY_RESULT;
+    '*[_type == "article" && defined(slug.current) && $slug in contributors[]->slug.current]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc){\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': ARTICLES_BY_CONTRIBUTOR_QUERY_RESULT;
+    '*[_type == "article" && defined(slug.current) && [title,subtitle,summary,pt::text(body),contributors[]->name] match $term]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc){\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': SEARCH_ARTICLES_QUERY_RESULT;
     '*[\n  _type == "contributor" && defined(slug.current)\n]|order(name asc){_id,_type,name,"slug":slug.current,role,graduationYear,active}': CONTRIBUTORS_QUERY_RESULT;
     '*[\n  _type == "contributor" && slug.current == $slug\n][0]{_id,_type,name,"slug":slug.current,role,graduationYear,active}': CONTRIBUTOR_BY_SLUG_QUERY_RESULT;
     '*[\n  _type == "staticPage" && slug.current == $slug\n][0]{_id,_type,title,"slug":slug.current,eyebrow,summary,body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n},\n  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}},\n  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}},\n  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}}\n}': STATIC_PAGE_BY_SLUG_QUERY_RESULT;

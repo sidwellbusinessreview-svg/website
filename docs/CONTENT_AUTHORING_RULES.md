@@ -6,7 +6,7 @@ Contributor identity is text-only. Do not upload or store Contributor portraits,
 
 ## Required article metadata
 
-Every article needs a unique slug, clear title, summary of no more than 300 characters, at least one contributor, valid `YYYY-MM-DD` publication date/sorting anchor, reading time in local mode, and non-empty structured body. A featured image is optional; when one is present it needs meaningful alt text. Publish the contributor record before publishing an article that references it. Preserve contributor byline order and never select the same person twice.
+Every article needs a unique slug, clear title, summary of no more than 300 characters, at least one contributor, valid `YYYY-MM` publication month, reading time in local mode, and non-empty structured body. A featured image is optional; when one is present it needs meaningful alt text. Publish the contributor record before publishing an article that references it. Preserve contributor byline order and never select the same person twice.
 
 Version 1 has no categories, tags, or issues. Do not encode these concepts in titles or recreate them as ad hoc reference documents.
 
@@ -22,7 +22,9 @@ Use descriptive link labels and safe HTTP(S) or approved internal destinations. 
 
 ## Dates, placement, and SEO
 
-The website always displays Article dates as Month Year. Choose `day` when the exact date is known and retain that exact ISO date. Choose `month` when only month/year are known and use the first day only as an internal sorting anchor; never describe it as the historical publication day. Existing records without precision default internally to `day`. Same-date stories sort by slug, so slugs must remain stable. Only one published story should be pinned; featured order is allowed only for pinned stories.
+Choose a named Month and enter a four-digit Year in Studio. The system stores canonical `YYYY-MM`, but editors never type that syntax. The website displays Month Year everywhere and never invents a day. Same-month stories sort by stable slug. Only one published story should be pinned; featured order is allowed only for pinned stories.
+
+Create each citation once in **Sources**, with required citation text and an optional HTTP/S URL. In the body, place the cursor immediately after the sentence punctuation, choose **Add footnote**, and select the citation; do not highlight text. The inline object stores its stable source key internally. Do not type bracketed numbers, paste PDF footer citations into the body, or add a manual Sources heading. Preview and confirm there is no space before the superscript and every link reaches the correct generated source number.
 
 Summaries describe the Article’s subject, question, analysis, or argument in one neutral sentence. Never put source condition, readiness, migration status, missing metadata, inferred authorship, or editorial workflow language in a public summary.
 

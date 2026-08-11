@@ -10,6 +10,7 @@ describe("dataset audit", () => {
   it("does not misclassify Sanity-managed underscore metadata as an obsolete editorial field", () => expect(auditDocuments([doc("about", "staticPage", { _system: { base: { id: "x" } } })]).obsoleteFields).toEqual([]));
   it("ignores Sanity-managed system document types", () => expect(auditDocuments([doc("_.groups.read", "system.group")]).unregisteredTypes).toEqual([]));
   it("detects draft/published pairs", () => expect(auditDocuments([doc("a", "article"), doc("drafts.a", "article")]).pairs).toEqual(["a"]));
+  it("reports transitional legacy Article date fields without mutating them", () => expect(auditDocuments([doc("article-a", "article", { publicationDate: "2025-03-17", publicationDatePrecision: "month" })]).legacyArticleDates).toEqual([{ id: "article-a", fields: ["publicationDate", "publicationDatePrecision"], hasPublicationMonth: false }]));
 });
 
 describe("destructive plans remain pure", () => {

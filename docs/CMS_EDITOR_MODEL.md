@@ -11,7 +11,7 @@ Phase 11B keeps the Studio deliberately small. Phase 12 can serve published publ
 
 Vision, Releases, issues, categories, tags, and technical tools are absent. A separate **Preview** tool securely loads saved drafts on the frontend; it does not replace the Structure editing workflow and does not promise live updates while typing. About and Site Settings are fixed pages protected from ordinary duplicate/delete actions. Duplicate is also removed from Articles and Contributors. Studio has a dedicated full-screen shell without the public header or footer.
 
-Each Article pane shows a count, search field, sort control, New article button, status and pinned badges, title, subtitle or shortened summary, contributors, publication date, and an optional compact thumbnail. Search is case-insensitive and does not alter draft/published classification. Sorting supports newest date, oldest date, title, and recently updated. Image-free records use a deliberate compact text layout.
+Each Article pane shows a count, search field, sort control, New article button, status and pinned badges, title, subtitle or shortened summary, contributors, publication month, and an optional compact thumbnail. Search is case-insensitive and does not alter draft/published classification. Sorting supports newest month, oldest month, title, and recently updated. Image-free records use a deliberate compact text layout.
 
 ## Contributor
 
@@ -31,7 +31,9 @@ The normal draft/publish workflow remains enabled. Draft-only fixed pages can be
 
 ## Article form
 
-The main group follows the editorial workflow: Title, Slug, Subtitle, Summary, Contributors, Publication date, Date precision, optional Featured image, conditional Alt text, Caption, Photo credit, Article body, Pin to homepage, and conditional Featured order. Summary is required, has no minimum length, has a 300-character maximum, and displays a character counter. Choose **Day** when the exact date is known. Choose **Month** when only month/year are known and use the first solely as an internal sorting anchor. Readers always see Month Year.
+The main group follows the editorial workflow: Title, Slug, Subtitle, Summary, Contributors, Publication month, optional Featured image, conditional Alt text, Caption, Photo credit, Article body, Sources, Pin to homepage, and conditional Featured order. Editors choose a named month and four-digit year; the input stores canonical `YYYY-MM` without exposing that syntax or any day. Sources contain required citation text and optional HTTP/S URLs. New footnotes are inline objects: place the cursor after punctuation, choose **Add footnote**, and select an ordered citation without highlighting text. The control stores only its stable key; displayed numbers are generated automatically. The adapter retains read compatibility for Phase 14C annotation footnotes.
+
+Structure is the authoring workspace for metadata, body, Sources, and footnotes. Preview is the reader-facing review workspace for dates, citation jumps, Sources, and layout. Editors save in Structure and refresh Preview; they are not expected to author complex content in Presentation's split view.
 
 Contributor selection is one authoritative custom array input. It does not render Sanity's default **Add item** control or default item menus. **Add contributors** opens a searchable multi-select of active published Contributors showing name, role, and graduation year. Selection stays temporary until **Confirm selection**; X, Escape, outside click, and **Cancel** make no content change. Confirmed references receive stable keys, duplicates are blocked, and explicit text controls handle opening, removing, and reordering byline rows without avatars.
 
@@ -65,7 +67,7 @@ Follow [SIMPLIFIED_PUBLISHING_WORKFLOW.md](./SIMPLIFIED_PUBLISHING_WORKFLOW.md) 
 
 - Existing `author` records, if any unseen drafts exist, are not automatically deleted. Recreate or migrate them to `contributor`, preserving slug values so `/authors/[slug]` remains compatible.
 - Convert prior article `authors` references to `contributors`.
-- Convert datetime publication values to the reviewed calendar date (`YYYY-MM-DD`). Do not blindly truncate values near timezone boundaries.
+- Convert legacy publication values to reviewed `YYYY-MM` months. The compatibility adapter may read old values temporarily, but Studio does not expose an exact-day or precision control.
 - Remove obsolete issue/category/tag fields only after exporting and reviewing affected drafts.
 - Fold any legacy Masthead data into About staff entries after export and review; do not delete an unseen draft automatically.
 - The one observed published dataset asset is retained; no dataset content was deleted.

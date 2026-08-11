@@ -19,5 +19,5 @@ describe("public Sanity queries", () => {
     expect(articleProjectionForTests).not.toContain("contributors[active");
     expect(CONTRIBUTORS_QUERY).not.toMatch(/active\s*==\s*true/);
   });
-  it("uses deterministic article ordering", () => expect(ALL_PUBLISHED_ARTICLES_QUERY).toContain("publicationDate desc, slug.current asc"));
+  it("uses deterministic month ordering with the transitional legacy fallback", () => expect(ALL_PUBLISHED_ARTICLES_QUERY).toContain("coalesce(publicationMonth,publicationDate) desc, slug.current asc"));
 });

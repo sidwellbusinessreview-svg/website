@@ -6,9 +6,12 @@ import {
   assertApplyGuards,
   buildMigrationPlan,
   getArticleBlockers,
+  extractStructuredSources,
+  mapInlineFootnotes,
   normalizeBody,
   parseGraduationYear,
   planIdempotentActions,
+  portableBody,
   summaryChecksum,
   selectRollbackRecords,
   verifyBackup,
@@ -47,9 +50,8 @@ describe("SBR archive migration intake", () => {
   it("warns rather than inventing exact dates for month-only sources", () => {
     const item = article("economic-implications-trumps-mass-deportations");
     expect(item.sourcePublicationDate).toBe("2025-03");
-    expect(item.publicationDate).toBe("2025-03-01");
-    expect(item.publicationDatePrecision).toBe("month");
-    expect(item.publicationDateDisplay).toBe("March 2025");
+    expect(item.publicationMonth).toBe("2025-03");
+    expect(item.publicationMonthDisplay).toBe("March 2025");
   });
 
   it("keeps every proposed summary within 300 characters and marked for review", () => {
@@ -83,6 +85,26 @@ describe("SBR archive migration intake", () => {
       { type: "paragraph", text: "Paragraph with footnote.1" },
       { type: "paragraph", text: "Second paragraph." },
     ]);
+  });
+
+  it("maps PDF citations into structured Sources and removes footer citation lines", () => {
+    const extracted = extractStructuredSources("A material claim.1\n\n1\nNicci Mattey, “Mass Deportation in the U.S.: Explainer.”");
+    expect(extracted.sources).toEqual([{ key: "source-1", citation: "Nicci Mattey, “Mass Deportation in the U.S.: Explainer.”" }]);
+    expect(extracted.bodySource).not.toContain("Nicci Mattey");
+    const blocks = mapInlineFootnotes([{ type: "paragraph", text: "A material claim.1 Repeated evidence.1" }], extracted.sources);
+    expect(blocks).toEqual([{ type: "paragraph", text: "A material claim. Repeated evidence.", content: [
+      { text: "A material claim.", sourceKey: "source-1" },
+      { text: " Repeated evidence.", sourceKey: "source-1" },
+    ] }]);
+  });
+
+  it("stages citations as cursor-style inline footnote objects without visible numbers", () => {
+    const [block] = portableBody([{ type: "paragraph", text: "Claim.", content: [{ text: "Claim. ", sourceKey: "source-1" }] }]);
+    expect(block).toMatchObject({ markDefs: [], children: [
+      { _type: "span", text: "Claim.", marks: [] },
+      { _type: "footnoteReference", sourceKey: "source-1" },
+    ] });
+    expect(JSON.stringify(block)).not.toContain('"number"');
   });
 
   it("keeps housing on source-recovery hold and NFL as an unfinished draft", () => {
@@ -134,12 +156,12 @@ describe("SBR archive migration intake", () => {
     const client = { fetch: vi.fn().mockResolvedValue([]), action };
     const actions = await applyPilot({ client, plan: approvedPlan, projectId: "project", dataset: "production", expectedProject: "project", backupPath: backup, confirmation: CONFIRMATION_PHRASE, apply: true });
     expect(actions).toHaveLength(plan.rollbackMappings.length);
-    type ActionPayload = { attributes: { _type: string; publicationDatePrecision?: string; contributors?: Array<{ _ref: string }>; featuredImage?: unknown } };
+    type ActionPayload = { attributes: { _type: string; publicationMonth?: string; contributors?: Array<{ _ref: string }>; featuredImage?: unknown } };
     const payloads: ActionPayload[] = action.mock.calls.map((call) => call[0] as ActionPayload);
     const firstArticle = payloads.findIndex(({ attributes }) => attributes._type === "article");
     expect(payloads.slice(0, firstArticle).every(({ attributes }) => attributes._type === "contributor")).toBe(true);
     expect(payloads.slice(firstArticle).every(({ attributes }) => attributes._type === "article")).toBe(true);
-    expect(payloads[firstArticle].attributes.publicationDatePrecision).toBe("month");
+    expect(payloads[firstArticle].attributes.publicationMonth).toBe("2025-03");
     expect(payloads[firstArticle].attributes.contributors?.map(({ _ref }) => _ref)).toEqual(approvedArticles.find(({ slug }) => slug === "economic-implications-trumps-mass-deportations")?.contributorSourceIds);
     expect(payloads.every(({ attributes }) => !("featuredImage" in attributes))).toBe(true);
   });

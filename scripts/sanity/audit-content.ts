@@ -35,6 +35,8 @@ async function main() {
   console.log(`Unregistered types: ${audit.unregisteredTypes.length}`);
   console.log(`Dangling references: ${audit.danglingReferences.length}`);
   console.log(`Documents with obsolete fields: ${audit.obsoleteFields.length}`);
+  console.log(`Articles using transitional legacy date fields: ${audit.legacyArticleDates.length}`);
+  for (const article of audit.legacyArticleDates) console.log(`  ${article.id}: ${article.fields.join(", ")}; publicationMonth ${article.hasPublicationMonth ? "present" : "absent"}`);
   console.log(`Possibly orphaned assets (informational): ${audit.orphanedAssets.length}`);
   console.log(`Report: ${report}`);
   if (!audit.valid || invalidPublishedArticles.length) process.exitCode = 1;

@@ -44,8 +44,8 @@ Active controls eligibility for new Article/About selections, not historical vis
 | subtitle | String | No | Max 220; public | Optional deck |
 | summary | String | Yes | 20–300; public/SEO fallback | Local `dek` maps here |
 | contributors | Ordered references | Yes | At least one, unique, published before article publication | Local `contributorSlugs` map here |
-| publicationDate | Date | Yes to publish | Exact date or internal first-of-month sorting anchor | Exact dates remain exact; month-only sources use `YYYY-MM-01` solely for sorting |
-| publicationDatePrecision | `day` or `month` | No for legacy; defaults to `day` | Preserves source accuracy; public display is always Month Year | `month` for a month-only archive source |
+| publicationMonth | `YYYY-MM` string | Yes to publish | Exact regex; month 01–12; public Month Year | Canonical Article chronology |
+| sources | Array of `{key, citation, url?}` | No | Stable unique key; nonblank citation; optional HTTP/S URL | Embedded in Article, never separate documents |
 | featuredImage | Image asset | Yes | Rights-cleared; public | Local URL maps during migration |
 | featuredImageAltText | String | Yes | Contextual, meaningful; public alt | Required separately in CMS |
 | featuredImageCaption / featuredImageCredit | String | No | Max 500/300; public | Existing nested values map here |
@@ -55,7 +55,9 @@ Active controls eligibility for new Article/About selections, not historical vis
 | seoTitle / seoDescription | String | No | Advanced overrides, max 70/180 | Defaults to title/summary |
 | status | Native provider state | Yes | Sanity draft/published, not duplicate field | Local `status` maps at migration |
 
-Same-date public ordering is publication date descending, then slug ascending. A prior CMS datetime such as `2026-05-18T12:00:00Z` migrates to `2026-05-18`; editors must review values near timezone boundaries before mutation. No automatic migration or deletion runs in Phase 11B.
+Same-month public ordering is publication month descending, then stable slug ascending. Queries temporarily derive `YYYY-MM` from legacy `publicationDate` when the canonical field is absent; audits report those records and no remote mutation is automatic.
+
+Portable Text footnote annotations store a source key, never a display number. Numbers are generated from `sources` order. Every reference must resolve to an Article source; missing references are rejected by published validation and render as a safe visible fallback in preview/development.
 
 ## About
 

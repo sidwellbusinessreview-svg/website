@@ -18,7 +18,7 @@ export function getPublicArticles(articles: Article[]): Article[] {
     .filter((article) => article.status === "published")
     .sort((a, b) => {
       const dateDifference =
-        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+        b.publicationMonth.localeCompare(a.publicationMonth);
       return dateDifference || a.slug.localeCompare(b.slug);
     });
 }

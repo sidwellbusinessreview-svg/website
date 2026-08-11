@@ -19,11 +19,12 @@ Before publishing, use Studio’s **Preview** tool. Draft-only Articles and unpu
    - X, Escape, outside click, or **Cancel** closes the selector without saving.
    - Reorder and remove people with the explicit controls on each text-only byline row. Default Copy, Duplicate, Replace, and Add-before/after menus are intentionally unavailable.
    - If a historical malformed-entry warning appears, use **Repair invalid entries** only after reviewing the retained valid byline. Other valid bylines and their order remain unchanged.
-5. Enter the date as `YYYY-MM-DD` and choose Date precision. Use **Day** for a known exact date. If only month/year are known, enter the first as the internal sorting anchor and choose **Month**. Readers always see Month Year.
-6. Optionally add a JPEG, PNG, or WebP featured image. When present, add contextual alt text and optional caption/credit. Add the required structured body.
-7. Optionally pin the article and set Featured order. Leave Advanced / SEO blank unless an editor has a specific reason to override automatic metadata.
-8. Preview and review accuracy, links, accessibility, image rights, byline order, and date.
-9. Select **Publish**. The article moves from **Draft only** to **Published**.
+5. Under **Publication month**, choose the named Month and enter the four-digit Year. Editors never type the stored syntax or enter a day; readers see Month Year.
+6. Add each citation once under **Sources** (citation required, HTTP/S URL optional). Write or paste the cleaned body, place the cursor immediately after the sentence punctuation, choose **Add footnote**, and select the matching citation. You do not need to highlight text. Do not paste footer citations, type bracketed numbers, or add a Sources heading.
+7. Optionally add a JPEG, PNG, or WebP featured image. When present, add contextual alt text and optional caption/credit. Preview and confirm every superscript reaches the right source and its backlink returns to the body.
+8. Optionally pin the article and set Featured order. Leave Advanced / SEO blank unless an editor has a specific reason to override automatic metadata.
+9. Save in Structure, then open Preview to review accuracy, links, accessibility, image rights, byline order, date, punctuation-adjacent superscripts, Sources, and backlinks.
+10. Select **Publish**. The article moves from **Draft only** to **Published**.
 
 ## Update a published article
 
@@ -59,4 +60,4 @@ Use **Archive contributor**. Do not delete a contributor merely because they gra
 
 Use the development dataset. Give test slugs an obvious prefix and keep the article as a draft unless the test explicitly requires publication. Before removing test content, confirm it is not referenced. Export or record anything that might need recovery; never run destructive cleanup against production without explicit confirmation.
 
-Article list panes can be searched by title, subtitle, summary, Contributor, or publication date and sorted by publication date, title, or update time. Search and sorting are view-only and never publish, unpublish, or edit an Article.
+Article list panes can be searched by title, subtitle, summary, Contributor, or publication month and sorted by publication month, title, or update time. Search and sorting are view-only and never publish, unpublish, or edit an Article.

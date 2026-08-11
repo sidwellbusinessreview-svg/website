@@ -21,7 +21,7 @@ const ARTICLE_LIST_QUERY = `*[_type == "article" && !(_id in path("versions.**")
   title,
   subtitle,
   summary,
-  publicationDate,
+  publicationMonth,
   _updatedAt,
   pinned,
   "contributorNames": contributors[]->name,
@@ -91,7 +91,7 @@ export function ArticleStateList({ options }: PaneProps) {
         <Box flex={1} style={{ minWidth: 220 }}><Stack space={3}>
           <Stack space={2}><Text as="h2" size={2} weight="semibold"><IntentLink intent="edit" params={{ id: record.id, type: "article" }}>{record.title}</IntentLink></Text>{(record.subtitle || record.summary) && <Text muted size={1}>{record.subtitle || shorten(record.summary)}</Text>}</Stack>
           <Flex gap={2} wrap="wrap"><Badge tone={stateTone(record.state)}>{articleStatusLabel(record.state !== "published", record.state !== "draftOnly")}</Badge>{record.pinned && <Badge tone="primary">Pinned</Badge>}</Flex>
-          <Flex gap={3} wrap="wrap"><Text muted size={1}>{record.contributorNames.length ? record.contributorNames.join(", ") : "Contributor not selected"}</Text>{record.publicationDate && <Text muted size={1}>{record.publicationDate}</Text>}</Flex>
+          <Flex gap={3} wrap="wrap"><Text muted size={1}>{record.contributorNames.length ? record.contributorNames.join(", ") : "Contributor not selected"}</Text>{record.publicationMonth && <Text muted size={1}>{record.publicationMonth}</Text>}</Flex>
         </Stack></Box>
         <Button as={IntentLink} intent="edit" mode="ghost" params={{ id: record.id, type: "article" }} text={`Open ${record.title}`} />
       </Flex>

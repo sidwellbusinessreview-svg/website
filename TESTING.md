@@ -80,9 +80,11 @@ GitHub Actions uploads `playwright-report` and `playwright-test-results` artifac
 
 ## Studio regression checks
 
-After changing Contributor selection or Article browsing, run the unit suite and then verify `/studio` while signed in. Article lists support search across title, subtitle, summary, contributor name, and publication date. Test Newest, Oldest, Title A–Z, and Recently updated sorting in every state pane.
+After changing Contributor selection or Article browsing, run the unit suite and then verify `/studio` while signed in. Article lists support search across title, subtitle, summary, contributor name, and publication month. Test Newest, Oldest, Title A–Z, and Recently updated sorting in every state pane.
 
 The Article field must show exactly one **Add contributors** button and no native **Add item** or default item menu. The modal shows role and graduation year, supports temporary multiple selection, and only **Confirm selection** patches the field. X, Escape, outside click, and **Cancel** never save. Verify About staff uses the same rules and contributor reassignment uses the same searchable single-select. A malformed historical selection must show a friendly repair action instead of crashing.
+
+For date/source model changes, create an unpublished draft in **Structure**. Choose **March** and enter **2025** using the friendly controls; editors must never type `2025-03`. Add at least two Sources (one with an HTTP/S URL). Place the caret immediately after punctuation, choose **Add footnote**, and select citations in Sources order without highlighting text. Preview must show **March 2025**, punctuation immediately followed by superscripts, one entry per source, working jumps/backlink, and no numerical day. Studio must reject a blank citation, non-HTTP/S URL, and nonexistent source. Do not publish this acceptance record.
 
 The read-only persisted-data check is:
 

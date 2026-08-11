@@ -6,7 +6,7 @@ const paragraph = (text: string, overrides = {}) => ({ _type: "block", _key: tex
 const contributor = { slug: "maya-chen", name: "Maya Chen", role: "Editor", graduationYear: 2027, active: true };
 const rawArticle = (overrides = {}) => ({
   slug: "cms-test", title: "CMS Test Article", summary: "A sufficiently complete summary for the public article card.",
-  publicationDate: "2026-05-01", pinned: false, contributors: [contributor], body: [paragraph("A complete paragraph of test article content for adapter verification.")], ...overrides,
+  publicationMonth: "2026-05", pinned: false, contributors: [contributor], body: [paragraph("A complete paragraph of test article content for adapter verification.")], ...overrides,
 });
 const stega = (value: string) => `${value}\u200b\u200c\u200d\ufeff\u200b\u200c\u200d\ufeff`;
 
@@ -15,9 +15,35 @@ describe("Sanity domain adapters", () => {
     expect(mapContributor(contributor)).toEqual({ slug: "maya-chen", name: "Maya Chen", role: "Editor", grade: "Class of 2027" });
     expect(mapArticle(rawArticle())).toMatchObject({ slug: "cms-test", contributorSlugs: ["maya-chen"], status: "published" });
   });
-  it("preserves month precision and defaults legacy records to day precision", () => {
-    expect(mapArticle(rawArticle({ publicationDatePrecision: "month" }))).toMatchObject({ publicationDatePrecision: "month", publishedAt: "2026-05-01" });
-    expect(mapArticle(rawArticle())).toMatchObject({ publicationDatePrecision: "day", publishedAt: "2026-05-01" });
+  it("uses publicationMonth and supports transitional legacy publicationDate", () => {
+    expect(mapArticle(rawArticle())).toMatchObject({ publicationMonth: "2026-05" });
+    expect(mapArticle(rawArticle({ publicationMonth: undefined, publicationDate: "2024-11-19" }))).toMatchObject({ publicationMonth: "2024-11" });
+  });
+  it("maps cursor-inserted inline footnotes without storing a visible number", () => {
+    const mapped = mapArticle(rawArticle({
+      sources: [{ key: "report", citation: "Researcher, “Report.”", url: "https://example.com/report" }],
+      body: [paragraph("Supported claim.", { children: [span("Supported claim."), { _type: "footnoteReference", _key: "fn", sourceKey: "report" }] })],
+    }));
+    expect(mapped).toMatchObject({ sources: [{ key: "report", citation: "Researcher, “Report.”" }], content: [{ type: "paragraph", content: [{ text: "Supported claim." }, { text: "", sourceKey: "report" }] }] });
+    expect(JSON.stringify(mapped?.content)).not.toContain('"number"');
+  });
+  it("keeps Phase 14C annotation footnotes compatible and removes selected trailing whitespace", () => {
+    const mapped = mapArticle(rawArticle({
+      sources: [{ key: "report", citation: "Researcher, “Report.”" }],
+      body: [paragraph("Supported claim. ", { children: [span("Supported claim. ", ["fn"])], markDefs: [{ _key: "fn", _type: "footnoteReference", sourceKey: "report" }] })],
+    }));
+    expect(mapped?.content[0]).toMatchObject({ content: [{ text: "Supported claim.", sourceKey: "report" }] });
+  });
+  it("rejects broken footnotes publicly but preserves a safe Preview fallback", () => {
+    const raw = rawArticle({ body: [paragraph("Broken claim.", { children: [span("Broken claim.", ["fn"])], markDefs: [{ _key: "fn", _type: "footnoteReference", sourceKey: "missing" }] })] });
+    expect(mapArticle(raw)).toBeUndefined();
+    expect(mapArticle(raw, { allowBrokenFootnotes: true })).toMatchObject({ content: [{ content: [{ sourceKey: "missing" }] }] });
+  });
+  it("does not silently drop an inline footnote with a missing source selection", () => {
+    const raw = rawArticle({ body: [paragraph("Broken claim.", { children: [span("Broken claim."), { _type: "footnoteReference", _key: "fn" }] })] });
+    expect(getArticleValidationFailures(raw)).toEqual(expect.arrayContaining([expect.stringContaining("footnote source __missing_source__ does not exist")]));
+    expect(mapArticle(raw)).toBeUndefined();
+    expect(mapArticle(raw, { allowBrokenFootnotes: true })).toBeDefined();
   });
   it("uses the required summary for cards and routing instead of an optional short subtitle", () => {
     expect(mapArticle(rawArticle({
@@ -33,7 +59,7 @@ describe("Sanity domain adapters", () => {
       slug: stega("cms-test"),
       title: stega("CMS Test Article"),
       summary: stega("A sufficiently complete summary for the public article card."),
-      publicationDate: stega("2026-05-01"),
+      publicationMonth: stega("2026-05"),
       contributors: [encodedContributor],
       body: [paragraph(stega("A complete paragraph of test article content for adapter verification."))],
     });
@@ -43,7 +69,7 @@ describe("Sanity domain adapters", () => {
       slug: "cms-test",
       title: expect.stringContaining("\u200b"),
       contributorSlugs: ["maya-chen"],
-      publishedAt: "2026-05-01",
+      publicationMonth: "2026-05",
     });
     expect(mapped?.content[0]).toMatchObject({ text: expect.stringContaining("\u200b") });
     expect(mapContributor(encodedContributor)).toMatchObject({ slug: "maya-chen", name: expect.stringContaining("\u200b") });

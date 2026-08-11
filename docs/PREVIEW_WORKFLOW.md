@@ -4,7 +4,7 @@
 
 **Save** records an unpublished draft. A draft-only Article is invisible to readers. Editing a published Article creates **Published with unpublished changes**; readers continue to see the prior published version. **Publish** replaces that public version.
 
-1. Edit and save in Studio **Structure**.
+1. Write and edit metadata, body, Sources, and footnotes in Studio **Structure**. Add Sources first; place the cursor after punctuation and choose **Add footnote** without highlighting text.
 2. Choose **Preview** in Studio’s top navigation.
 3. Navigate to Homepage, an Article, Contributor, or About.
 4. Confirm the banner says **Previewing unpublished content**.
@@ -21,7 +21,8 @@ The Draft Mode cookie applies to the local origin, but preview UI is deliberatel
 ## Faculty adviser review
 
 - Confirm the preview banner is visible.
-- Review headline, byline order, dates, body, links, captions, credits, and alt text. Every visible Article date must use Month Year; a month-precision sorting anchor must never appear as a day.
+- Review headline, byline order, dates, body, links, captions, credits, alt text, footnote jumps, and source backlinks. Every visible Article date must use Month Year; no day may appear.
+- Confirm superscripts touch the preceding punctuation with no visible space. Use Preview for review, not as the primary complex-content editor.
 - Check Homepage placement, Contributor profile, About, and mobile width.
 - In a clean browser without preview, confirm drafts are absent.
 - Confirm Search, sitemap, and feed remain published-only.

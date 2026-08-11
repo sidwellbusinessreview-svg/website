@@ -9,7 +9,7 @@ const article: Article = {
   title: "A Test Article",
   dek: "A summary that does not require an optional subtitle.",
   contributorSlugs: ["maya-chen", "jonah-patel"],
-  publishedAt: "2026-01-26",
+  publicationMonth: "2026-01",
   readTime: 5,
   status: "published",
   pinned: false,
@@ -18,6 +18,7 @@ const article: Article = {
     alt: "A test image",
   },
   content: [{ type: "paragraph", text: "Body." }],
+  sources: [],
 };
 
 const authors: Contributor[] = [
@@ -45,8 +46,8 @@ describe("article presentation", () => {
     expect(screen.getByText("January 2026")).not.toHaveTextContent("January 26");
   });
 
-  it("renders month precision without exposing its first-day sorting anchor", () => {
-    render(<ArticleMeta article={{ ...article, publishedAt: "2025-03-01", publicationDatePrecision: "month" }} authors={authors} />);
+  it("renders the canonical month without exposing a numerical day", () => {
+    render(<ArticleMeta article={{ ...article, publicationMonth: "2025-03" }} authors={authors} />);
     const time = screen.getByText("March 2025");
     expect(time).toHaveAttribute("datetime", "2025-03");
     expect(time).not.toHaveTextContent("1");

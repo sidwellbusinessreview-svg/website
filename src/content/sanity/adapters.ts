@@ -3,8 +3,8 @@ import { stegaClean } from "next-sanity";
 import { articleSchema, contributorSchema, siteSettingsSchema, type Article, type ArticleContentBlock, type Contributor, type SiteSettings } from "../schemas";
 import type { StaticPageContent, StaffEntry } from "../provider";
 
-type RawSpan = { text?: unknown; marks?: unknown };
-type RawMark = { _key?: unknown; href?: unknown; internalSlug?: unknown; internalType?: unknown };
+type RawSpan = { _type?: unknown; text?: unknown; marks?: unknown; sourceKey?: unknown };
+type RawMark = { _key?: unknown; _type?: unknown; href?: unknown; internalSlug?: unknown; internalType?: unknown; sourceKey?: unknown };
 type RawBlock = {
   _type?: unknown;
   style?: unknown;
@@ -30,9 +30,10 @@ type RawImage = {
 };
 type RawContributor = { slug?: unknown; name?: unknown; role?: unknown; graduationYear?: unknown; active?: unknown };
 export type RawSanityArticle = {
-  _id?: unknown; slug?: unknown; title?: unknown; subtitle?: unknown; summary?: unknown; publicationDate?: unknown; publicationDatePrecision?: unknown;
+  _id?: unknown; slug?: unknown; title?: unknown; subtitle?: unknown; summary?: unknown; publicationMonth?: unknown; publicationDate?: unknown;
   pinned?: unknown; featuredRank?: unknown; contributors?: unknown; featuredImage?: RawImage | null;
   featuredImageAltText?: unknown; featuredImageCaption?: unknown; featuredImageCredit?: unknown; body?: unknown;
+  sources?: unknown;
 };
 
 const text = (value: unknown) =>
@@ -84,12 +85,18 @@ function safeMarkHref(mark: RawMark | undefined): string | undefined {
 function inlineContent(block: RawBlock): Extract<RichListItem, { content: unknown }>["content"] {
   const definitions = markDefs(block.markDefs);
   return spans(block.children).flatMap((span) => {
-    const spanText = inlineText(span.text);
+    if (span._type === "footnoteReference") {
+      return [{ text: "", sourceKey: cleanText(span.sourceKey) ?? "__missing_source__" }];
+    }
+    let spanText = inlineText(span.text);
     if (!spanText) return [];
     const markKeys = Array.isArray(span.marks) ? span.marks.filter((mark): mark is string => typeof mark === "string") : [];
     const marks = [...new Set(markKeys.flatMap((mark) => mark === "strong" ? ["strong" as const] : mark === "em" ? ["em" as const] : []))];
-    const href = safeMarkHref(definitions.find((definition) => markKeys.includes(String(definition._key))));
-    return [{ text: spanText, ...(marks.length ? { marks } : {}), ...(href ? { href } : {}) }];
+    const definition = definitions.find((item) => markKeys.includes(String(item._key)));
+    const href = safeMarkHref(definition);
+    const sourceKey = definition?._type === "footnoteReference" ? cleanText(definition.sourceKey) ?? "__missing_source__" : undefined;
+    if (sourceKey) spanText = spanText.replace(/\s+$/, "");
+    return [{ text: spanText, ...(marks.length ? { marks } : {}), ...(href ? { href } : {}), ...(sourceKey ? { sourceKey } : {}) }];
   });
 }
 
@@ -142,7 +149,7 @@ export function mapPortableText(value: unknown): ArticleContentBlock[] {
       if (link) output.push({ type: "link", text: valueText, label: valueText, href: link });
       else if (block.style === "h2" || block.style === "h3") output.push({ type: "heading", level: block.style === "h2" ? 2 : 3, text: valueText });
       else if (block.style === "blockquote") output.push({ type: "quote", text: valueText });
-      else output.push({ type: "paragraph", text: valueText });
+      else output.push({ type: "paragraph", text: valueText, content: inlineContent(block) });
       continue;
     }
     flush();
@@ -181,14 +188,19 @@ function articleCandidate(value: unknown): { candidate?: Record<string, unknown>
   const featured = raw.featuredImage ? imageBlock({ ...raw.featuredImage, altText: raw.featuredImageAltText, caption: raw.featuredImageCaption, credit: raw.featuredImageCredit }) : undefined;
   if (raw.featuredImage && !featured) failures.push("featuredImage: asset URL and alternative text are required when an image is present");
   const wordCount = body.flatMap((block) => "text" in block ? block.text.split(/\s+/) : "items" in block ? block.items.flatMap((item) => listItemText(item).split(/\s+/)) : []).filter(Boolean).length;
+  const sources = Array.isArray(raw.sources) ? raw.sources.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const source = item as Record<string, unknown>; const key = cleanText(source.key); const citation = text(source.citation); const url = cleanText(source.url);
+    return key && citation ? [{ key, citation, ...(url ? { url } : {}) }] : [];
+  }) : [];
+  const publicationMonth = cleanText(raw.publicationMonth) ?? cleanText(raw.publicationDate)?.slice(0, 7);
   const candidate = {
     slug: cleanText(raw.slug), title: text(raw.title), dek: text(raw.summary) ?? text(raw.subtitle),
     contributorSlugs: contributors.flatMap((contributor) => contributor ? [contributor.slug] : []),
-    publishedAt: cleanText(raw.publicationDate),
-    publicationDatePrecision: cleanText(raw.publicationDatePrecision) === "month" ? "month" : "day",
+    publicationMonth,
     readTime: Math.max(1, Math.ceil(wordCount / 220)), status: "published",
     pinned: raw.pinned === true, featuredRank: number(raw.featuredRank), featuredImage: featured,
-    content: body,
+    content: body, sources,
   };
   const parsed = articleSchema.safeParse(stegaClean(candidate));
   if (!parsed.success) failures.push(...parsed.error.issues.map((issue) => `${issue.path.join(".") || "article"}: ${issue.message}`));
@@ -199,9 +211,12 @@ export function getArticleValidationFailures(value: unknown): string[] {
   return articleCandidate(value).failures;
 }
 
-export function mapArticle(value: unknown): Article | undefined {
+export function mapArticle(value: unknown, options: { allowBrokenFootnotes?: boolean } = {}): Article | undefined {
   const result = articleCandidate(value);
-  if (result.failures.length) return undefined;
+  const blocking = options.allowBrokenFootnotes
+    ? result.failures.filter((failure) => !failure.includes("footnote source") && !failure.includes("source key is required"))
+    : result.failures;
+  if (blocking.length) return undefined;
   return result.candidate as Article;
 }
 

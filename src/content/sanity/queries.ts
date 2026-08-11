@@ -12,11 +12,12 @@ const bodyProjection = `body[]{
 }`;
 
 const articleProjection = `{
-  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,publicationDatePrecision,pinned,featuredRank,
+  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,
   seoTitle,seoDescription,
   "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},
   "featuredImage": featuredImage${imageProjection},
   featuredImageAltText,featuredImageCaption,featuredImageCredit,
+  sources[]{"key":_key,citation,url},
   ${bodyProjection}
 }`;
 
@@ -32,22 +33,22 @@ export const SITE_SETTINGS_QUERY = defineQuery(`*[_type == "siteSettings" && _id
 }`);
 
 export const ALL_PUBLISHED_ARTICLES_QUERY = defineQuery(
-  `*[${articleFilter}]|order(publicationDate desc, slug.current asc)${articleProjection}`,
+  `*[${articleFilter}]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)${articleProjection}`,
 );
 export const ARTICLE_BY_SLUG_QUERY = defineQuery(
   `*[${articleFilter} && slug.current == $slug][0]${articleProjection}`,
 );
 export const PINNED_ARTICLE_QUERY = defineQuery(
-  `*[${articleFilter} && pinned == true]|order(featuredRank asc, publicationDate desc, slug.current asc)[0]${articleProjection}`,
+  `*[${articleFilter} && pinned == true]|order(featuredRank asc, coalesce(publicationMonth,publicationDate) desc, slug.current asc)[0]${articleProjection}`,
 );
 export const LATEST_ARTICLES_QUERY = defineQuery(
-  `*[${articleFilter}]|order(publicationDate desc, slug.current asc)[0...$limit]${articleProjection}`,
+  `*[${articleFilter}]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)[0...$limit]${articleProjection}`,
 );
 export const ARTICLES_BY_CONTRIBUTOR_QUERY = defineQuery(
-  `*[${articleFilter} && $slug in contributors[]->slug.current]|order(publicationDate desc, slug.current asc)${articleProjection}`,
+  `*[${articleFilter} && $slug in contributors[]->slug.current]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)${articleProjection}`,
 );
 export const SEARCH_ARTICLES_QUERY = defineQuery(
-  `*[${articleFilter} && [title,subtitle,summary,pt::text(body),contributors[]->name] match $term]|order(publicationDate desc, slug.current asc)${articleProjection}`,
+  `*[${articleFilter} && [title,subtitle,summary,pt::text(body),contributors[]->name] match $term]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)${articleProjection}`,
 );
 
 export const CONTRIBUTORS_QUERY = defineQuery(`*[

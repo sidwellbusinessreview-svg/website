@@ -71,7 +71,7 @@ export function searchPublicArticles(
     .sort(
       (a, b) =>
         b.score - a.score ||
-        b.article.publishedAt.localeCompare(a.article.publishedAt) ||
+        b.article.publicationMonth.localeCompare(a.article.publicationMonth) ||
         a.article.slug.localeCompare(b.article.slug),
     );
 }
