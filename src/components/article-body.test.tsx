@@ -15,7 +15,6 @@ describe("ArticleBody", () => {
     ["bulleted list", { type: "bulletedList", items: ["First bullet", "Second bullet"] }, "First bullet"],
     ["numbered list", { type: "numberedList", items: ["First step", "Second step"] }, "First step"],
     ["block quote", { type: "quote", text: "Quoted analysis", attribution: "SBR" }, "Quoted analysis"],
-    ["pull quote", { type: "pullQuote", text: "A prominent quotation" }, "A prominent quotation"],
     ["callout", { type: "callout", title: "What to watch", text: "Callout copy" }, "Callout copy"],
     ["link", { type: "link", text: "Read more.", href: "https://example.com", label: "Source" }, "Source"],
   ] satisfies Array<[string, ArticleContentBlock, string]>)(
@@ -31,17 +30,65 @@ describe("ArticleBody", () => {
     expect(container.querySelector("hr")).toBeInTheDocument();
   });
 
-  it("renders stable superscript footnotes, one Sources entry, and a backlink", () => {
+  it("renders a separate sequential Note and backlink for every repeated Source occurrence", () => {
     const { container } = render(<ArticleBody
       blocks={[{ type: "paragraph", text: "First claim. Second claim.", content: [{ text: "First claim.", sourceKey: "report" }, { text: " Second claim.", sourceKey: "report" }] }]}
       sources={[{ key: "report", citation: "Researcher, “A useful report.”", url: "https://example.com/report" }]}
     />);
     expect(container.querySelectorAll("sup.footnote-ref")).toHaveLength(2);
-    expect(screen.getAllByRole("link", { name: "Footnote 1" })).toHaveLength(2);
-    expect(screen.getByRole("heading", { name: "Sources" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Researcher, “A useful report.”" })).toHaveAttribute("href", "https://example.com/report");
-    expect(screen.getByRole("link", { name: "Back to footnote 1" })).toHaveAttribute("href", "#source-ref-1-1");
-    expect(container.querySelectorAll(".article-sources li")).toHaveLength(1);
+    expect(screen.getByRole("link", { name: "Footnote 1" })).toHaveAttribute("href", "#note-1");
+    expect(screen.getByRole("link", { name: "Footnote 2" })).toHaveAttribute("href", "#note-2");
+    expect(screen.getByText("Notes").closest("summary")).toHaveTextContent("Notes (2)");
+    expect(container.querySelector(".article-notes details")).not.toHaveAttribute("open");
+    expect(screen.getAllByRole("link", { name: "Researcher, “A useful report.”" })).toHaveLength(2);
+    expect(screen.getByRole("link", { name: "Back to footnote 1" })).toHaveAttribute("href", "#note-ref-1");
+    expect(screen.getByRole("link", { name: "Back to footnote 2" })).toHaveAttribute("href", "#note-ref-2");
+    expect(container.querySelectorAll(".article-notes li")).toHaveLength(2);
+  });
+
+  it("numbers paragraph, list, Block quote, and callout occurrences in reading order", () => {
+    const { container } = render(<ArticleBody
+      blocks={[
+        { type: "paragraph", text: "Opening.", content: [{ text: "Opening.", sourceKey: "second" }] },
+        { type: "bulletedList", items: [{ level: 1, content: [{ text: "List claim", sourceKey: "first" }] }] },
+        { type: "quote", text: "Quoted claim", content: [{ text: "Quoted claim", sourceKey: "first" }], attribution: "Student researcher" },
+        { type: "callout", title: "Context", text: "Callout claim", sourceKey: "second" },
+      ]}
+      sources={[{ key: "first", citation: "First source" }, { key: "second", citation: "Second source" }]}
+    />);
+    expect(container.querySelectorAll("sup.footnote-ref")).toHaveLength(4);
+    expect([...container.querySelectorAll("sup.footnote-ref")].map(({ textContent }) => textContent)).toEqual(["1", "2", "3", "4"]);
+    expect([...container.querySelectorAll(".article-notes li")].map(({ textContent }) => textContent?.replace("↩", "").trim())).toEqual(["Second source", "First source", "First source", "Second source"]);
+    expect(screen.getByText("— Student researcher")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to footnote 4" })).toHaveAttribute("href", "#note-ref-4");
+  });
+
+  it("renders a normal Block quote with inline formatting and a normal footnote", () => {
+    const { container } = render(<ArticleBody
+      blocks={[{ type: "quote", text: "Quoted evidence.", content: [{ text: "Quoted ", marks: ["em"] }, { text: "evidence.", sourceKey: "report" }] }]}
+      sources={[{ key: "report", citation: "Research report" }]}
+    />);
+    expect(container.querySelector("blockquote em")).toHaveTextContent("Quoted");
+    expect(container.querySelector("blockquote")?.innerHTML).toContain('evidence.<sup class="footnote-ref">');
+    expect(screen.getByRole("link", { name: "Footnote 1" })).toHaveAttribute("href", "#note-1");
+  });
+
+  it("renders adjacent list footnotes without exposing internal Source keys", () => {
+    const { container } = render(<ArticleBody
+      blocks={[{ type: "numberedList", items: [{ level: 1, content: [{ text: "Claim" }, { text: "", sourceKey: "one" }, { text: "", sourceKey: "two" }] }] }]}
+      sources={[{ key: "one", citation: "One" }, { key: "two", citation: "Two" }]}
+    />);
+    expect(container.querySelector("li")?.textContent).toBe("Claim12");
+    expect(container).not.toHaveTextContent("one");
+  });
+
+  it("keeps public numbering and Source identities stable when Sources are reordered", () => {
+    const blocks: ArticleContentBlock[] = [{ type: "paragraph", text: "A. B.", content: [{ text: "A.", sourceKey: "a" }, { text: " B.", sourceKey: "b" }] }];
+    const { rerender } = render(<ArticleBody blocks={blocks} sources={[{ key: "a", citation: "Source A" }, { key: "b", citation: "Source B" }]} />);
+    expect(screen.getByText("Source A").closest("li")).toHaveAttribute("id", "note-1");
+    rerender(<ArticleBody blocks={blocks} sources={[{ key: "b", citation: "Source B" }, { key: "a", citation: "Source A edited" }]} />);
+    expect(screen.getByText("Source A edited").closest("li")).toHaveAttribute("id", "note-1");
+    expect(screen.getByRole("link", { name: "Footnote 1" })).toBeInTheDocument();
   });
 
   it("renders a cursor-inserted footnote directly after punctuation with no whitespace gap", () => {
@@ -54,10 +101,13 @@ describe("ArticleBody", () => {
     expect(paragraph.innerHTML).toContain('Sentence.<sup class="footnote-ref">');
   });
 
-  it("omits Sources when empty and fails safely for a missing source reference", () => {
+  it("omits Notes without occurrences and preserves a broken occurrence in sequence", () => {
     const { container } = render(<ArticleBody blocks={[{ type: "paragraph", text: "Claim.", content: [{ text: "Claim.", sourceKey: "missing" }] }]} />);
-    expect(screen.queryByRole("heading", { name: "Sources" })).not.toBeInTheDocument();
-    expect(container.querySelector(".footnote-ref--missing")).toHaveTextContent("?");
+    expect(screen.getByText("Notes").closest("summary")).toHaveTextContent("Notes (1)");
+    expect(container.querySelector(".footnote-ref--missing")).toHaveTextContent("1");
+    expect(screen.getByText("Missing Source: missing")).toBeInTheDocument();
+    const empty = render(<ArticleBody blocks={[{ type: "paragraph", text: "No citation." }]} sources={[{ key: "unused", citation: "Unused" }]} />);
+    expect(empty.container.querySelector(".article-notes")).not.toBeInTheDocument();
   });
 
   it("renders paragraphs around semantic bullet and numbered lists", () => {

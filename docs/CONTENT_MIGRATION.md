@@ -38,7 +38,11 @@ Do not run either apply command now. Apply requires a server-only `SANITY_API_WR
 
 Every Article stores `publicationMonth` as `YYYY-MM`, and every reader-facing date is Month Year. Original source date text remains staging provenance where useful, but Studio receives no day, precision value, or fake first-of-month anchor. JSON-LD and Open Graph use `YYYY-MM`; sitemap omits Article `lastModified`; RSS omits `pubDate` because RFC 822 requires an unknown day. Completely missing months remain blocked.
 
-Migration staging extracts numbered source citations into each Article's structured `sources` array and maps matching inline citation numbers to cursor-style inline footnote objects containing only a source key. Generated display numbering follows source order. Citation/footer lines are removed from the normalized body; the migration never imports bracket characters, visible numbers, spacing before a footnote, or a manual Sources heading.
+Migration staging extracts each numbered Source once and maps every matching `[n]` marker to a distinct cursor-style footnote object containing that Source key. The manuscript number identifies Source-list entry `n`; it is not the eventual public number. Public Notes are numbered later by body occurrence order, so repeated `[7]` markers reuse Source 7 but become separate Notes. No visible number is persisted.
+
+Studio derives and displays that current public occurrence number from the full body while editors work. Renumbering after insertion, deletion, or movement is expected and does not modify the migration Source mapping.
+
+For migration, add Sources from the prepared list, then treat `[7]` as “choose Source 7 here.” Do not type `7` or expect the published Note to display 7: published numbers identify citation occurrences and run 1, 2, 3 in reading order. Ordinary quotations remain paragraphs; visually separated quotations use **Block quote** and the normal Footnote action. Callouts may retain a stable Source reference only when the source evidence is unambiguous.
 
 ## Backup and approval
 

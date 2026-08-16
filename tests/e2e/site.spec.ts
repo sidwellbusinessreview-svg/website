@@ -52,6 +52,28 @@ test("article route loads", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Maya Chen" })).toHaveCount(1);
   await expect(page.locator(".article-authors")).toHaveCount(0);
   await expect(page.getByRole("complementary", { name: "Contributors" })).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText(/min read|minute read/i);
+});
+
+test("Article typography stays readable and restrained across desktop and mobile", async ({ page }) => {
+  for (const width of [375, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto("/articles/semiconductors-and-the-geography-of-risk");
+    const body = page.locator(".article-body");
+    await expect(body).toBeVisible();
+    await expect(body.locator("blockquote")).toBeVisible();
+    await expect(body.locator("h2").first()).toBeVisible();
+    await expect(body.locator("ol")).toBeVisible();
+    const metrics = await body.evaluate((element) => {
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return { width: rect.width, fontSize: Number.parseFloat(style.fontSize), lineHeight: Number.parseFloat(style.lineHeight) };
+    });
+    expect(metrics.width).toBeLessThanOrEqual(Math.min(width, 700));
+    expect(metrics.fontSize).toBeGreaterThanOrEqual(17);
+    expect(metrics.lineHeight / metrics.fontSize).toBeGreaterThanOrEqual(1.6);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+  }
 });
 
 test("reader-facing Article dates use Month Year across discovery routes", async ({ page }) => {

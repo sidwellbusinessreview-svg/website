@@ -31,9 +31,9 @@ The normal draft/publish workflow remains enabled. Draft-only fixed pages can be
 
 ## Article form
 
-The main group follows the editorial workflow: Title, Slug, Subtitle, Summary, Contributors, Publication month, optional Featured image, conditional Alt text, Caption, Photo credit, Article body, Sources, Pin to homepage, and conditional Featured order. Editors choose a named month and four-digit year; the input stores canonical `YYYY-MM` without exposing that syntax or any day. Sources contain required citation text and optional HTTP/S URLs. New footnotes are inline objects: place the cursor after punctuation, choose **Add footnote**, and select an ordered citation without highlighting text. The control stores only its stable key; displayed numbers are generated automatically. The adapter retains read compatibility for Phase 14C annotation footnotes.
+The main Article group follows the writing workflow: Title, Slug, optional Subtitle, Summary, Contributors, Publication month, optional Featured image and its metadata, Article body, and Sources. Sources appear once as compact lookup rows. Every body citation stores only the Source key and becomes a distinct public Note occurrence numbered in reading order. Estimated read time is not stored or displayed.
 
-Structure is the authoring workspace for metadata, body, Sources, and footnotes. Preview is the reader-facing review workspace for dates, citation jumps, Sources, and layout. Editors save in Structure and refresh Preview; they are not expected to author complex content in Presentation's split view.
+Structure is the authoring workspace for metadata, body, Sources, and footnotes. Preview is the reader-facing review workspace for dates, citation jumps, Notes, and layout.
 
 Contributor selection is one authoritative custom array input. It does not render Sanity's default **Add item** control or default item menus. **Add contributors** opens a searchable multi-select of active published Contributors showing name, role, and graduation year. Selection stays temporary until **Confirm selection**; X, Escape, outside click, and **Cancel** make no content change. Confirmed references receive stable keys, duplicates are blocked, and explicit text controls handle opening, removing, and reordering byline rows without avatars.
 
@@ -43,7 +43,9 @@ Malformed historical members are never repaired automatically. The field can rem
 
 The **Advanced / SEO** group contains optional SEO title and description overrides. Most editors should leave both blank. Metadata otherwise uses the article title plus publication name, summary, featured image, and slug canonical URL.
 
-Article bodies support Portable Text paragraphs, H2/H3, lists, block quotes, links, pull quotes, editorial images, callouts, and dividers. Raw HTML is not allowed.
+Article bodies use one compact document-style toolbar row directly attached to the writing surface at normal laptop widths. Its fixed-width paragraph-style selector offers **Normal text**, **Section heading**, **Subheading**, and **Block quote** without stretching across the editor. Familiar icon controls provide Undo, Redo, Bold, Italic, Link, bulleted and numbered lists, Footnote, Image, and Callout; accessible labels and tooltips explain each icon and standard shortcuts. Block quote is an ordinary text block, so inline emphasis, links, and footnotes remain available. Raw HTML, H1/H4-H6, arbitrary typography, tables, and dividers are not allowed. The duplicate native toolbar is suppressed through the supported input option.
+
+The picker searches by citation or Studio Source-list number and says **Source 5**, never **Footnote 5**. Source-list numbers are lookup aids, not public numbers. Each inline Studio marker displays its current occurrence number from the same shared body-order traversal used by the public renderer. Inserting, deleting, or moving a citation therefore renumbers the visible markers live without changing stored Source keys. Hover text stays brief; clicking the marker opens the normal editor with the full wrapping citation and source selector.
 
 ## Publishing dependency
 
@@ -79,3 +81,19 @@ Run `npm run sanity:typegen` after schema changes. Generated artifacts are `src/
 > Screenshot placeholder: contributor form showing only Name and Slug required.
 
 > Screenshot placeholder: article main and Advanced / SEO groups.
+
+## Final Article authoring model
+
+The Article form keeps Summary required and counted to 300 characters; Subtitle is optional and never substitutes for Summary. Contributors are selected from existing active published records, remain in explicit byline order, and cannot be duplicated. Publication Month is chosen through named Month and four-digit Year controls even though the stored value is `YYYY-MM`.
+
+Sources stay inside their Article and remain deduplicated. Paragraph, Block quote, list, and Callout citations participate in one public sequence; repeated use repeats the full citation in **Notes** and receives its own anchor/backlink. Machine metadata and search may continue using each unique Source once.
+
+Public **Notes** are a collapsed disclosure by default and show their occurrence count. Activating a superscript, including a direct `#note-N` URL, opens Notes and focuses the exact occurrence. Every backlink returns to that occurrence rather than merely to the Article body.
+
+Article typography is centrally controlled by the frontend: editors do not choose fonts, sizes, colors, alignment, or spacing. Structure is for editing; Preview is for checking the resulting hierarchy and rhythm.
+
+Duplicate citation/URL and unused-Source findings are warnings. A missing referenced Source, unsafe URL, missing required metadata, duplicate Contributor, invalid Month/Year, missing image alt text, or conflicting slug blocks publication. Image, Subtitle, Sources, footnotes, Callout, Source URL, image caption, and image credit remain optional.
+
+> Screenshot placeholder: Article Sources showing generated-number selectors.
+
+> Screenshot placeholder: cited Block quote and Callout blocks.

@@ -84,7 +84,7 @@ After changing Contributor selection or Article browsing, run the unit suite and
 
 The Article field must show exactly one **Add contributors** button and no native **Add item** or default item menu. The modal shows role and graduation year, supports temporary multiple selection, and only **Confirm selection** patches the field. X, Escape, outside click, and **Cancel** never save. Verify About staff uses the same rules and contributor reassignment uses the same searchable single-select. A malformed historical selection must show a friendly repair action instead of crashing.
 
-For date/source model changes, create an unpublished draft in **Structure**. Choose **March** and enter **2025** using the friendly controls; editors must never type `2025-03`. Add at least two Sources (one with an HTTP/S URL). Place the caret immediately after punctuation, choose **Add footnote**, and select citations in Sources order without highlighting text. Preview must show **March 2025**, punctuation immediately followed by superscripts, one entry per source, working jumps/backlink, and no numerical day. Studio must reject a blank citation, non-HTTP/S URL, and nonexistent source. Do not publish this acceptance record.
+For date/source model changes, use the existing unpublished draft in **Structure**. Choose **March** and enter **2025** using the friendly controls; editors must never type `2025-03`. Add each Source once, then cite one Source more than once. Confirm Studio markers show the actual live body-order numbers and renumber after inserting, moving, or removing an occurrence; hover must stay brief and the click editor must wrap the full citation. Preview must show **March 2025**, matching sequential occurrence numbers, a collapsed **Notes (N)** disclosure, one Note per citation occurrence, working occurrence-specific jumps/backlinks, and no read time or numerical day. Studio must reject a blank citation, non-HTTP/S URL, and nonexistent source. Do not publish this acceptance record.
 
 The read-only persisted-data check is:
 
@@ -195,3 +195,11 @@ For a token-free check, use `npm run sanity:audit-pages:published` or `npm run s
 ## CI behavior
 
 GitHub Actions runs on pull requests and pushes to `main`. The first job performs lint, typecheck, Vitest, and the production build. After that succeeds, a separate job installs Chromium and runs Playwright. Public-site tests require no token. If a future CI job runs `npm run sanity:audit-pages:ci`, it may receive `SANITY_API_READ_TOKEN` as a server-only repository secret; without that secret it performs an explicitly published-only audit. Never use a personal CLI user token in CI.
+
+## Article authoring regression checks
+
+Vitest covers the full image-free Article fixture; the toolbar and layout; Source controls; shared Studio/public occurrence numbering through paragraphs, Block quotes, lists, and Callouts; repeated Sources; 21-note sequences; insertion, deletion, body and Source reordering; anchors; backlinks; Month Year output; and validation. Playwright checks toolbar and footnote-editor geometry, Article metadata without read time, collapsed Notes behavior, direct hashes, exact backlinks, numbered-list visibility, overflow, typography, and accessibility at desktop/mobile sizes.
+
+Authenticated Studio acceptance is still manual: create no automated records. Hard-refresh Studio, open the Mass Deportations draft, confirm the toolbar resembles compact document-editor chrome, choose Block quote from Paragraph style with only a caret, add a Footnote, bold one word and undo, scan/reorder Sources, and refresh Preview once. Do not claim this acceptance from unit tests alone.
+
+If a development server already owns port 3000, preserve it and run an isolated suite with `PLAYWRIGHT_PORT=3001 CI=1 npm run test:e2e` (or `test:e2e:sanity`). Port 3000 remains the default.

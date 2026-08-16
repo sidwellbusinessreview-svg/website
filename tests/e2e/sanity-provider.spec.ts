@@ -24,6 +24,7 @@ test.describe("Sanity-backed public routes", () => {
     await expect(page).toHaveURL(`/articles/${articleSlug}`);
     await expect(page.getByRole("heading", { level: 1, name: articleTitle })).toBeVisible();
     await expect(page.getByRole("link", { name: contributorName })).toBeVisible();
+    await expect(page.locator(".feature-figure")).toHaveCount(0);
     const bulletList = page.locator(".article-body ul").first();
     await expect(bulletList).toBeVisible();
     expect(await bulletList.locator(":scope > li").count()).toBeGreaterThan(0);

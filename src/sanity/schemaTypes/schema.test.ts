@@ -4,8 +4,8 @@ import type { DocumentActionComponent } from "sanity";
 import { articleStatusLabel, classifyArticleVersions, searchArticleRecords, sortArticleRecords } from "../articleState";
 import { relabelDiscardAction, relabelPublishAction, resolveDocumentActions, UnpublishArticleAction } from "../documentStatus";
 import { ArticlePermanentDeleteAction, ContributorArchiveAction, ContributorDeleteAction } from "../lifecycleActions";
-import { prepareArticlePreview, validatePublishedContributors } from "./documents/article";
-import { articleBody, footnoteReference } from "./objects/articleBody";
+import { duplicateSourceWarning, prepareArticlePreview, unusedSourceWarning, validateArticleSlug, validatePublicationMonth, validatePublishedContributors, validateSourceUrl } from "./documents/article";
+import { articleBody, footnoteReference, validateOptionalSourceReference, validateSourceReference } from "./objects/articleBody";
 import { schemaTypes } from ".";
 import { validateUniqueStaff } from "./documents/staticPage";
 import { isSupportedImageAsset } from "./shared/mediaValidation";
@@ -40,12 +40,39 @@ describe("simplified Sanity editor model", () => {
   it("warns when About repeats a contributor across sections", () => expect(validateUniqueStaff({ editorsInChief: [{ contributor: { _ref: "a" } }], editors: [{ contributor: { _ref: "a" } }] })).toMatch(/only once/i));
   it("uses one month-only publication field and structured Sources", () => { const fields = fieldsFor("article"); expect(fields.find(({ name }) => name === "publicationMonth")).toMatchObject({ type: "string" }); expect(fields.find(({ name }) => name === "publicationDate")).toBeUndefined(); expect(fields.find(({ name }) => name === "publicationDatePrecision")).toBeUndefined(); expect(fields.find(({ name }) => name === "sources")).toMatchObject({ type: "array" }); expect(fields.find(({ name }) => name === "contributors")?.of?.[0]).toMatchObject({ type: "reference", to: [{ type: "contributor" }] }); });
   it("uses a friendly publication Month/Year input without exposing storage syntax", () => { const field = fieldsFor("article").find(({ name }) => name === "publicationMonth"); expect(field?.components?.input).toBeTypeOf("function"); expect(field?.description).not.toContain("YYYY-MM"); });
-  it("keeps approved Portable Text", () => expect((articleBody as unknown as { of: Array<{ type: string }> }).of.map(({ type }) => type)).toEqual(["block", "pullQuote", "editorialImage", "callout", "divider"]));
+  it("keeps only the approved Article-body feature set", () => expect((articleBody as unknown as { of: Array<{ type: string }> }).of.map(({ type }) => type)).toEqual(["block", "editorialImage", "callout"]));
+  it("keeps Block quote as a Portable Text style", () => {
+    const bodyBlock = (articleBody as unknown as { of: Array<{ type: string; styles?: Array<{ title: string; value: string }> }> }).of[0];
+    expect(bodyBlock.styles).toEqual(expect.arrayContaining([{ title: "Block quote", value: "blockquote" }]));
+    expect(schemaTypes.find(({ name }) => name === "pullQuote")).toBeUndefined();
+  });
   it("uses a cursor-inserted inline footnote object instead of a text annotation", () => {
     const bodyBlock = (articleBody as unknown as { of: Array<{ type: string; of?: Array<{ type: string }>; marks?: { annotations?: Array<{ type: string }> } }> }).of[0];
     expect(bodyBlock.of).toEqual([{ type: "footnoteReference" }]);
     expect(bodyBlock.marks?.annotations).not.toEqual(expect.arrayContaining([{ type: "footnoteReference" }]));
     expect(footnoteReference.type).toBe("object");
+  });
+  it("supports Source citations in text and callouts", () => {
+    const bodyTypes = (articleBody as unknown as { of: Array<{ type: string }> }).of.map(({ type }) => type);
+    expect(bodyTypes).toEqual(expect.arrayContaining(["callout"]));
+    expect(validateSourceReference("source-a", { document: { sources: [{ _key: "source-a" }] } })).toBe(true);
+    expect(validateSourceReference("missing", { document: { sources: [{ _key: "source-a" }] } })).toMatch(/no longer exists/i);
+    expect(validateOptionalSourceReference(undefined, { document: { sources: [] } })).toBe(true);
+  });
+  it("gives friendly month and duplicate-slug validation", async () => {
+    expect(validatePublicationMonth("2026-03")).toBe(true);
+    expect(validatePublicationMonth("2026-13")).toMatch(/valid month/i);
+    const fetch = vi.fn().mockResolvedValue("another");
+    await expect(validateArticleSlug({ current: "market-story" }, { document: { _id: "drafts.current" }, getClient: () => ({ fetch }) })).resolves.toMatch(/already uses/i);
+  });
+  it("warns about duplicate and unused Sources without blocking valid references", () => {
+    const sources = [{ _key: "a", citation: "  Report A ", url: "https://example.com" }, { _key: "b", citation: "report a", url: "https://example.com" }];
+    expect(duplicateSourceWarning(sources)).toMatch(/duplicate Source 1/i);
+    expect(unusedSourceWarning(sources, { document: { body: [{ _type: "block", children: [{ _type: "footnoteReference", sourceKey: "a" }] }] } })).toMatch(/2/);
+    expect(duplicateSourceWarning([{ citation: "Different A", url: " https://example.com " }, { citation: "Different B", url: "https://example.com" }])).toMatch(/duplicate Source 1/i);
+    expect(validateSourceUrl("https://example.com/report")).toBe(true);
+    expect(validateSourceUrl("javascript:alert(1)")).toMatch(/http/i);
+    expect(validateSourceUrl(" https://example.com ")).toMatch(/spaces/i);
   });
   it("prepares clear previews", () => expect(prepareArticlePreview({ id: "drafts.test", title: "A test", firstContributor: "Maya", pinned: true })).toMatchObject({ subtitle: "Draft · Pinned · Maya" }));
   it("warns for unpublished contributors", async () => { const fetch = vi.fn().mockResolvedValue(["a"]); await expect(validatePublishedContributors([{ _ref: "a" }, { _ref: "b" }], { getClient: () => ({ fetch }) })).resolves.toMatch(/publish every/i); });

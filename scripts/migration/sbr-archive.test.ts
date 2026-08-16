@@ -87,7 +87,7 @@ describe("SBR archive migration intake", () => {
     ]);
   });
 
-  it("maps PDF citations into structured Sources and removes footer citation lines", () => {
+  it("maps every manuscript marker to a distinct occurrence while reusing one Source key", () => {
     const extracted = extractStructuredSources("A material claim.1\n\n1\nNicci Mattey, “Mass Deportation in the U.S.: Explainer.”");
     expect(extracted.sources).toEqual([{ key: "source-1", citation: "Nicci Mattey, “Mass Deportation in the U.S.: Explainer.”" }]);
     expect(extracted.bodySource).not.toContain("Nicci Mattey");
@@ -96,6 +96,11 @@ describe("SBR archive migration intake", () => {
       { text: "A material claim.", sourceKey: "source-1" },
       { text: " Repeated evidence.", sourceKey: "source-1" },
     ] }]);
+    const [portable] = portableBody(blocks);
+    expect(portable.children.filter((child: { _type: string }) => child._type === "footnoteReference")).toMatchObject([
+      { sourceKey: "source-1" },
+      { sourceKey: "source-1" },
+    ]);
   });
 
   it("stages citations as cursor-style inline footnote objects without visible numbers", () => {

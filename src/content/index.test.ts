@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { findDuplicateSlugs, getArticleBySlug, getArchiveArticles, getArticles, getArticlesByContributor, getPublicArticles, selectLeadArticle, type Article } from "./index";
 
-const makeArticle = (overrides: Partial<Article>): Article => ({ slug: "default", title: "Default article", dek: "A sufficiently detailed test summary.", contributorSlugs: ["maya-chen"], publicationMonth: "2026-01", readTime: 3, status: "published", pinned: false, featuredImage: { src: "https://example.com/image.jpg", alt: "Test" }, content: [{ type: "paragraph", text: "Test content." }], sources: [], ...overrides });
+const makeArticle = (overrides: Partial<Article>): Article => ({ slug: "default", title: "Default article", dek: "A sufficiently detailed test summary.", contributorSlugs: ["maya-chen"], publicationMonth: "2026-01", status: "published", pinned: false, featuredImage: { src: "https://example.com/image.jpg", alt: "Test" }, content: [{ type: "paragraph", text: "Test content." }], sources: [], ...overrides });
 
 describe("simplified content access", () => {
   it("looks up article slugs and rejects invalid ones", async () => { expect((await getArticleBySlug("reading-the-fed"))?.title).toContain("Reading the Fed"); await expect(getArticleBySlug("missing")).resolves.toBeUndefined(); });

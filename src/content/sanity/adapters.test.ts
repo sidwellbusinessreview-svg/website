@@ -27,17 +27,38 @@ describe("Sanity domain adapters", () => {
     expect(mapped).toMatchObject({ sources: [{ key: "report", citation: "Researcher, “Report.”" }], content: [{ type: "paragraph", content: [{ text: "Supported claim." }, { text: "", sourceKey: "report" }] }] });
     expect(JSON.stringify(mapped?.content)).not.toContain('"number"');
   });
-  it("keeps Phase 14C annotation footnotes compatible and removes selected trailing whitespace", () => {
-    const mapped = mapArticle(rawArticle({
-      sources: [{ key: "report", citation: "Researcher, “Report.”" }],
-      body: [paragraph("Supported claim. ", { children: [span("Supported claim. ", ["fn"])], markDefs: [{ _key: "fn", _type: "footnoteReference", sourceKey: "report" }] })],
-    }));
-    expect(mapped?.content[0]).toMatchObject({ content: [{ text: "Supported claim.", sourceKey: "report" }] });
+  it("maps footnotes in bulleted and numbered list items", () => {
+    const body = mapPortableText([
+      paragraph("Bullet.", { listItem: "bullet", children: [span("Bullet."), { _type: "footnoteReference", _key: "one", sourceKey: "report" }] }),
+      paragraph("Numbered.", { listItem: "number", children: [span("Numbered."), { _type: "footnoteReference", _key: "two", sourceKey: "report" }] }),
+    ]);
+    expect(body).toMatchObject([
+      { type: "bulletedList", items: [{ content: [{ text: "Bullet." }, { text: "", sourceKey: "report" }] }] },
+      { type: "numberedList", items: [{ content: [{ text: "Numbered." }, { text: "", sourceKey: "report" }] }] },
+    ]);
+  });
+  it("maps a Portable Text Block quote with inline emphasis and a normal footnote", () => {
+    expect(mapPortableText([paragraph("Quoted evidence.", {
+      style: "blockquote",
+      children: [span("Quoted ", ["em"]), span("evidence."), { _type: "footnoteReference", _key: "quote-source", sourceKey: "report" }],
+    })])).toEqual([{ type: "quote", text: "Quoted evidence.", content: [{ text: "Quoted ", marks: ["em"] }, { text: "evidence." }, { text: "", sourceKey: "report" }] }]);
+  });
+  it("maps a cited Callout", () => {
+    expect(mapPortableText([
+      { _type: "callout", title: "Context", body: [paragraph("Callout body")], sourceKey: "report" },
+    ])).toEqual([
+      { type: "callout", title: "Context", text: "Callout body", sourceKey: "report" },
+    ]);
+  });
+  it("rejects broken Callout Sources publicly", () => {
+    const raw = rawArticle({ body: [{ _type: "callout", body: [paragraph("Callout body")], sourceKey: "gone" }] });
+    expect(mapArticle(raw)).toBeUndefined();
+    expect(mapArticle(raw, { allowBrokenFootnotes: true })).toBeDefined();
   });
   it("rejects broken footnotes publicly but preserves a safe Preview fallback", () => {
-    const raw = rawArticle({ body: [paragraph("Broken claim.", { children: [span("Broken claim.", ["fn"])], markDefs: [{ _key: "fn", _type: "footnoteReference", sourceKey: "missing" }] })] });
+    const raw = rawArticle({ body: [paragraph("Broken claim.", { children: [span("Broken claim."), { _type: "footnoteReference", _key: "fn", sourceKey: "missing" }] })] });
     expect(mapArticle(raw)).toBeUndefined();
-    expect(mapArticle(raw, { allowBrokenFootnotes: true })).toMatchObject({ content: [{ content: [{ sourceKey: "missing" }] }] });
+    expect(mapArticle(raw, { allowBrokenFootnotes: true })?.content[0]).toMatchObject({ content: expect.arrayContaining([{ text: "", sourceKey: "missing" }]) });
   });
   it("does not silently drop an inline footnote with a missing source selection", () => {
     const raw = rawArticle({ body: [paragraph("Broken claim.", { children: [span("Broken claim."), { _type: "footnoteReference", _key: "fn" }] })] });
@@ -99,17 +120,16 @@ describe("Sanity domain adapters", () => {
       expect.stringContaining("contributors"), expect.stringContaining("dek"), expect.stringContaining("content"),
     ]));
   });
-  it("maps headings, lists, quotes, pull quotes, images, callouts, dividers, and whole-block links", () => {
+  it("maps headings, lists, quotes, images, callouts, dividers, and whole-block links", () => {
     const body = mapPortableText([
       paragraph("Heading", { style: "h2" }),
       paragraph("One", { listItem: "bullet" }), paragraph("Two", { listItem: "bullet" }),
       paragraph("Quoted", { style: "blockquote" }),
-      { _type: "pullQuote", text: "A pull quote long enough to use." },
       { _type: "editorialImage", asset: { url: "https://cdn.sanity.io/images/a/b/image.jpg", metadata: { dimensions: { width: 1200, height: 800 } } }, altText: "A chart", caption: "Caption", credit: "Credit", hotspot: { x: .4, y: .6 } },
       { _type: "callout", title: "Context", body: [paragraph("Callout body")] }, { _type: "divider" },
       paragraph("Source", { children: [span("Source", ["link"])], markDefs: [{ _key: "link", href: "https://example.com" }] }),
     ]);
-    expect(body.map(({ type }) => type)).toEqual(["heading", "bulletedList", "quote", "pullQuote", "image", "callout", "divider", "link"]);
+    expect(body.map(({ type }) => type)).toEqual(["heading", "bulletedList", "quote", "image", "callout", "divider", "link"]);
     expect(body.find(({ type }) => type === "image")).toMatchObject({ width: 1200, height: 800, hotspot: { x: .4, y: .6 } });
   });
   it("groups consecutive list blocks and preserves levels, decorators, and links", () => {

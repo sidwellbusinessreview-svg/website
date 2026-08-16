@@ -14,6 +14,8 @@ type RawBlock = {
   markDefs?: unknown;
   text?: unknown;
   sourceText?: unknown;
+  attribution?: unknown;
+  sourceKey?: unknown;
   title?: unknown;
   body?: unknown;
   altText?: unknown;
@@ -69,6 +71,7 @@ function wholeBlockLink(block: RawBlock): string | undefined {
 }
 
 type RichListItem = Extract<ArticleContentBlock, { type: "bulletedList" | "numberedList" }>["items"][number];
+type DomainInlineSpan = Extract<RichListItem, { content: unknown }>["content"][number];
 
 function safeMarkHref(mark: RawMark | undefined): string | undefined {
   const href = cleanText(mark?.href);
@@ -84,19 +87,17 @@ function safeMarkHref(mark: RawMark | undefined): string | undefined {
 
 function inlineContent(block: RawBlock): Extract<RichListItem, { content: unknown }>["content"] {
   const definitions = markDefs(block.markDefs);
-  return spans(block.children).flatMap((span) => {
+  return spans(block.children).flatMap<DomainInlineSpan>((span) => {
     if (span._type === "footnoteReference") {
       return [{ text: "", sourceKey: cleanText(span.sourceKey) ?? "__missing_source__" }];
     }
-    let spanText = inlineText(span.text);
+    const spanText = inlineText(span.text);
     if (!spanText) return [];
     const markKeys = Array.isArray(span.marks) ? span.marks.filter((mark): mark is string => typeof mark === "string") : [];
     const marks = [...new Set(markKeys.flatMap((mark) => mark === "strong" ? ["strong" as const] : mark === "em" ? ["em" as const] : []))];
     const definition = definitions.find((item) => markKeys.includes(String(item._key)));
     const href = safeMarkHref(definition);
-    const sourceKey = definition?._type === "footnoteReference" ? cleanText(definition.sourceKey) ?? "__missing_source__" : undefined;
-    if (sourceKey) spanText = spanText.replace(/\s+$/, "");
-    return [{ text: spanText, ...(marks.length ? { marks } : {}), ...(href ? { href } : {}), ...(sourceKey ? { sourceKey } : {}) }];
+    return [{ text: spanText, ...(marks.length ? { marks } : {}), ...(href ? { href } : {}) }];
   });
 }
 
@@ -148,16 +149,15 @@ export function mapPortableText(value: unknown): ArticleContentBlock[] {
       const link = wholeBlockLink(block);
       if (link) output.push({ type: "link", text: valueText, label: valueText, href: link });
       else if (block.style === "h2" || block.style === "h3") output.push({ type: "heading", level: block.style === "h2" ? 2 : 3, text: valueText });
-      else if (block.style === "blockquote") output.push({ type: "quote", text: valueText });
+      else if (block.style === "blockquote") output.push({ type: "quote", text: valueText, content: inlineContent(block) });
       else output.push({ type: "paragraph", text: valueText, content: inlineContent(block) });
       continue;
     }
     flush();
-    if (block._type === "pullQuote" && text(block.text)) output.push({ type: "pullQuote", text: text(block.text)! });
-    else if (block._type === "editorialImage") { const mapped = imageBlock(block); if (mapped) output.push(mapped); }
+    if (block._type === "editorialImage") { const mapped = imageBlock(block); if (mapped) output.push(mapped); }
     else if (block._type === "callout") {
       const calloutText = mapPortableText(block.body).flatMap((entry) => "text" in entry ? [entry.text] : "items" in entry ? entry.items.map(listItemText) : []).join(" ");
-      if (calloutText) output.push({ type: "callout", ...(text(block.title) ? { title: text(block.title) } : {}), text: calloutText });
+      if (calloutText) output.push({ type: "callout", ...(text(block.title) ? { title: text(block.title) } : {}), text: calloutText, ...(cleanText(block.sourceKey) ? { sourceKey: cleanText(block.sourceKey) } : {}) });
     } else if (block._type === "divider") output.push({ type: "divider" });
     else if (process.env.NODE_ENV !== "production") console.warn(`Unknown Sanity body block ignored: ${String(block._type ?? "missing type")}`);
   }
@@ -187,7 +187,6 @@ function articleCandidate(value: unknown): { candidate?: Record<string, unknown>
   const body = mapPortableText(raw.body);
   const featured = raw.featuredImage ? imageBlock({ ...raw.featuredImage, altText: raw.featuredImageAltText, caption: raw.featuredImageCaption, credit: raw.featuredImageCredit }) : undefined;
   if (raw.featuredImage && !featured) failures.push("featuredImage: asset URL and alternative text are required when an image is present");
-  const wordCount = body.flatMap((block) => "text" in block ? block.text.split(/\s+/) : "items" in block ? block.items.flatMap((item) => listItemText(item).split(/\s+/)) : []).filter(Boolean).length;
   const sources = Array.isArray(raw.sources) ? raw.sources.flatMap((item) => {
     if (!item || typeof item !== "object") return [];
     const source = item as Record<string, unknown>; const key = cleanText(source.key); const citation = text(source.citation); const url = cleanText(source.url);
@@ -198,7 +197,7 @@ function articleCandidate(value: unknown): { candidate?: Record<string, unknown>
     slug: cleanText(raw.slug), title: text(raw.title), dek: text(raw.summary) ?? text(raw.subtitle),
     contributorSlugs: contributors.flatMap((contributor) => contributor ? [contributor.slug] : []),
     publicationMonth,
-    readTime: Math.max(1, Math.ceil(wordCount / 220)), status: "published",
+    status: "published",
     pinned: raw.pinned === true, featuredRank: number(raw.featuredRank), featuredImage: featured,
     content: body, sources,
   };

@@ -10,7 +10,6 @@ const article: Article = {
   dek: "A summary that does not require an optional subtitle.",
   contributorSlugs: ["maya-chen", "jonah-patel"],
   publicationMonth: "2026-01",
-  readTime: 5,
   status: "published",
   pinned: false,
   featuredImage: {
@@ -38,12 +37,14 @@ const authors: Contributor[] = [
 
 describe("article presentation", () => {
   it("renders multiple authors in byline order", () => {
-    render(<ArticleMeta article={article} authors={authors} />);
+    const { container } = render(<ArticleMeta article={article} authors={authors} />);
     const links = screen.getAllByRole("link");
     expect(links.map((link) => link.textContent)).toEqual(["Maya Chen", "Jonah Patel"]);
     expect(screen.getByText(/and/)).toBeInTheDocument();
     expect(screen.getByText("January 2026")).toBeInTheDocument();
     expect(screen.getByText("January 2026")).not.toHaveTextContent("January 26");
+    expect(container).not.toHaveTextContent(/min read|minute read|words/i);
+    expect(container.querySelectorAll('[aria-hidden="true"]')).toHaveLength(1);
   });
 
   it("renders the canonical month without exposing a numerical day", () => {

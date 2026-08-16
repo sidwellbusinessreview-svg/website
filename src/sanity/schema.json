@@ -605,21 +605,6 @@
             },
             "rest": {
               "type": "inline",
-              "name": "pullQuote"
-            }
-          },
-          {
-            "type": "object",
-            "attributes": {
-              "_key": {
-                "type": "objectAttribute",
-                "value": {
-                  "type": "string"
-                }
-              }
-            },
-            "rest": {
-              "type": "inline",
               "name": "editorialImage"
             }
           },
@@ -636,21 +621,6 @@
             "rest": {
               "type": "inline",
               "name": "callout"
-            }
-          },
-          {
-            "type": "object",
-            "attributes": {
-              "_key": {
-                "type": "objectAttribute",
-                "value": {
-                  "type": "string"
-                }
-              }
-            },
-            "rest": {
-              "type": "inline",
-              "name": "divider"
             }
           }
         ]
@@ -676,29 +646,6 @@
             "type": "string"
           },
           "optional": false
-        }
-      }
-    }
-  },
-  {
-    "name": "divider",
-    "type": "type",
-    "value": {
-      "type": "object",
-      "attributes": {
-        "_type": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string",
-            "value": "divider"
-          }
-        },
-        "style": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string"
-          },
-          "optional": true
         }
       }
     }
@@ -755,31 +702,8 @@
             "name": "simplePortableText"
           },
           "optional": false
-        }
-      }
-    }
-  },
-  {
-    "name": "pullQuote",
-    "type": "type",
-    "value": {
-      "type": "object",
-      "attributes": {
-        "_type": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string",
-            "value": "pullQuote"
-          }
         },
-        "text": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string"
-          },
-          "optional": false
-        },
-        "sourceText": {
+        "sourceKey": {
           "type": "objectAttribute",
           "value": {
             "type": "string"

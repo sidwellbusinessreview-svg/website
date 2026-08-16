@@ -4,7 +4,7 @@
 
 **Save** records an unpublished draft. A draft-only Article is invisible to readers. Editing a published Article creates **Published with unpublished changes**; readers continue to see the prior published version. **Publish** replaces that public version.
 
-1. Write and edit metadata, body, Sources, and footnotes in Studio **Structure**. Add Sources first; place the cursor after punctuation and choose **Add footnote** without highlighting text.
+1. Write and edit metadata, body, Sources, and footnotes in Studio **Structure**. Add Sources first; place the cursor after punctuation and click **Footnote** in the visible body toolbar without highlighting text.
 2. Choose **Preview** in Studio’s top navigation.
 3. Navigate to Homepage, an Article, Contributor, or About.
 4. Confirm the banner says **Previewing unpublished content**.
@@ -21,8 +21,9 @@ The Draft Mode cookie applies to the local origin, but preview UI is deliberatel
 ## Faculty adviser review
 
 - Confirm the preview banner is visible.
-- Review headline, byline order, dates, body, links, captions, credits, alt text, footnote jumps, and source backlinks. Every visible Article date must use Month Year; no day may appear.
+- Review headline, byline order, Month Year, body, links, captions, credits, alt text, sequential Note jumps, and occurrence-specific backlinks. No read time or numerical day may appear.
 - Confirm superscripts touch the preceding punctuation with no visible space. Use Preview for review, not as the primary complex-content editor.
+- Confirm paragraph, Block quote, list, and Callout citations share one 1–N occurrence sequence in both Structure and Preview. Repeated Sources must receive new numbers. Public Notes begin collapsed with an accurate count; test that each superscript or direct note URL opens Notes, every backlink returns to its exact marker, external Source links work, and multi-digit entries wrap at narrow widths.
 - Check Homepage placement, Contributor profile, About, and mobile width.
 - In a clean browser without preview, confirm drafts are absent.
 - Confirm Search, sitemap, and feed remain published-only.

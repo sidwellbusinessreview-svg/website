@@ -111,16 +111,10 @@ export type ArticleBody = Array<
     }
   | ({
       _key: string;
-    } & PullQuote)
-  | ({
-      _key: string;
     } & EditorialImage)
   | ({
       _key: string;
     } & Callout)
-  | ({
-      _key: string;
-    } & Divider)
 >;
 
 export type FootnoteReference = {
@@ -128,22 +122,12 @@ export type FootnoteReference = {
   sourceKey: string;
 };
 
-export type Divider = {
-  _type: "divider";
-  style?: string;
-};
-
 export type Callout = {
   _type: "callout";
   variant: "context" | "definition" | "data" | "note";
   title?: string;
   body: SimplePortableText;
-};
-
-export type PullQuote = {
-  _type: "pullQuote";
-  text: string;
-  sourceText?: string;
+  sourceKey?: string;
 };
 
 export type SimplePortableText = Array<{
@@ -407,9 +391,7 @@ export type AllSanitySchemaTypes =
   | SanityImageHotspot
   | ArticleBody
   | FootnoteReference
-  | Divider
   | Callout
-  | PullQuote
   | SimplePortableText
   | ArticleReference
   | ContributorReference
@@ -552,12 +534,7 @@ export type ALL_PUBLISHED_ARTICLES_QUERY_RESULT = Array<{
         variant: "context" | "data" | "definition" | "note";
         title?: string;
         body: SimplePortableText;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "divider";
-        style?: string;
+        sourceKey?: string;
         markDefs: null;
       }
     | {
@@ -581,13 +558,6 @@ export type ALL_PUBLISHED_ARTICLES_QUERY_RESULT = Array<{
         caption?: string;
         credit?: string;
         rightsNote?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "pullQuote";
-        text: string;
-        sourceText?: string;
         markDefs: null;
       }
   >;
@@ -676,12 +646,7 @@ export type ARTICLE_BY_SLUG_QUERY_RESULT = {
         variant: "context" | "data" | "definition" | "note";
         title?: string;
         body: SimplePortableText;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "divider";
-        style?: string;
+        sourceKey?: string;
         markDefs: null;
       }
     | {
@@ -705,13 +670,6 @@ export type ARTICLE_BY_SLUG_QUERY_RESULT = {
         caption?: string;
         credit?: string;
         rightsNote?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "pullQuote";
-        text: string;
-        sourceText?: string;
         markDefs: null;
       }
   >;
@@ -800,12 +758,7 @@ export type PINNED_ARTICLE_QUERY_RESULT = {
         variant: "context" | "data" | "definition" | "note";
         title?: string;
         body: SimplePortableText;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "divider";
-        style?: string;
+        sourceKey?: string;
         markDefs: null;
       }
     | {
@@ -829,13 +782,6 @@ export type PINNED_ARTICLE_QUERY_RESULT = {
         caption?: string;
         credit?: string;
         rightsNote?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "pullQuote";
-        text: string;
-        sourceText?: string;
         markDefs: null;
       }
   >;
@@ -924,12 +870,7 @@ export type LATEST_ARTICLES_QUERY_RESULT = Array<{
         variant: "context" | "data" | "definition" | "note";
         title?: string;
         body: SimplePortableText;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "divider";
-        style?: string;
+        sourceKey?: string;
         markDefs: null;
       }
     | {
@@ -953,13 +894,6 @@ export type LATEST_ARTICLES_QUERY_RESULT = Array<{
         caption?: string;
         credit?: string;
         rightsNote?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "pullQuote";
-        text: string;
-        sourceText?: string;
         markDefs: null;
       }
   >;
@@ -1048,12 +982,7 @@ export type ARTICLES_BY_CONTRIBUTOR_QUERY_RESULT = Array<{
         variant: "context" | "data" | "definition" | "note";
         title?: string;
         body: SimplePortableText;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "divider";
-        style?: string;
+        sourceKey?: string;
         markDefs: null;
       }
     | {
@@ -1077,13 +1006,6 @@ export type ARTICLES_BY_CONTRIBUTOR_QUERY_RESULT = Array<{
         caption?: string;
         credit?: string;
         rightsNote?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "pullQuote";
-        text: string;
-        sourceText?: string;
         markDefs: null;
       }
   >;
@@ -1172,12 +1094,7 @@ export type SEARCH_ARTICLES_QUERY_RESULT = Array<{
         variant: "context" | "data" | "definition" | "note";
         title?: string;
         body: SimplePortableText;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "divider";
-        style?: string;
+        sourceKey?: string;
         markDefs: null;
       }
     | {
@@ -1201,13 +1118,6 @@ export type SEARCH_ARTICLES_QUERY_RESULT = Array<{
         caption?: string;
         credit?: string;
         rightsNote?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "pullQuote";
-        text: string;
-        sourceText?: string;
         markDefs: null;
       }
   >;
@@ -1285,12 +1195,7 @@ export type STATIC_PAGE_BY_SLUG_QUERY_RESULT = {
         variant: "context" | "data" | "definition" | "note";
         title?: string;
         body: SimplePortableText;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "divider";
-        style?: string;
+        sourceKey?: string;
         markDefs: null;
       }
     | {
@@ -1314,13 +1219,6 @@ export type STATIC_PAGE_BY_SLUG_QUERY_RESULT = {
         caption?: string;
         credit?: string;
         rightsNote?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "pullQuote";
-        text: string;
-        sourceText?: string;
         markDefs: null;
       }
   >;

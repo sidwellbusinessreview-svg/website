@@ -9,7 +9,6 @@ function blockText(block: ArticleContentBlock): string {
   switch (block.type) {
     case "paragraph":
     case "heading":
-    case "pullQuote":
       return block.text;
     case "bulletedList":
     case "numberedList":

@@ -57,7 +57,7 @@ Active controls eligibility for new Article/About selections, not historical vis
 
 Same-month public ordering is publication month descending, then stable slug ascending. Queries temporarily derive `YYYY-MM` from legacy `publicationDate` when the canonical field is absent; audits report those records and no remote mutation is automatic.
 
-Portable Text footnote annotations store a source key, never a display number. Numbers are generated from `sources` order. Every reference must resolve to an Article source; missing references are rejected by published validation and render as a safe visible fallback in preview/development.
+Portable Text cursor objects store a source key, never a display number. A Source is one unique Article-level bibliographic record; a Note occurrence is one use of that Source in the body. The shared traversal walks blocks and inline children in reading order, including paragraphs, Block quotes, lists, and Callouts, and derives a unique occurrence ID plus sequential number. Public Notes repeat the full citation for repeated uses. Legacy annotation compatibility was removed after zero-use audits.
 
 ## About
 
@@ -65,7 +65,9 @@ Portable Text footnote annotations store a source key, never a display number. N
 
 ## Body blocks and images
 
-Portable Text supports paragraphs, H2/H3, bullet/number lists, block quotes, inline links, pull quotes, editorial images, callouts, and dividers. Editorial images require an asset and contextual alt text; caption, credit, and internal rights note are optional. Links allow safe HTTP(S), internal paths, or references to articles, contributors, and About. Arbitrary HTML is prohibited.
+Portable Text supports paragraphs, H2/H3, bullet/number lists, inline-capable Block quotes, inline links/footnotes, editorial images, and callouts. Editorial images require an asset and contextual alt text; caption, credit, and internal rights note are optional. Typography is centrally controlled rather than author-configurable.
+
+Reader-facing Notes are a presentation derived from body occurrences. They remain in the document inside a count-labelled disclosure, collapsed by default; note-fragment navigation opens the disclosure and resolves the exact occurrence/backlink pair. Print CSS exposes the full list. Search indexes Article body text and does not append generated Notes, preventing repeated citations from distorting relevance. Current JSON-LD, Open Graph, RSS, and sitemap output does not emit reading-time fields or repeated Note data; future machine citation metadata should use the unique Source registry.
 
 ## Removed version-1 concepts
 

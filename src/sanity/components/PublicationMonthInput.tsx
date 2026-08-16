@@ -2,7 +2,7 @@
 
 import { Grid, Select, Stack, Text, TextInput } from "@sanity/ui";
 import { useState } from "react";
-import { set, type StringInputProps } from "sanity";
+import { set, unset, type StringInputProps } from "sanity";
 
 export const PUBLICATION_MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -25,7 +25,7 @@ export function PublicationMonthInput(props: StringInputProps) {
 
   const commit = (nextMonth: string, nextYear: string) => {
     const normalized = normalizedPublicationMonth(nextMonth, nextYear);
-    if (normalized) props.onChange(set(normalized));
+    props.onChange(normalized ? set(normalized) : unset());
   };
 
   return <Stack space={3}>
@@ -36,6 +36,6 @@ export function PublicationMonthInput(props: StringInputProps) {
       </Select>
       <TextInput aria-label="Publication year" inputMode="numeric" maxLength={4} placeholder="Year" value={year} onChange={(event) => { const next = event.currentTarget.value.replace(/\D/g, "").slice(0, 4); setYear(next); commit(month, next); }} />
     </Grid>
-    <Text muted size={1}>Choose the month and enter the four-digit year. No publication day is stored.</Text>
+    <Text muted size={1}>{year && year.length < 4 ? "Enter a four-digit year." : "Choose the month and enter the four-digit year. No publication day is stored."}</Text>
   </Stack>;
 }

@@ -23,16 +23,16 @@ Writers do not need repository or Studio accounts. Editors create and publish a 
 
 - **Homepage:** one eligible pinned lead, newest fallback, recent stories, About and archive links; no issue module.
 - **Latest/archive:** all published articles newest first. Archive filtering is limited to school year and contributor for expected launch scale.
-- **Article:** title, optional subtitle, summary, contributors, date-only publication date, featured image metadata, structured body, optional homepage placement, and automatic SEO defaults.
+- **Article:** title, optional subtitle, summary, contributors, Month Year publication date, featured image metadata, structured body, optional homepage placement, and automatic SEO defaults. Estimated reading time and word count are excluded.
 - **Contributor:** public name, optional role and graduation year, and all published articles. Identity is text-only; photos, portraits, avatars, initials artwork, biography, and personal contact information are excluded.
 - **About:** mission and publication information followed by Editors-in-Chief, Editors, and Faculty Adviser. Staff entries reference Contributors and may override the displayed role for that roster entry.
 - **Search/Not found:** accessible, resilient, useful recovery behavior; search covers public title, summary, contributor, and body text.
 
 ## Content and media rules
 
-Every article has a unique slug, title, summary, at least one published contributor reference, date-only publication date (`YYYY-MM-DD`), and non-empty structured body. A featured image is optional and requires contextual alt text when present. Multiple contributors preserve byline order. Article ordering is date descending then slug ascending.
+Every article has a unique slug, title, summary, at least one published contributor reference, publication month, and non-empty structured body. Sources are stored once; every body citation is a distinct Note occurrence numbered sequentially in reading order, including repeated use of one Source. Studio and the public page must agree on those occurrence numbers. Public Notes omit unused Sources, start collapsed with a visible count, open for exact note-fragment navigation, and print fully expanded.
 
-Captions provide context, credits identify source/creator, and editors confirm rights. Raw HTML and unsafe links are prohibited. H2/H3 maintain heading hierarchy. Pull quotes are excerpts, not new facts; callouts add concise supporting context.
+Captions provide context, credits identify source/creator, and editors confirm rights. Raw HTML and unsafe links are prohibited. H2/H3 maintain heading hierarchy. Block quotes visually separate substantial quotations; callouts add concise supporting context.
 
 ## SEO, discovery, accessibility, security
 
