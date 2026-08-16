@@ -1,10 +1,20 @@
+.editorShell {
+  overflow: visible;
+  border: 1px solid var(--card-border-color, #d8d8d8);
+  background: var(--card-bg-color, #fff);
+}
+
+.editorShell:focus-within {
+  outline: 2px solid var(--card-focus-ring-color, currentColor);
+  outline-offset: 1px;
+}
+
 .toolbarShell {
   position: sticky;
   z-index: 10;
   top: 0;
   overflow: visible;
-  border: 1px solid var(--card-border-color, #d8d8d8);
-  border-bottom: 0;
+  border-bottom: 1px solid var(--card-border-color, #d8d8d8);
   border-radius: 3px 3px 0 0;
   background: var(--card-bg-color, #fff);
 }
@@ -47,16 +57,24 @@
 }
 
 .editorSurface {
-  min-height: 26rem;
-  border: 1px solid var(--card-border-color, #d8d8d8);
+  min-height: 12.5rem;
+  padding: 0.25rem;
   border-radius: 0 0 3px 3px;
   background: var(--card-bg-color, #fff);
   font-size: 1rem;
   line-height: 1.65;
 }
 
-.emptyHint {
-  padding: 0.75rem 1rem 0;
+.editorSurface :global([data-testid="pt-editor"]) {
+  height: auto !important;
+  min-height: 12rem !important;
+  resize: none !important;
+  overflow: visible !important;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 1rem;
+  line-height: 1.65;
 }
 
 .footnoteIcon {

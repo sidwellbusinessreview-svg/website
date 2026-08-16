@@ -96,7 +96,7 @@ export const articleBody = defineType({
     defineArrayMember({ type: "editorialImage" }),
     defineArrayMember({ type: "callout" }),
   ],
-  validation: (Rule) => Rule.required().min(1).error("Add at least one substantive body block."),
+  validation: (Rule) => Rule.required().min(1).error("Add Article text before publishing."),
 });
 
 export const footnoteReference = defineType({

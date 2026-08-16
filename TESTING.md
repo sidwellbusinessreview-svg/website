@@ -202,4 +202,6 @@ Vitest covers the full image-free Article fixture; the toolbar and layout; Sourc
 
 Authenticated Studio acceptance is still manual: create no automated records. Hard-refresh Studio, open the Mass Deportations draft, confirm the toolbar resembles compact document-editor chrome, choose Block quote from Paragraph style with only a caret, add a Footnote, bold one word and undo, scan/reorder Sources, and refresh Preview once. Do not claim this acceptance from unit tests alone.
 
+For the Article-body surface, confirm the existing nine-block Mass Deportations text appears after a hard refresh. Toolbar and canvas must share one border, the native empty state must read **Start writing or paste here…** exactly once, an empty canvas should be roughly 200px tall without a resize handle, and longer content should use normal Studio page scrolling. Component coverage verifies that a non-empty value is passed to Sanity's native renderer and cannot be replaced by empty-state UI; browser geometry coverage checks normal and narrow widths.
+
 If a development server already owns port 3000, preserve it and run an isolated suite with `PLAYWRIGHT_PORT=3001 CI=1 npm run test:e2e` (or `test:e2e:sanity`). Port 3000 remains the default.

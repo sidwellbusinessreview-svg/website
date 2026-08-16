@@ -30,6 +30,8 @@ Keep ordinary quotations in normal paragraphs. For a longer quotation that shoul
 
 The body toolbar is the normal formatting path. Use **Paragraph style** for Normal text, Section heading, Subheading, or Block quote. Highlight text before using the Bold, Italic, or Link icons. Use the list icons for parallel items and the Footnote, Image, and Callout icons for insertions. The toolbar intentionally does not offer fonts, sizes, colors, alignment, raw HTML, or horizontal rules.
 
+The Article body is one toolbar-and-writing surface. An empty draft shows one subdued prompt inside the canvas; click there to begin. The surface expands with the Article, so use normal Studio page scrolling rather than looking for a textarea resize control.
+
 Article font size, line spacing, margins, quote styling, and list indentation are controlled by the website. Editors should not simulate spacing with empty paragraphs or try to reproduce Google Docs typography.
 
 Broken references and malformed URLs block publication. Duplicate citation/URL and unused-Source notices are nonblocking warnings; unused Sources do not appear in public Notes. Do not type public numbers or add a manual Notes heading. Studio footnote markers show the live body-order number; hover gives brief context and click opens the full citation editor. Preview and confirm punctuation touches the superscript, repeated citations receive new sequential numbers, the collapsed Notes count is correct, and every Note links back to its own occurrence.

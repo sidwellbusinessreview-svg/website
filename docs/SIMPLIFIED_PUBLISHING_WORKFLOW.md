@@ -76,6 +76,8 @@ Article list panes can be searched by title, subtitle, summary, Contributor, or 
 
 Source-list numbers are Studio lookup aids only. Public Note numbers follow body occurrence order. Reordering Sources does not change them; reusing one Source creates a new Note occurrence and repeats its full citation.
 
+The body toolbar is attached to one writing canvas. A genuinely empty Article shows one prompt inside that canvas; existing text should appear immediately, and the editor grows down the Studio page as the Article becomes longer. Formatting details belong in this guide, while the field itself keeps only a short introductory description.
+
 The inline marker shows the live occurrence number. Hover for brief Source context; click to read the full citation or change its Source. The public Notes disclosure begins collapsed and opens automatically when a reader follows a superscript or direct note link.
 
 ### Common mistakes

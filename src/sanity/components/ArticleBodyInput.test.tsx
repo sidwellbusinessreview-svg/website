@@ -7,7 +7,6 @@ vi.mock("sanity", async () => {
   const actual = await vi.importActual<typeof import("sanity")>("sanity");
   return {
     ...actual,
-    PortableTextInput: () => <div data-testid="portable-text-editor" />,
     useFormValue: () => [],
   };
 });
@@ -25,6 +24,19 @@ import {
 beforeAll(() => {
   window.matchMedia = vi.fn().mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() });
 });
+
+function portableTextProps(value: unknown[] = []): PortableTextInputProps {
+  return {
+    value,
+    readOnly: false,
+    onPathFocus: vi.fn(),
+    renderDefault: vi.fn((input: PortableTextInputProps) => <div data-testid="portable-text-editor">
+      {input.value?.length
+        ? input.value.flatMap((block) => block.children ?? []).map((child) => child && typeof child === "object" && "text" in child ? String(child.text) : "").join("")
+        : <span data-testid="pt-input-placeholder">Start writing or paste here…</span>}
+    </div>),
+  } as unknown as PortableTextInputProps;
+}
 
 function fakeEditor(overrides: Record<string, unknown> = {}) {
   const api = {
@@ -45,7 +57,7 @@ function fakeEditor(overrides: Record<string, unknown> = {}) {
 
 describe("ArticleBodyInput", () => {
   it("shows the complete constrained toolbar with accessible names", () => {
-    render(<ThemeProvider theme={studioTheme}><ArticleBodyInput {...({ value: [], readOnly: false, onPathFocus: vi.fn() } as unknown as PortableTextInputProps)} /></ThemeProvider>);
+    render(<ThemeProvider theme={studioTheme}><ArticleBodyInput {...portableTextProps()} /></ThemeProvider>);
     for (const label of ARTICLE_TOOLBAR_LABELS) expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
     const style = screen.getByRole("combobox", { name: "Paragraph style" });
     expect(style).toHaveValue("normal");
@@ -56,7 +68,20 @@ describe("ArticleBodyInput", () => {
     expect(style.parentElement?.parentElement?.className).toContain("styleSelect");
     for (const word of ["Bold", "Italic", "Bulleted list", "Numbered list", "Footnote", "Image", "Callout"]) expect(toolbar).not.toHaveTextContent(word);
     expect(screen.queryByRole("button", { name: /pull quote/i })).not.toBeInTheDocument();
-    expect(screen.getByText("Start writing or paste the Article here.")).toBeInTheDocument();
+    expect(screen.getByText("Start writing or paste here…")).toBeInTheDocument();
+    expect(screen.queryByText("Empty")).not.toBeInTheDocument();
+    expect(screen.getByTestId("article-body-editor-shell")).toContainElement(toolbar);
+    expect(screen.getByTestId("article-body-editor-shell")).toContainElement(screen.getByTestId("portable-text-editor"));
+  });
+
+  it("passes an existing Portable Text value to the native editor without showing an empty state", () => {
+    const value = [{ _type: "block", _key: "existing", children: [{ _type: "span", _key: "text", text: "Existing Article text remains visible." }] }];
+    const props = portableTextProps(value);
+    render(<ThemeProvider theme={studioTheme}><ArticleBodyInput {...props} /></ThemeProvider>);
+    expect(screen.getByText("Existing Article text remains visible.")).toBeInTheDocument();
+    expect(screen.queryByTestId("pt-input-placeholder")).not.toBeInTheDocument();
+    expect(screen.queryByText("Empty")).not.toBeInTheDocument();
+    expect(vi.mocked(props.renderDefault).mock.calls[0]?.[0]).toEqual(expect.objectContaining({ value }));
   });
 
   it("searches a large Source picker by number or citation", () => {

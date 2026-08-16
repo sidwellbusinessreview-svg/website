@@ -1,6 +1,6 @@
 "use client";
 
-import { defineConfig } from "sanity";
+import { defineConfig, defineLocaleResourceBundle } from "sanity";
 import { structureTool } from "sanity/structure";
 import { presentationTool } from "sanity/presentation";
 import { getSanityEnvironment } from "./src/sanity/env";
@@ -16,6 +16,13 @@ import { ArticleStatusBadge, ContributorAvailabilityBadge, resolveDocumentAction
 
 const environment = getSanityEnvironment();
 const previewOrigin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const articleEditorLocale = defineLocaleResourceBundle({
+  locale: "en-US",
+  namespace: "studio",
+  resources: {
+    "inputs.portable-text.empty-placeholder": "Start writing or paste here…",
+  },
+});
 
 export default environment.configured
   ? defineConfig({
@@ -77,6 +84,7 @@ export default environment.configured
       ],
       releases: { enabled: false },
       scheduledDrafts: { enabled: false },
+      i18n: { bundles: [articleEditorLocale] },
       schema: {
         types: schemaTypes,
         templates: filterSingletonTemplates,

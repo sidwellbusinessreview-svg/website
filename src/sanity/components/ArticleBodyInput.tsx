@@ -12,7 +12,6 @@ import { UndoIcon } from "@sanity/icons/Undo";
 import { UlistIcon } from "@sanity/icons/Ulist";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
-  PortableTextInput,
   useFormValue,
   type EditorChange,
   type PortableTextInputProps,
@@ -256,9 +255,12 @@ export function ArticleBodyInput(props: PortableTextInputProps) {
     props.onPathFocus(["sources"]);
   }, [props]);
 
+  const RenderDefault = props.renderDefault;
+
   return (
     <Stack space={0}>
-      <Card className={styles.toolbarShell} radius={2}>
+      <Card className={styles.editorShell} data-testid="article-body-editor-shell" radius={2}>
+      <div className={styles.toolbarShell}>
       <div aria-label="Article formatting" className={styles.toolbar} data-testid="article-body-toolbar" role="toolbar">
         <span className={styles.toolbarGroup}>
           <ToolbarButton disabled={!editorState.hasSelection || props.readOnly} icon={UndoIcon} label="Undo" onAction={() => runEditorAction((editor) => applyEditorHistory(editor, "undo"))} tooltip="Undo (Cmd/Ctrl+Z)" />
@@ -300,10 +302,10 @@ export function ArticleBodyInput(props: PortableTextInputProps) {
           <ToolbarButton disabled={!editorState.hasSelection || props.readOnly} icon={InfoOutlineIcon} label="Insert callout" onAction={() => insertBlock("callout")} tooltip="Insert callout" />
         </span>
       </div>
-      </Card>
-      <Card className={styles.editorSurface} padding={3}>
-        {(!props.value || props.value.length === 0) && <Text className={styles.emptyHint} muted size={1}>Start writing or paste the Article here.</Text>}
-        <PortableTextInput {...props} editorRef={editorRef} hideToolbar hotkeys={hotkeys} onEditorChange={onEditorChange} />
+      </div>
+      <div className={styles.editorSurface} data-testid="article-body-writing-surface">
+        <RenderDefault {...props} editorRef={editorRef} hideToolbar hotkeys={hotkeys} onEditorChange={onEditorChange} />
+      </div>
       </Card>
       {footnoteOpen && (
         <Dialog header="Choose a Source" id="footnote-source-dialog" onClose={() => setFootnoteOpen(false)} width={1}>
