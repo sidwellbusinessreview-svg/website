@@ -108,7 +108,7 @@ export const article = defineType({
     defineField({ name: "featuredImageAltText", title: "Featured-image alt text", type: "string", group: "article", hidden: ({ document }) => !document?.featuredImage, description: "Required when a featured image is added. Describe the image for someone who cannot see it; do not repeat the caption.", validation: (Rule) => Rule.custom((value, context) => requireAltWhenImagePresent(value, context, "featuredImage")).max(300) }),
     defineField({ name: "featuredImageCaption", title: "Caption", type: "string", group: "article", description: "Optional. Explain what the image shows or why it matters; do not repeat the alt text.", validation: (Rule) => Rule.max(500) }),
     defineField({ name: "featuredImageCredit", title: "Photo credit", type: "string", group: "article", description: "Optional unless rights or editorial policy require a credit. Use the approved photographer or source wording.", validation: (Rule) => Rule.max(300) }),
-    defineField({ name: "body", title: "Article body", type: "articleBody", group: "article", description: "Write or paste the Article below. Use the toolbar for formatting and citations.", validation: (Rule) => Rule.required().min(1).error("Add Article text before publishing.") }),
+    defineField({ name: "body", title: "Article body", type: "articleBody", group: "article", description: "Write or paste the Article below. Use the toolbar for formatting and citations.", validation: (Rule) => [Rule.required().min(1).error("Add Article text before publishing."), Rule.custom(articleBodyMigrationMarkerWarning).warning()] }),
     defineField({ name: "sources", title: "Sources", type: "array", group: "article", description: "Add each Source once. You can cite it multiple times. Published footnote numbers are assigned automatically in reading order; Source-list numbers are lookup aids only.", components: { input: ArticleSourcesInput as never }, of: [defineArrayMember({ type: "object", name: "articleSource", fields: [
       defineField({ name: "citation", title: "Citation", type: "string", validation: (Rule) => Rule.required().custom((value) => typeof value === "string" && value.trim() ? true : "Citation cannot be blank.") }),
       defineField({ name: "url", title: "URL", type: "url", components: { input: SourceUrlInput }, validation: (Rule) => Rule.custom(validateSourceUrl) }),
@@ -123,3 +123,20 @@ export const article = defineType({
   preview: { select: { title: "title", firstContributor: "contributors.0.name", secondContributor: "contributors.1.name", id: "_id", pinned: "pinned", media: "featuredImage" }, prepare: prepareArticlePreview },
   orderings: [{ title: "Publication month", name: "publicationMonth", by: [{ field: "publicationMonth", direction: "desc" }, { field: "slug.current", direction: "asc" }] }],
 });
+
+export function articleBodyMigrationMarkerWarning(value: unknown): true | string {
+  if (!Array.isArray(value)) return true;
+  const count = value.reduce((total, block) => {
+    if (!block || typeof block !== "object" || (block as { _type?: string })._type !== "block") return total;
+    const children = (block as { children?: unknown }).children;
+    if (!Array.isArray(children)) return total;
+    return total + children.reduce((childTotal, child) => {
+      if (!child || typeof child !== "object" || (child as { _type?: string })._type !== "span") return childTotal;
+      const text = (child as { text?: unknown }).text;
+      return childTotal + (typeof text === "string" ? (text.match(/\[\d+\]/g) ?? []).length : 0);
+    }, 0);
+  }, 0);
+  return count === 0
+    ? true
+    : `Found ${count} bracketed citation marker${count === 1 ? "" : "s"} such as [1]. Replace migration markers with Add footnote before publishing.`;
+}

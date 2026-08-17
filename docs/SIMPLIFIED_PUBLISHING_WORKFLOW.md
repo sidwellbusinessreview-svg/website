@@ -68,7 +68,7 @@ Article list panes can be searched by title, subtitle, summary, Contributor, or 
 2. Enter Title and choose **Generate** for the Slug. Enter the required Summary; add a Subtitle only when the Article truly has one.
 3. Select existing Contributors in byline order and choose Publication Month and a four-digit Year.
 4. Add every citation once under **Sources**. URLs are optional but, when present, must begin with `http://` or `https://`.
-5. Paste or write the Article body. Google Docs paragraphs, emphasis, links, and lists are supported; remove pasted footer citations and standalone markers such as `[1]` manually.
+5. Paste or write the Article body. Normal Google Docs paste preserves supported paragraphs, emphasis, links, and lists. Plain-text paste makes each non-empty line a paragraph and collapses repeated blank lines. Bracketed markers such as `[1]` remain visible and produce a warning; replace each with the matching **Footnote** before publishing.
 6. To cite prose or a list item, place the caret immediately after punctuation, click **Footnote** in the visible body toolbar, then select the numbered Source. Do not highlight text and never type a footnote number.
 7. For a quotation that should stand apart, put the caret in its paragraph and choose **Block quote** from **Paragraph style**. Place the caret after its punctuation and click the superscript Footnote icon normally. To cite a Callout, select its Source inside the block.
 8. Save, open Preview, and refresh. Check byline order, Month Year, superscript spacing, Source jumps/backlinks, external links, and mobile wrapping.

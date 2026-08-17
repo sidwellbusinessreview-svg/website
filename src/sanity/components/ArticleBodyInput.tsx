@@ -16,6 +16,7 @@ import {
   type EditorChange,
   type PortableTextInputProps,
 } from "sanity";
+import { createArticlePasteHandler } from "../articlePaste";
 import { footnoteSourceOptions } from "./FootnoteSourceInput";
 import styles from "./ArticleBodyInput.module.css";
 
@@ -238,6 +239,7 @@ export function ArticleBodyInput(props: PortableTextInputProps) {
     props.onEditorChange?.(change, editor);
     refreshState(editor);
   }, [props, refreshState]);
+  const onPaste = useMemo(() => createArticlePasteHandler(props.schemaType, props.onPaste), [props.onPaste, props.schemaType]);
 
   const footnoteDisabled = !editorState.hasTextBlock || props.readOnly;
   const footnoteTooltip = !editorState.hasTextBlock
@@ -304,7 +306,7 @@ export function ArticleBodyInput(props: PortableTextInputProps) {
       </div>
       </div>
       <div className={styles.editorSurface} data-testid="article-body-writing-surface">
-        <RenderDefault {...props} editorRef={editorRef} hideToolbar hotkeys={hotkeys} onEditorChange={onEditorChange} />
+        <RenderDefault {...props} editorRef={editorRef} hideToolbar hotkeys={hotkeys} onEditorChange={onEditorChange} onPaste={onPaste} />
       </div>
       </Card>
       {footnoteOpen && (

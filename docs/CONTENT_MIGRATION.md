@@ -44,6 +44,10 @@ Studio derives and displays that current public occurrence number from the full 
 
 For migration, add Sources from the prepared list, then treat `[7]` as “choose Source 7 here.” Do not type `7` or expect the published Note to display 7: published numbers identify citation occurrences and run 1, 2, 3 in reading order. Ordinary quotations remain paragraphs; visually separated quotations use **Block quote** and the normal Footnote action. Callouts may retain a stable Source reference only when the source evidence is unambiguous.
 
+When manually transferring a plain-text manuscript, every newline becomes a normal Article paragraph; CRLF/CR and tabs are normalized and blank-line runs do not create empty blocks. This remains true when a browser TXT viewer supplies presentation-only PRE or generic wrapper HTML with the plain text. URLs, punctuation, and `[n]` markers remain literal text. The Article warning counts likely markers so editors can replace them deliberately with structured footnotes. Genuine rich-document HTML is converted with schema-aware Portable Text Block Tools. Add Sources individually from reviewed evidence; bulk Source parsing is intentionally unavailable because citations do not have a safe universal delimiter.
+
+Normal manual migration is: open the reviewed body-only `.txt`, copy the body, paste it once into Article body, format only genuine headings and Block quotes, replace each `[n]` with the matching structured Footnote, and preview. Paragraph boundaries are preserved automatically; manually repairing paragraph spacing is neither required nor acceptable as a workaround. Future paragraph collapse is a regression.
+
 ## Backup and approval
 
 Create the ignored production export before apply:

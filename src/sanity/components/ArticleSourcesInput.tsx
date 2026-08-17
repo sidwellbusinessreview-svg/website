@@ -6,7 +6,7 @@ import { ChevronUpIcon } from "@sanity/icons/ChevronUp";
 import { DragHandleIcon } from "@sanity/icons/DragHandle";
 import { EditIcon } from "@sanity/icons/Edit";
 import { TrashIcon } from "@sanity/icons/Trash";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { set, unset, useFormValue, type ArrayOfObjectsInputProps } from "sanity";
 
 export type ArticleSourceValue = {
@@ -77,6 +77,10 @@ export function ArticleSourcesInput(props: ArrayOfObjectsInputProps<ArticleSourc
   const warnings = useMemo(() => sourceRowWarnings(sources, body), [body, sources]);
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [draggedKey, setDraggedKey] = useState<string | null>(null);
+  const citationInputs = useRef(new Map<string, HTMLInputElement>());
+  useEffect(() => {
+    if (expandedKey) citationInputs.current.get(expandedKey)?.focus();
+  }, [expandedKey, sources.length]);
   const commit = (next: ArticleSourceValue[]) => props.onChange(next.length ? set(next) : unset());
   const update = (index: number, field: "citation" | "url", value: string) => {
     const next = sources.map((source, sourceIndex) => {
@@ -131,7 +135,7 @@ export function ArticleSourcesInput(props: ArrayOfObjectsInputProps<ArticleSourc
             {expandedKey === source._key && <>
             <Box>
               <Text as="label" htmlFor={`source-${source._key}-citation`} size={1} weight="medium">Citation</Text>
-              <Box marginTop={2}><TextInput id={`source-${source._key}-citation`} onChange={(event) => update(index, "citation", event.currentTarget.value)} placeholder="Author or organization, title, publication, date" readOnly={props.readOnly} value={source.citation ?? ""} /></Box>
+              <Box marginTop={2}><TextInput id={`source-${source._key}-citation`} onChange={(event) => update(index, "citation", event.currentTarget.value)} placeholder="Author or organization, title, publication, date" readOnly={props.readOnly} ref={(input) => { if (input) citationInputs.current.set(source._key, input); else citationInputs.current.delete(source._key); }} value={source.citation ?? ""} /></Box>
             </Box>
             <Box>
               <Text as="label" htmlFor={`source-${source._key}-url`} size={1} weight="medium">URL <span style={{ fontWeight: 400 }}>(optional)</span></Text>

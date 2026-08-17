@@ -82,6 +82,7 @@ describe("ArticleBodyInput", () => {
     expect(screen.queryByTestId("pt-input-placeholder")).not.toBeInTheDocument();
     expect(screen.queryByText("Empty")).not.toBeInTheDocument();
     expect(vi.mocked(props.renderDefault).mock.calls[0]?.[0]).toEqual(expect.objectContaining({ value }));
+    expect((vi.mocked(props.renderDefault).mock.calls[0]?.[0] as PortableTextInputProps).onPaste).toBeTypeOf("function");
   });
 
   it("searches a large Source picker by number or citation", () => {

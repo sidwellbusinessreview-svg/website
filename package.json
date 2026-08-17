@@ -41,6 +41,7 @@
     "verify": "npm run lint && npm run typecheck && npm run validate:content && npm run test && npm run build"
   },
   "dependencies": {
+    "@portabletext/block-tools": "5.1.10",
     "@sanity/icons": "5.2.1",
     "@sanity/id-utils": "^1.0.0",
     "@sanity/image-url": "^2.1.1",

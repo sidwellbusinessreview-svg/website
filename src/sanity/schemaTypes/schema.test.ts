@@ -4,7 +4,7 @@ import type { DocumentActionComponent } from "sanity";
 import { articleStatusLabel, classifyArticleVersions, searchArticleRecords, sortArticleRecords } from "../articleState";
 import { relabelDiscardAction, relabelPublishAction, resolveDocumentActions, UnpublishArticleAction } from "../documentStatus";
 import { ArticlePermanentDeleteAction, ContributorArchiveAction, ContributorDeleteAction } from "../lifecycleActions";
-import { duplicateSourceWarning, prepareArticlePreview, unusedSourceWarning, validateArticleSlug, validatePublicationMonth, validatePublishedContributors, validateSourceUrl } from "./documents/article";
+import { articleBodyMigrationMarkerWarning, duplicateSourceWarning, prepareArticlePreview, unusedSourceWarning, validateArticleSlug, validatePublicationMonth, validatePublishedContributors, validateSourceUrl } from "./documents/article";
 import { articleBody, footnoteReference, validateOptionalSourceReference, validateSourceReference } from "./objects/articleBody";
 import { schemaTypes } from ".";
 import { validateUniqueStaff } from "./documents/staticPage";
@@ -28,6 +28,11 @@ describe("article document states", () => {
 });
 
 describe("simplified Sanity editor model", () => {
+  it("warns about likely migration citation markers only in ordinary text spans", () => {
+    expect(articleBodyMigrationMarkerWarning([{ _type: "block", children: [{ _type: "span", text: "Claims [1] and [24]." }] }])).toMatch(/2 bracketed citation markers/);
+    expect(articleBodyMigrationMarkerWarning([{ _type: "block", children: [{ _type: "span", text: "No marker." }] }])).toBe(true);
+    expect(articleBodyMigrationMarkerWarning([{ _type: "editorialImage", caption: "Archive image [1]" }])).toBe(true);
+  });
   it("registers no Masthead document", () => expect(schemaTypes.filter((type) => type.type === "document").map((type) => type.name)).toEqual(["siteSettings", "contributor", "article", "staticPage"]));
   it.each(["masthead", "author", "issue", "category", "tag"])("has no legacy %s schema file", (type) => expect(existsSync(`src/sanity/schemaTypes/documents/${type}.ts`)).toBe(false));
   it("keeps the contributor form compact with hidden migration identity", () => { const fields = fieldsFor("contributor"); expect(fields.map(({ name }) => name)).toEqual(["name", "slug", "role", "graduationYear", "active", "migrationSourceId", "importBatchId"]); expect(fields.filter(({ name }) => ["migrationSourceId", "importBatchId"].includes(name)).every(({ readOnly }) => readOnly)).toBe(true); });

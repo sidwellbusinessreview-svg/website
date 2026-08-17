@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { mapArticle } from "@/content/sanity/adapters";
 import { ArticleBody } from "./article-body";
 import { ArticleMeta } from "./article-meta";
+import { plainTextToArticleBlocks } from "@/sanity/articlePaste";
 
 const span = (text: string, marks: string[] = []) => ({ _type: "span", _key: crypto.randomUUID(), text, marks });
 const block = (text: string, additions = {}) => ({ _type: "block", _key: crypto.randomUUID(), style: "normal", children: [span(text)], markDefs: [], ...additions });
@@ -10,6 +11,13 @@ const reference = (sourceKey: string) => ({ _type: "footnoteReference", _key: cr
 
 describe("complete Article authoring contract", () => {
   it("adapts and renders a realistic image-free two-Contributor Article", () => {
+    const pasted = plainTextToArticleBlocks(
+      Array.from({ length: 12 }, (_, index) => `Archive paragraph ${index + 1} preserves smart punctuation—“including quotations”—after plain-text conversion.`).join("\n\n"),
+    );
+    expect(pasted).toHaveLength(12);
+    expect(pasted.every(({ style }) => style === "normal")).toBe(true);
+    pasted[0].children.push(reference("fed") as never);
+    pasted[5].children.push(reference("budget") as never);
     const raw = {
       slug: "market-signals-and-school-budgets",
       title: "Market Signals and School Budgets",
@@ -25,10 +33,9 @@ describe("complete Article authoring contract", () => {
         { key: "budget", citation: "School Finance Association, “Budget Outlook.”" },
       ],
       body: [
-        block("Rates changed after a policy shift.", { children: [span("Rates changed after "), span("a policy", ["strong"]), span(" shift."), reference("fed")] }),
+        ...pasted,
         block("What schools should watch", { style: "h2" }),
-        block("Normal prose resumes after the Section heading."),
-        block("Borrowing costs increased.", { listItem: "bullet", children: [span("Borrowing costs increased."), reference("budget")] }),
+        block("Borrowing costs increased.", { listItem: "bullet", children: [span("Borrowing costs increased."), reference("fed")] }),
         block("Review current obligations.", { listItem: "number" }),
         block("Good planning starts before rates change.", { style: "blockquote", children: [span("Good planning starts before rates change."), reference("fed")] }),
         { _type: "callout", title: "Context", body: [block("Budgets respond with a lag.")], sourceKey: "budget" },
@@ -45,12 +52,11 @@ describe("complete Article authoring contract", () => {
     </>);
     expect(screen.getByText("March 2026")).toBeInTheDocument();
     expect(container.querySelector("time")?.textContent).not.toMatch(/\b\d{1,2},\b/);
-    expect(container.querySelectorAll("sup.footnote-ref")).toHaveLength(4);
-    for (const number of [1, 2, 3, 4]) expect(screen.getByRole("link", { name: `Footnote ${number}` })).toBeInTheDocument();
-    expect(container.querySelectorAll(".article-notes li")).toHaveLength(4);
-    expect(container.querySelector("blockquote")).toHaveTextContent("Good planning starts before rates change.3");
-    expect(container.querySelector("strong")).toHaveTextContent("a policy");
+    expect(container.querySelectorAll("sup.footnote-ref")).toHaveLength(5);
+    for (const number of [1, 2, 3, 4, 5]) expect(screen.getByRole("link", { name: `Footnote ${number}` })).toBeInTheDocument();
+    expect(container.querySelectorAll(".article-notes li")).toHaveLength(5);
+    expect(container.querySelector("blockquote")).toHaveTextContent("Good planning starts before rates change.4");
     expect(container.querySelector("img")).not.toBeInTheDocument();
-    expect(container.querySelector("p")?.innerHTML).toContain(' shift.<sup class="footnote-ref">');
+    expect(container.querySelector("p")?.innerHTML).toContain('<sup class="footnote-ref">');
   });
 });
