@@ -3,7 +3,7 @@ import { getArticleValidationFailures, mapArticle, mapContributor, mapPortableTe
 
 const span = (text: string, marks: string[] = []) => ({ _type: "span", _key: text, text, marks });
 const paragraph = (text: string, overrides = {}) => ({ _type: "block", _key: text, style: "normal", children: [span(text)], markDefs: [], ...overrides });
-const contributor = { slug: "maya-chen", name: "Maya Chen", role: "Editor", graduationYear: 2027, active: true };
+const contributor = { slug: "maya-chen", name: "Maya Chen", graduationYear: 2027, active: true };
 const rawArticle = (overrides = {}) => ({
   slug: "cms-test", title: "CMS Test Article", summary: "A sufficiently complete summary for the public article card.",
   publicationMonth: "2026-05", pinned: false, contributors: [contributor], body: [paragraph("A complete paragraph of test article content for adapter verification.")], ...overrides,
@@ -12,7 +12,7 @@ const stega = (value: string) => `${value}\u200b\u200c\u200d\ufeff\u200b\u200c\u
 
 describe("Sanity domain adapters", () => {
   it("maps published Article and Contributor records into the existing domain", () => {
-    expect(mapContributor(contributor)).toEqual({ slug: "maya-chen", name: "Maya Chen", role: "Editor", grade: "Class of 2027" });
+    expect(mapContributor(contributor)).toEqual({ slug: "maya-chen", name: "Maya Chen", grade: "Class of 2027" });
     expect(mapArticle(rawArticle())).toMatchObject({ slug: "cms-test", contributorSlugs: ["maya-chen"], status: "published" });
   });
   it("uses publicationMonth and supports transitional legacy publicationDate", () => {

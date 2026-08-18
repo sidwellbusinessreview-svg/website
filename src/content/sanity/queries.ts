@@ -14,7 +14,7 @@ const bodyProjection = `body[]{
 const articleProjection = `{
   _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,
   seoTitle,seoDescription,
-  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},
+  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},
   "featuredImage": featuredImage${imageProjection},
   featuredImageAltText,featuredImageCaption,featuredImageCredit,
   sources[]{"key":_key,citation,url},
@@ -53,17 +53,17 @@ export const SEARCH_ARTICLES_QUERY = defineQuery(
 
 export const CONTRIBUTORS_QUERY = defineQuery(`*[
   _type == "contributor" && defined(slug.current)
-]|order(name asc){_id,_type,name,"slug":slug.current,role,graduationYear,active}`);
+]|order(name asc){_id,_type,name,"slug":slug.current,graduationYear,active}`);
 export const CONTRIBUTOR_BY_SLUG_QUERY = defineQuery(`*[
   _type == "contributor" && slug.current == $slug
-][0]{_id,_type,name,"slug":slug.current,role,graduationYear,active}`);
+][0]{_id,_type,name,"slug":slug.current,graduationYear,active}`);
 
 export const STATIC_PAGE_BY_SLUG_QUERY = defineQuery(`*[
   _type == "staticPage" && slug.current == $slug
 ][0]{_id,_type,title,"slug":slug.current,eyebrow,summary,${bodyProjection},
-  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}},
-  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}},
-  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}}
+  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},
+  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},
+  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}}
 }`);
 
 export const articleProjectionForTests = articleProjection;

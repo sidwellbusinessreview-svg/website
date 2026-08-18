@@ -30,7 +30,7 @@ export const staticPage = defineType({
     defineField({ name: "eyebrow", title: "Eyebrow", type: "string", group: "content", validation: (Rule) => Rule.max(80) }),
     defineField({ name: "summary", title: "Summary", type: "text", rows: 3, group: "content", description: "Plain-language page summary used as metadata fallback.", validation: (Rule) => Rule.max(320) }),
     defineField({ name: "body", title: "Page body", type: "articleBody", group: "content", validation: (Rule) => Rule.required().min(1) }),
-    defineField({ name: "editorsInChief", title: "Editors-in-Chief", type: "array", group: "content", components: { input: AboutStaffArrayInput }, of: [editorInChiefEntry()], validation: (Rule) => Rule.unique() }),
+    defineField({ name: "editorsInChief", title: "Editor-in-Chief", type: "array", group: "content", description: "Select the Contributor who should appear as Editor-in-Chief on the About page.", components: { input: AboutStaffArrayInput }, of: [editorInChiefEntry()], validation: (Rule) => Rule.max(1).unique() }),
     defineField({ name: "editors", title: "Editors", type: "array", group: "content", components: { input: AboutStaffArrayInput }, of: [editorEntry()], validation: (Rule) => Rule.unique() }),
     defineField({ name: "facultyAdviser", title: "Faculty Adviser", type: "array", group: "content", components: { input: AboutStaffArrayInput }, of: [facultyAdviserEntry()], validation: (Rule) => Rule.max(1).unique() }),
     defineField({ name: "updatedDate", title: "Last substantive update", type: "datetime", group: "content", description: "Update when policy or institutional information materially changes." }),

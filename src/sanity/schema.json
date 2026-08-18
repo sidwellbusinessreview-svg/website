@@ -1311,13 +1311,6 @@
         },
         "optional": false
       },
-      "role": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "string"
-        },
-        "optional": true
-      },
       "graduationYear": {
         "type": "objectAttribute",
         "value": {

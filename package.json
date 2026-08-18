@@ -36,6 +36,8 @@
     "sanity:audit-contributors": "sanity exec scripts/sanity/audit-malformed-contributors.ts --with-user-token",
     "sanity:cleanup-legacy": "sanity exec scripts/sanity/cleanup-legacy.ts --with-user-token",
     "sanity:cleanup-fields": "sanity exec scripts/sanity/cleanup-obsolete-fields.ts --with-user-token",
+    "sanity:cleanup-contributor-roles": "sanity exec scripts/sanity/cleanup-contributor-roles.ts --with-user-token",
+    "sanity:cleanup-contributor-roles:apply": "sanity exec scripts/sanity/cleanup-contributor-roles.ts --with-user-token -- --apply",
     "sanity:reset-test-content": "sanity exec scripts/sanity/reset-test-content.ts --with-user-token",
     "validate:content": "node --import tsx scripts/validate-content.ts",
     "verify": "npm run lint && npm run typecheck && npm run validate:content && npm run test && npm run build"

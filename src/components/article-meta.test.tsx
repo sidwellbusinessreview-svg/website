@@ -24,13 +24,11 @@ const authors: Contributor[] = [
   {
     slug: "maya-chen",
     name: "Maya Chen",
-    role: "Editor in Chief",
     grade: "Class of 2026",
   },
   {
     slug: "jonah-patel",
     name: "Jonah Patel",
-    role: "Economics Editor",
     grade: "Class of 2027",
   },
 ];

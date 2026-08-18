@@ -14,6 +14,7 @@ describe("runtime content validation", () => {
     }).success).toBe(true);
   });
   it("accepts local content without contributor biographies", () => { const result = validateContentSource(validSource(), new Date("2026-07-16T12:00:00Z")); expect(result.articles).toHaveLength(6); expect(result.contributors).toHaveLength(4); expect(result.contributors.every((contributor) => !("bio" in contributor))).toBe(true); });
+  it("keeps Contributor records free of publication-role metadata", () => { const result = validateContentSource(validSource(), new Date("2026-07-16T12:00:00Z")); expect(result.contributors.every((contributor) => !("role" in contributor))).toBe(true); });
   it("keeps local Contributor identity text-only", () => {
     const result = validateContentSource(validSource(), new Date("2026-07-16T12:00:00Z"));
     expect(result.contributors.every((contributor) => !["initials", "photo", "portrait", "image", "avatar"].some((field) => field in contributor))).toBe(true);

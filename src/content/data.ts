@@ -15,25 +15,21 @@ export const contributors: Contributor[] = [
   {
     slug: "maya-chen",
     name: "Maya Chen",
-    role: "Editor in Chief",
     grade: "Class of 2026",
   },
   {
     slug: "jonah-patel",
     name: "Jonah Patel",
-    role: "Economics Editor",
     grade: "Class of 2027",
   },
   {
     slug: "lena-brooks",
     name: "Lena Brooks",
-    role: "Technology Editor",
     grade: "Class of 2026",
   },
   {
     slug: "samir-okafor",
     name: "Samir Okafor",
-    role: "Staff Writer",
     grade: "Class of 2028",
   },
 ];

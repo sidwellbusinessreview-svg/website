@@ -26,11 +26,10 @@ This provider-independent contract is the Phase 11B source of truth. Sanity reco
 | id | ID | Yes | Stable provider ID | Existing local slug becomes migration key |
 | name | String | Yes | 1–100; public | `Maya Chen` |
 | slug | Slug | Yes | Unique; public URL | Existing `/authors/[slug]` stays compatible |
-| role | String | No | Public when approved | `Staff Writer` |
 | graduationYear | Integer | No | 2000–2200; public when approved | `2027` |
 | active | Boolean | Yes | Defaults true; archived records remain public where referenced | Editor lifecycle state |
 
-The CMS type and local domain type are both `contributor`. The public `/authors/[slug]` route remains for URL continuity, but implementation and content fields use Contributor terminology. Contributor identity is text-only: biography, portrait/photo, avatar, initials artwork, email, and social fields are not part of the launch contract. Article bylines link to text-only Contributor profile pages.
+The CMS type and local domain type are both `contributor`. Contributor records do not store publication roles. Current leadership, including Editor-in-Chief, is configured on the About page through Contributor references. The public `/authors/[slug]` route remains for URL continuity, but implementation and content fields use Contributor terminology. Contributor identity is text-only: biography, portrait/photo, avatar, initials artwork, email, and social fields are not part of the launch contract. Article bylines link to text-only Contributor profile pages.
 
 Active controls eligibility for new Article/About selections, not historical visibility. Archiving never removes an existing byline or contributor history.
 
@@ -61,7 +60,7 @@ Portable Text cursor objects store a source key, never a display number. A Sourc
 
 ## About
 
-`staticPage` is the singleton About document. It contains title, the fixed `about` slug, optional summary, structured mission/body content, updated date, optional SEO, and `editorsInChief`, `editors`, and `facultyAdviser` staff arrays. Each staff entry requires a Contributor reference and permits an optional displayed-role override; Faculty Adviser allows at most one entry. There is no separate Masthead document.
+`staticPage` is the fixed About document. It contains title, the fixed `about` slug, optional summary, structured mission/body content, updated date, optional SEO, and `editorsInChief`, `editors`, and `facultyAdviser` staff arrays. Each staff entry requires a Contributor reference and permits an optional About-only displayed label. Editor-in-Chief and Faculty Adviser each allow at most one entry. Leadership context belongs to this relationship and never changes the referenced Contributor. There is no separate Masthead document.
 
 ## Body blocks and images
 

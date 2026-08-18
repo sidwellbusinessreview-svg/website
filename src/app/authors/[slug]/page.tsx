@@ -28,7 +28,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
       <header className="profile-header contributor-profile-header">
         <p className="eyebrow">Contributor</p>
         <h1>{author.name}</h1>
-        {(author.role || author.grade) && <p>{[author.role, author.grade].filter(Boolean).join(" · ")}</p>}
+        {author.grade && <p>{author.grade}</p>}
       </header>
       <div className="section-title-row"><h2 className="section-title">Articles by {author.name}</h2></div>
       <div className="article-list">

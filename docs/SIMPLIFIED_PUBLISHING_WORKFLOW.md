@@ -5,7 +5,7 @@ Before publishing, use Studio’s **Preview** tool. Draft-only Articles and unpu
 ## First-time contributor setup
 
 1. Open `/studio` and choose **Contributors**.
-2. Create a contributor with Name and generated Slug. Add an optional role or graduation year. Contributor identity is text-only: records do not contain portraits, avatars, initials artwork, photos, or biographies.
+2. Create a contributor with Name and generated Slug. Add an optional graduation year. Contributor records do not store publication roles, portraits, avatars, initials artwork, photos, or biographies.
 3. Review the public spelling and slug.
 4. Select **Publish**. Publishing a contributor creates no article and sends no notification.
 
@@ -15,7 +15,7 @@ Before publishing, use Studio’s **Preview** tool. Draft-only Articles and unpu
 2. Create an Article.
 3. Enter Title, generate the Slug, add optional Subtitle, and write the Summary.
 4. Select one or more published Contributors in byline order.
-   - Choose **Add contributors**, search by name or role, select one or more people, and use **Confirm selection** once.
+   - Choose **Add contributors**, search by name, select one or more people, and use **Confirm selection** once.
    - X, Escape, outside click, or **Cancel** closes the selector without saving.
    - Reorder and remove people with the explicit controls on each text-only byline row. Default Copy, Duplicate, Replace, and Add-before/after menus are intentionally unavailable.
    - If a historical malformed-entry warning appears, use **Repair invalid entries** only after reviewing the retained valid byline. Other valid bylines and their order remain unchanged.
@@ -41,6 +41,8 @@ Before publishing, use Studio’s **Preview** tool. Draft-only Articles and unpu
 4. Use **Publish** for the first version or **Publish changes** for later edits.
 5. **Discard unpublished changes** appears only when a published version also exists. It removes only the draft and immediately returns to the published values.
 6. Delete, permanent delete, duplicate, copy, and unpublish are intentionally unavailable. Clear optional fields manually instead of deleting the fixed page.
+
+On About, select the current Editor-in-Chief through the dedicated Contributor reference. This contextual leadership designation changes only About and never patches the Contributor record.
 
 ## Unpublish an article
 

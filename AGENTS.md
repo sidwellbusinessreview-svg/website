@@ -28,6 +28,7 @@ This is the Sidwell Business Review Phase 1 website. It uses Next.js App Router,
 - When replacing a custom Studio component, delete the prior implementation and its registration after migration. Do not layer a second control over the default control.
 - Keep `SiteLogo` replaceable so an image logo can be introduced later.
 - Contributor identity is text-only. The site does not store or display Contributor portraits, avatars, or initials artwork. Article bylines link to text-only Contributor profile pages.
+- Contributor records never store publication roles. Current leadership, including Editor-in-Chief, is configured only on the About page through Contributor references; never infer it from Contributor metadata, authorship, graduation year, ordering, or a hard-coded name.
 - Do not change Next.js, React, TypeScript, Tailwind, or other framework versions without recording the reason and consequences in `docs/DECISIONS.md`.
 - Custom Sanity inputs must treat form values as untrusted partial data. Never assume array members, references, or nested properties are complete. Validate and normalize values before use, and add regression tests for undefined, null, and incomplete values.
 - Keep the Article formatting toolbar as one compact row at normal laptop widths. Plain inner DOM elements own flex geometry; do not attach critical flex sizing directly to Sanity `Card` or `Select` wrappers, which may retain stretch behavior.

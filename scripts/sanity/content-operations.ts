@@ -7,7 +7,7 @@ export const editorialTypes = new Set([...currentDocumentTypes, ...legacyDocumen
 
 const allowedFields: Record<string, Set<string>> = {
   article: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "title", "slug", "subtitle", "summary", "contributors", "publicationMonth", "publicationDate", "publicationDatePrecision", "sources", "featuredImage", "featuredImageAltText", "featuredImageCaption", "featuredImageCredit", "body", "pinned", "featuredRank", "seoTitle", "seoDescription", "migrationSourceId", "importBatchId"]),
-  contributor: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "name", "slug", "role", "graduationYear", "active", "migrationSourceId", "importBatchId"]),
+  contributor: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "name", "slug", "graduationYear", "active", "migrationSourceId", "importBatchId"]),
   staticPage: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "title", "slug", "eyebrow", "summary", "body", "editorsInChief", "editors", "facultyAdviser", "updatedDate", "seo"]),
   siteSettings: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "publicationName", "shortName", "description", "affiliationText", "tagline", "location", "logoMode", "textWordmark", "logoImage", "logoImageAlt", "contactLabel", "contactTarget", "socialLinks", "defaultSeo", "homepageTagline"]),
 };

@@ -30,7 +30,7 @@ type RawImage = {
   hotspot?: unknown;
   crop?: unknown;
 };
-type RawContributor = { slug?: unknown; name?: unknown; role?: unknown; graduationYear?: unknown; active?: unknown };
+type RawContributor = { slug?: unknown; name?: unknown; graduationYear?: unknown; active?: unknown };
 export type RawSanityArticle = {
   _id?: unknown; slug?: unknown; title?: unknown; subtitle?: unknown; summary?: unknown; publicationMonth?: unknown; publicationDate?: unknown;
   pinned?: unknown; featuredRank?: unknown; contributors?: unknown; featuredImage?: RawImage | null;
@@ -169,7 +169,7 @@ export function mapContributor(value: unknown): Contributor | undefined {
   if (!value || typeof value !== "object") return undefined;
   const raw = value as RawContributor;
   const candidate = {
-    slug: cleanText(raw.slug), name: text(raw.name), role: text(raw.role),
+    slug: cleanText(raw.slug), name: text(raw.name),
     grade: number(raw.graduationYear) ? `Class of ${number(raw.graduationYear)}` : undefined,
   };
   const parsed = contributorSchema.safeParse(stegaClean(candidate));

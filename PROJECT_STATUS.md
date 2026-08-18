@@ -2,6 +2,8 @@
 
 ## Phase 14 archive migration intake
 
+- **Phase 14M Contributor-role removal implemented in code; stored cleanup permission-blocked:** Contributor publication roles were removed from the schema, Studio forms/previews/lists/pickers, canonical types, adapters, GROQ projections, public Contributor UI, local fixtures, search assumptions, and archive migration writes. About retains its independent, single Editor-in-Chief Contributor reference and optional About-only displayed label; no leadership is inferred from Contributor data. The authenticated dry run found `role` on ten published Contributors and no draft Contributors, recorded pre-change values/checksums, and confirmed the narrow plan. A production export was created, but Sanity rejected the atomic transaction because the signed-in CLI account lacks `update`; no record was changed. The post-cleanup zero-result acceptance remains blocked until an authorized account runs the guarded apply. No Contributor identity or Article relationship was changed. Phase 15 has not begun.
+
 - **Intake complete; guarded pilot preparation underway:** August 5, 2026. Phase 13 is committed and Phase 15 has not begun.
 - Received and validated eight unique source Articles in the supplied migration-preparation bundle. No source Article, Contributor, or asset has been imported, created, patched, deleted, restored, or published in Sanity.
 - Added one source-evidence-first staging workflow with immutable input, stable source IDs, normalized structured bodies, checksums, proposed summaries requiring editorial review, review reports, a blocked pilot manifest, and rollback mappings.
@@ -205,7 +207,7 @@
 
 - **Completed:** July 19, 2026
 - Finalized the project-wide rule that Contributor identity is text-only. Removed local initials data/schema support, the public Contributor identity component, About initials shapes, the Article-body Contributor sidebar, and every About portrait/portrait-alt schema, Studio, type, validation, and upload path.
-- Article pages now contain one identity location: the linked byline under the headline, in explicit byline order. Contributor profiles use a compact name/role/year header followed immediately by “Articles by …”. About staff uses linked text cards with role/year metadata and a clear absent-adviser state.
+- Article pages now contain one identity location: the linked byline under the headline, in explicit byline order. Contributor profiles use a compact name/year header followed immediately by “Articles by …”. About staff uses linked text cards with About-only context/year metadata and a clear absent-adviser state.
 - Preserved optional Article featured/inline images, publication logo assets, editorial image validation, and intentional image-free Article layouts.
 - Extended guarded obsolete-field cleanup to dry-run nested About portrait fields without deleting assets. No dataset content was mutated, deleted, reset, or published.
 - The authenticated production dry run found no obsolete Contributor photo or About portrait fields, so no document cleanup is required. One unreferenced image asset remains informational and was not deleted or assumed to be a former staff portrait.
@@ -254,7 +256,7 @@
 - Rebuilt permanent deletion and unpublishing confirmations with centered Sanity UI dialogs, explicit cancellation, destructive labels, loading/error states, and a final contributor-reassignment confirmation.
 - Contributor reassignment preserves byline order, removes duplicates, patches draft/published references, rechecks incoming references, and deletes only after resolution.
 - Added polished Studio article-state and incoming-reference cards, contributor availability badges, exact `Published with unpublished changes` wording, and direct New article creation.
-- Reduced Contributor to name, slug, role, graduation year, and active state; removed the legacy photo field and kept biography absent.
+- Reduced Contributor to name, slug, graduation year, and active state; removed the legacy photo and publication-role fields and kept biography absent.
 - Split About staff entries by role. Phase 11H subsequently removed the temporary Editor-in-Chief portrait fields.
 - Made article featured images optional and made public article/card/metadata rendering safe when they are absent.
 - Added JPEG/PNG/WebP schema validation by MIME type and filename extension; PDFs, SVGs, GIFs, and mismatched extensions are rejected.
@@ -298,7 +300,7 @@
 
 - **Completed:** July 17, 2026
 - **Historical note:** Phase 11C supersedes the separate Masthead and biography-related presentation described in this section.
-- Replaced the CMS Author concept with Contributor; only name and slug are required, while role and graduation year are optional. Phase 11H made identity permanently text-only.
+- Replaced the CMS Author concept with Contributor; only name and slug are required, while graduation year is optional. Phase 11H made identity permanently text-only, and Phase 14M removed publication roles.
 - Added a separate singleton Masthead with Editors-in-Chief, Editors, and Faculty Adviser sections.
 - Simplified articles to date-only publication, contributor references, separate featured-image metadata, structured body, homepage placement, and optional advanced SEO overrides.
 - Removed issue, category, and tag schemas, article fields, Studio sections, public issue routes, discovery filters, and homepage issue module.

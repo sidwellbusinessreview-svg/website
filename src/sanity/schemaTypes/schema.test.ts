@@ -35,8 +35,13 @@ describe("simplified Sanity editor model", () => {
   });
   it("registers no Masthead document", () => expect(schemaTypes.filter((type) => type.type === "document").map((type) => type.name)).toEqual(["siteSettings", "contributor", "article", "staticPage"]));
   it.each(["masthead", "author", "issue", "category", "tag"])("has no legacy %s schema file", (type) => expect(existsSync(`src/sanity/schemaTypes/documents/${type}.ts`)).toBe(false));
-  it("keeps the contributor form compact with hidden migration identity", () => { const fields = fieldsFor("contributor"); expect(fields.map(({ name }) => name)).toEqual(["name", "slug", "role", "graduationYear", "active", "migrationSourceId", "importBatchId"]); expect(fields.filter(({ name }) => ["migrationSourceId", "importBatchId"].includes(name)).every(({ readOnly }) => readOnly)).toBe(true); });
+  it("keeps the contributor form role-free with hidden migration identity", () => { const fields = fieldsFor("contributor"); expect(fields.map(({ name }) => name)).toEqual(["name", "slug", "graduationYear", "active", "migrationSourceId", "importBatchId"]); expect(fields.filter(({ name }) => ["migrationSourceId", "importBatchId"].includes(name)).every(({ readOnly }) => readOnly)).toBe(true); });
   it("places staff sections on About", () => expect(fieldsFor("staticPage").map(({ name }) => name)).toEqual(expect.arrayContaining(["editorsInChief", "editors", "facultyAdviser"])));
+  it("keeps About leadership contextual and allows only one Editor-in-Chief", () => {
+    const field = fieldsFor("staticPage").find(({ name }) => name === "editorsInChief") as RawField & { validation?: Array<{ _rules?: Array<{ flag?: string; constraint?: number }> }> };
+    expect(field.of?.[0].fields?.map(({ name }) => name)).toEqual(["contributor", "displayedRole"]);
+    expect(JSON.stringify(field)).not.toContain('"role"');
+  });
   it("has no Contributor or About person-image fields", () => {
     expect(fieldsFor("contributor").map(({ name }) => name)).not.toEqual(expect.arrayContaining(["photo", "image", "portrait", "avatar"]));
     const staffFields = fieldsFor("staticPage").filter(({ name }) => ["editorsInChief", "editors", "facultyAdviser"].includes(name)).flatMap(({ of }) => of?.flatMap(({ fields }) => fields ?? []) ?? []);

@@ -21,7 +21,7 @@ Contributors default to active. Use **Archive contributor** for ordinary offboar
 
 ## About
 
-About combines the publication mission/body with text-only Editors-in-Chief, Editors, and Faculty Adviser sections. Each staff entry references a Contributor and may supply an optional displayed role for that roster entry. No staff entry has an image, portrait, avatar, or initials field. Contributor roles and About roles may differ. There is no separate Masthead document or public Masthead route.
+About combines the publication mission/body with text-only Editor-in-Chief, Editors, and Faculty Adviser sections. Each staff entry references a Contributor and may supply an optional About-only displayed label. Editor-in-Chief and Faculty Adviser each select at most one Contributor. No staff entry has an image, portrait, avatar, or initials field. Contributor records do not store publication roles; leadership changes only on About. There is no separate Masthead document or public Masthead route.
 
 ## Durable fixed pages
 
@@ -35,7 +35,7 @@ The main Article group follows the writing workflow: Title, Slug, optional Subti
 
 Structure is the authoring workspace for metadata, body, Sources, and footnotes. Preview is the reader-facing review workspace for dates, citation jumps, Notes, and layout.
 
-Contributor selection is one authoritative custom array input. It does not render Sanity's default **Add item** control or default item menus. **Add contributors** opens a searchable multi-select of active published Contributors showing name, role, and graduation year. Selection stays temporary until **Confirm selection**; X, Escape, outside click, and **Cancel** make no content change. Confirmed references receive stable keys, duplicates are blocked, and explicit text controls handle opening, removing, and reordering byline rows without avatars.
+Contributor selection is one authoritative custom array input. It does not render Sanity's default **Add item** control or default item menus. **Add contributors** opens a name-searchable multi-select of active published Contributors showing name and optional graduation year. Selection stays temporary until **Confirm selection**; X, Escape, outside click, and **Cancel** make no content change. Confirmed references receive stable keys, duplicates are blocked, and explicit text controls handle opening, removing, and reordering byline rows without avatars.
 
 About staff sections use the same confirmed picker. Editors-in-Chief and Editors allow multiple selections; Faculty Adviser allows one. Selected and candidate rows are entirely text-based.
 

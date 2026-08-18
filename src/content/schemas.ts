@@ -154,7 +154,6 @@ export const articleSchema = z
 export const contributorSchema = z.object({
   slug: slugSchema,
   name: z.string().trim().min(1).max(100),
-  role: z.string().trim().min(1).max(100).optional(),
   grade: z.string().trim().min(1).max(100).optional(),
 });
 

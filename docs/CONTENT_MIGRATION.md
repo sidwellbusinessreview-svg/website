@@ -4,6 +4,8 @@ Phase 14 uses a source-evidence-first workflow. The supplied archive remains unc
 
 No Issues, Categories, or Tags are inferred from source sections. No Article image is assigned until a human confirms its mapping, reuse permission, alt text, caption, and credit.
 
+Contributor migration retains name, slug, optional graduation year, active state, and migration identity only. It never imports, defaults, or infers a publication role. Current leadership, including Editor-in-Chief, is configured separately on About through Contributor references.
+
 ## Commands
 
 ```bash

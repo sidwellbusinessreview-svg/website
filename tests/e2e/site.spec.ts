@@ -115,7 +115,7 @@ test("About contains staff sections and Masthead is removed", async ({ page }) =
     page.getByRole("heading", { name: "Serious curiosity, clearly expressed." }),
   ).toBeVisible();
 
-  await expect(page.getByRole("heading", { name: "Editors-in-Chief" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Editor-in-Chief" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Editors", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Faculty Adviser" })).toBeVisible();
   await expect(page.locator(".about-staff-grid img")).toHaveCount(0);

@@ -16,7 +16,7 @@ type Frontmatter = {
   migrationStatus: string; sourcePdf: string; issuePages: number[];
 };
 export type StagedContributor = {
-  sourceId: string; name: string; slug: string; graduationYear?: number; role?: string;
+  sourceId: string; name: string; slug: string; graduationYear?: number;
   active: true; sourceArticleIds: string[]; identityWarnings: string[];
 };
 export type StagedBlock =
@@ -428,7 +428,7 @@ export async function applyPilot(options: { client: MigrationClient; plan: Migra
   for (const mapping of actions) {
     const contributor = contributorById.get(mapping.sourceId);
     const article = pilotArticles.find(({ sourceId: id }) => id === mapping.sourceId);
-    const attributes = contributor ? { _id: mapping.draftId, _type: "contributor", name: contributor.name, slug: { _type: "slug", current: contributor.slug }, graduationYear: contributor.graduationYear, role: contributor.role, active: contributor.active, migrationSourceId: contributor.sourceId, importBatchId: IMPORT_BATCH_ID }
+    const attributes = contributor ? { _id: mapping.draftId, _type: "contributor", name: contributor.name, slug: { _type: "slug", current: contributor.slug }, graduationYear: contributor.graduationYear, active: contributor.active, migrationSourceId: contributor.sourceId, importBatchId: IMPORT_BATCH_ID }
       : article ? { _id: mapping.draftId, _type: "article", title: article.title, slug: { _type: "slug", current: article.slug }, summary: article.proposedSummary.text, contributors: article.contributorSourceIds.map((_ref, index) => ({ _type: "reference", _key: `c${index}`, _ref })), publicationMonth: article.publicationMonth, sources: article.sources.map((source) => ({ _type: "articleSource", _key: source.key, citation: source.citation, url: source.url })), body: portableBody(article.structuredBody), pinned: false, migrationSourceId: article.sourceId, importBatchId: IMPORT_BATCH_ID }
       : undefined;
     if (!attributes) throw new Error(`Missing staged document for ${mapping.sourceId}`);

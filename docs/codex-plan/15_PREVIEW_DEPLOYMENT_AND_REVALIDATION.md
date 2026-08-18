@@ -291,7 +291,7 @@ On the Vercel Preview URL:
 6. Verify hosted revalidation.
 7. Restore the Article.
 8. Unpublish and republish a disposable test Article.
-9. Publish a Contributor role change and confirm public update.
+9. Publish a Contributor graduation-year change and confirm public update.
 10. Publish an About change and restore it.
 11. Verify Search, Archive, sitemap, and feed.
 12. Verify clean-browser authentication.

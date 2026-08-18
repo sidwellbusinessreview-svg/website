@@ -19,5 +19,11 @@ describe("public Sanity queries", () => {
     expect(articleProjectionForTests).not.toContain("contributors[active");
     expect(CONTRIBUTORS_QUERY).not.toMatch(/active\s*==\s*true/);
   });
+  it("does not project publication-role metadata from Contributors", () => {
+    for (const query of [articleProjectionForTests, CONTRIBUTORS_QUERY, STATIC_PAGE_BY_SLUG_QUERY]) {
+      expect(query).not.toMatch(/(?:^|[,\s{])role(?:[,\s}])/);
+    }
+    expect(STATIC_PAGE_BY_SLUG_QUERY).toContain("displayedRole");
+  });
   it("uses deterministic month ordering with the transitional legacy fallback", () => expect(ALL_PUBLISHED_ARTICLES_QUERY).toContain("coalesce(publicationMonth,publicationDate) desc, slug.current asc"));
 });
