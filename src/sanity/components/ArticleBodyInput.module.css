@@ -87,6 +87,12 @@
   transform: translateY(-0.12em);
 }
 
+.footnotePopover {
+  width: clamp(20rem, 28vw, 27.5rem);
+  max-width: calc(100vw - 2rem);
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 42rem) {
   .toolbarShell {
     position: static;

@@ -19,8 +19,8 @@ This is the Sidwell Business Review Phase 1 website. It uses Next.js App Router,
 - Preserve the content-provider boundary: pages and general components must use the access functions exported by `src/content/index.ts`, not import raw arrays or couple themselves directly to a future CMS.
 - Keep Sanity client/schema infrastructure in `src/sanity/`, provider queries/adapters in `src/content/sanity/`, Studio configuration in `sanity.config.ts`, and the embedded Studio at `/studio`.
 - Never bypass `src/content/index.ts`. Keep both providers conforming to `ContentProvider`; `CONTENT_SOURCE=local` is a temporary rollback mode and production must use `sanity` after migration acceptance.
-- The provider contract contains only Site Settings, Articles, Contributors, About, Archive, and Search. Do not add Issue, Category, Tag, Masthead, biography, or person-image compatibility methods or queries.
-- Treat About (`about`) and Site Settings (`siteSettings`) as durable fixed-ID pages. Never expose delete, duplicate, copy, unpublish, or draft-only discard actions for them. Run the authenticated `npm run sanity:audit-pages` after lifecycle changes.
+- The provider contract contains only Publication Settings, Articles, Contributors, About, Archive, and Search. About is a public projection of Publication Settings, not a separate CMS document. Do not add Issue, Category, Tag, Masthead, biography, or person-image compatibility methods or queries.
+- Treat Publication Settings (`siteSettings`) as the durable fixed-ID page. Never expose delete, duplicate, copy, unpublish, or draft-only discard actions for it. Run the authenticated `npm run sanity:audit-pages` after lifecycle changes.
 - Public Sanity clients must never include tokens. Draft/read tokens are server-only and must not be imported by client components or `sanity.config.ts`.
 - Maintain the typed block model in `src/content/types.ts` when adding article formats.
 - Reuse existing components before creating route-specific duplicates.
@@ -41,7 +41,7 @@ This is the Sidwell Business Review Phase 1 website. It uses Next.js App Router,
 - Treat stega as display metadata, not domain data. Preserve it on visible editorial strings for Presentation, but clean it before schema validation, slug/date/URL handling, comparisons, filtering, and route construction. Use `npm run sanity:diagnose-preview` after preview-provider changes.
 - Preview exit must leave the Presentation iframe via top-level navigation. Document that Draft Mode is shared by all localhost tabs in the same browser session and that true public comparison requires a Guest or Private browser.
 - Site-wide header, footer, logo, JSON-LD, and root metadata must consume `getSiteSettings()` through the selected provider, not import display values directly from `siteConfig`. `siteConfig` remains the validated fallback and source of non-editorial structural defaults.
-- In the CMS adapter, required Article `summary` supplies the domain `dek`; optional `subtitle` must not cause a complete draft-only Article to fail routing. Presentation locations must send Site Settings to **Homepage and site settings** (`/`) and Articles to their clean slug routes.
+- In the CMS adapter, required Article `summary` supplies the domain `dek`; optional `subtitle` must not cause a complete draft-only Article to fail routing. Presentation locations must send Publication Settings to Homepage and `/about`, and Articles to their clean slug routes.
 
 ### Schema-removal policy
 

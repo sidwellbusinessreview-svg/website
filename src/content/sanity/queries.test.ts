@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   ALL_PUBLISHED_ARTICLES_QUERY, ARTICLE_BY_SLUG_QUERY, ARTICLES_BY_CONTRIBUTOR_QUERY,
-  CONTRIBUTORS_QUERY, SEARCH_ARTICLES_QUERY, STATIC_PAGE_BY_SLUG_QUERY,
+  CONTRIBUTORS_QUERY, SEARCH_ARTICLES_QUERY, SITE_SETTINGS_QUERY,
   articleProjectionForTests,
 } from "./queries";
 
 describe("public Sanity queries", () => {
-  it.each([ALL_PUBLISHED_ARTICLES_QUERY, ARTICLE_BY_SLUG_QUERY, ARTICLES_BY_CONTRIBUTOR_QUERY, SEARCH_ARTICLES_QUERY, CONTRIBUTORS_QUERY, STATIC_PAGE_BY_SLUG_QUERY])("delegates visibility to the client perspective", (query) => {
+  it.each([ALL_PUBLISHED_ARTICLES_QUERY, ARTICLE_BY_SLUG_QUERY, ARTICLES_BY_CONTRIBUTOR_QUERY, SEARCH_ARTICLES_QUERY, CONTRIBUTORS_QUERY, SITE_SETTINGS_QUERY])("delegates visibility to the client perspective", (query) => {
     expect(query).not.toContain('path("drafts.**")');
   });
   it("projects only public image metadata and resolved contributors", () => {
@@ -20,10 +20,10 @@ describe("public Sanity queries", () => {
     expect(CONTRIBUTORS_QUERY).not.toMatch(/active\s*==\s*true/);
   });
   it("does not project publication-role metadata from Contributors", () => {
-    for (const query of [articleProjectionForTests, CONTRIBUTORS_QUERY, STATIC_PAGE_BY_SLUG_QUERY]) {
+    for (const query of [articleProjectionForTests, CONTRIBUTORS_QUERY, SITE_SETTINGS_QUERY]) {
       expect(query).not.toMatch(/(?:^|[,\s{])role(?:[,\s}])/);
     }
-    expect(STATIC_PAGE_BY_SLUG_QUERY).toContain("displayedRole");
+    expect(SITE_SETTINGS_QUERY).toContain("displayedRole");
   });
   it("uses deterministic month ordering with the transitional legacy fallback", () => expect(ALL_PUBLISHED_ARTICLES_QUERY).toContain("coalesce(publicationMonth,publicationDate) desc, slug.current asc"));
 });

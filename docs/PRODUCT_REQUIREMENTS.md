@@ -25,7 +25,7 @@ Writers do not need repository or Studio accounts. Editors create and publish a 
 - **Latest/archive:** all published articles newest first. Archive filtering is limited to school year and contributor for expected launch scale.
 - **Article:** title, optional subtitle, summary, contributors, Month Year publication date, featured image metadata, structured body, optional homepage placement, and automatic SEO defaults. Estimated reading time and word count are excluded.
 - **Contributor:** public name, optional graduation year, and all published articles. Contributor records never store publication roles. Identity is text-only; photos, portraits, avatars, initials artwork, biography, and personal contact information are excluded.
-- **About:** mission and publication information followed by Editor-in-Chief, Editors, and Faculty Adviser. Staff entries reference Contributors and may carry an About-only displayed label. Current leadership is configured here, independently of Contributor records.
+- **About:** mission and publication information followed by Editor-in-Chief or Editors-in-Chief, Editors, and Faculty Adviser. Publication Settings owns this content. Ordered staff entries reference Contributors and may carry an About-only displayed label; leadership remains independent of Contributor records.
 - **Search/Not found:** accessible, resilient, useful recovery behavior; search covers public title, summary, contributor, and body text.
 
 ## Content and media rules

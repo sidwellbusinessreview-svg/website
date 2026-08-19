@@ -53,7 +53,7 @@ describe("Sanity content provider", () => {
       { next: { revalidate: 300, tags: ["content", "articles", "contributors", "contributor-articles:person"] } },
       { next: { revalidate: 300, tags: ["content", "contributors", "contributor:person"] } },
       { next: { revalidate: 300, tags: ["content", "articles", "contributors", "search"] } },
-      { next: { revalidate: 300, tags: ["content", "pages", "page:about"] } },
+      { next: { revalidate: 300, tags: ["content", "pages", "settings"] } },
     ]));
   });
   it("fails clearly instead of falling back when Sanity configuration is missing", () => {

@@ -1,5 +1,9 @@
 # Content provider
 
+## Phase 14N Publication Settings projection
+
+Sanity stores global settings, About content, and leadership in fixed document `siteSettings`. `SITE_SETTINGS_QUERY` projects both site-wide and About fields; there is no standalone About GROQ query. `getStaticPageBySlug("about")` adapts that projection into the existing public About domain contract, preserving the provider boundary and `/about` route while removing the obsolete CMS document. Preview selects the draft overlay of the same record; public reads remain published, token-free, and cached.
+
 ## Architecture
 
 Public pages call asynchronous functions in `src/content/index.ts`. That module selects one implementation of the stable `ContentProvider` interface in `src/content/provider.ts`:
@@ -63,7 +67,7 @@ The endpoint code is complete, but hosted webhook configuration and end-to-end h
 
 A query failure becomes a generic `ContentProviderError`; upstream details are logged only outside production. App Router error boundaries prevent raw stacks reaching visitors. Rollback is an intentional deployment change to `CONTENT_SOURCE=local`, not an automatic response to an outage.
 
-About and Site Settings are optional from the public provider's perspective during recovery. A missing published About document uses the controlled local About copy and roster empty states; missing optional Site Settings use validated application configuration. Draft singleton content is never read publicly.
+Publication Settings is optional from the public provider's perspective during recovery. Missing published settings use validated application identity defaults and the controlled local About copy/roster empty states. Draft Publication Settings content is never read publicly.
 
 ## Images and search
 

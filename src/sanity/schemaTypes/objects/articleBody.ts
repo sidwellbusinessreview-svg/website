@@ -101,10 +101,11 @@ export const articleBody = defineType({
 
 export const footnoteReference = defineType({
   name: "footnoteReference",
-  title: "Add footnote",
+  title: "footnote",
   type: "object",
+  options: { modal: { type: "popover", width: 1 } },
   components: { preview: FootnotePreview },
-  description: "Choose the Source for this citation. The website assigns a new footnote number from reading order for every use.",
+  description: "Choose the Source for this footnote. Published numbers follow reading order.",
   fields: [defineField({
     name: "sourceKey", title: "Source", type: "string",
     description: "Choose the citation this footnote should use. Do not type a number or brackets.",

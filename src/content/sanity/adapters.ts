@@ -81,7 +81,6 @@ function safeMarkHref(mark: RawMark | undefined): string | undefined {
   const internalType = cleanText(mark?.internalType);
   if (internalType === "article") return `/articles/${slug}`;
   if (internalType === "contributor") return `/authors/${slug}`;
-  if (internalType === "staticPage") return `/${slug}`;
   return undefined;
 }
 
@@ -249,7 +248,7 @@ function staff(value: unknown): StaffEntry[] {
 
 export function mapStaticPage(value: unknown): StaticPageContent | undefined {
   if (!value || typeof value !== "object") return undefined;
-  const raw = value as Record<string, unknown>; const slug = cleanText(raw.slug); const title = text(raw.title); const body = mapPortableText(raw.body);
-  if (!slug || !title || !body.length) return undefined;
-  return { slug, title, ...(text(raw.eyebrow) ? { eyebrow: text(raw.eyebrow) } : {}), ...(text(raw.summary) ? { summary: text(raw.summary) } : {}), body, staff: { editorsInChief: staff(raw.editorsInChief), editors: staff(raw.editors), facultyAdviser: staff(raw.facultyAdviser) } };
+  const raw = value as Record<string, unknown>; const title = text(raw.aboutTitle); const body = mapPortableText(raw.aboutBody);
+  if (!title || !body.length) return undefined;
+  return { slug: "about", title, ...(text(raw.aboutEyebrow) ? { eyebrow: text(raw.aboutEyebrow) } : {}), ...(text(raw.aboutSummary) ? { summary: text(raw.aboutSummary) } : {}), body, staff: { editorsInChief: staff(raw.editorsInChief), editors: staff(raw.editors), facultyAdviser: staff(raw.facultyAdviser) } };
 }

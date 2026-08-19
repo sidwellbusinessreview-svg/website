@@ -169,7 +169,7 @@ describe("Sanity domain adapters", () => {
     expect(warning).toHaveBeenCalled(); warning.mockRestore();
   });
   it("maps static About staff references without provider shapes leaking", () => {
-    expect(mapStaticPage({ slug: "about", title: "About", body: [paragraph("Mission statement")], editorsInChief: [{ contributor, displayedRole: "Editor-in-Chief" }] }))
+    expect(mapStaticPage({ aboutTitle: "About", aboutBody: [paragraph("Mission statement")], editorsInChief: [{ contributor, displayedRole: "Editor-in-Chief" }] }))
       .toMatchObject({ slug: "about", staff: { editorsInChief: [{ contributorSlug: "maya-chen", displayedRole: "Editor-in-Chief" }] } });
   });
 });

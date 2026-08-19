@@ -44,7 +44,7 @@ export const ContributorDeleteAction: DocumentActionComponent = (props: Document
     setOpen(true);
   };
   const articles = references?.filter(({ _type }) => _type === "article") ?? [];
-  const about = references?.filter(({ _type }) => _type === "staticPage") ?? [];
+  const about = references?.filter(({ _type }) => _type === "siteSettings") ?? [];
   const removeAboutAndDelete = async () => {
     try { setBusy(true); setError("");
       let transaction = client.transaction();
@@ -84,7 +84,7 @@ export const ContributorDeleteAction: DocumentActionComponent = (props: Document
       type: "dialog", header: confirmReassignment ? "Confirm reassignment and deletion" : "Delete contributor", onClose: () => { if (!busy) { setOpen(false); setConfirmReassignment(false); setError(""); } },
       content: <Box padding={4}><Stack space={4}>
         <Text>{confirmReassignment ? "This will replace the contributor on every referenced draft and published article, verify that no references remain, and then permanently delete the contributor. This cannot be undone." : articles.length ? `This contributor is used by ${articles.length} ${articles.length === 1 ? "article" : "articles"} and cannot be deleted until those bylines are resolved.` : about.length ? "This contributor is used only by the About page." : "This contributor has no incoming references."}</Text>
-        {!confirmReassignment && [...articles, ...about].map((reference) => <Card key={reference._id} border padding={3} radius={2}><Flex align="center" justify="space-between" gap={3}><IntentLink intent="edit" params={{ id: reference._id.replace(/^drafts\./, ""), type: reference._type }}>{reference.title || "About"}</IntentLink><Text muted size={1}>{reference._id.startsWith("drafts.") ? "Unpublished changes" : "Published"}</Text></Flex></Card>)}
+        {!confirmReassignment && [...articles, ...about].map((reference) => <Card key={reference._id} border padding={3} radius={2}><Flex align="center" justify="space-between" gap={3}><IntentLink intent="edit" params={{ id: reference._id.replace(/^drafts\./, ""), type: reference._type }}>{reference.title || "Publication Settings"}</IntentLink><Text muted size={1}>{reference._id.startsWith("drafts.") ? "Unpublished changes" : "Published"}</Text></Flex></Card>)}
         {!confirmReassignment && articles.length > 0 && <Stack space={3}>
           <Button disabled={busy} mode="ghost" text="Archive contributor (recommended)" onClick={archive} />
           {replacement ? <Card border padding={3} radius={2}><Stack space={2}><Text weight="semibold">{replacement.name}</Text>{contributorSecondaryLine(replacement) && <Text muted size={1}>{contributorSecondaryLine(replacement)}</Text>}<Flex><Button mode="bleed" text="Change replacement" onClick={() => setPickerOpen(true)} /></Flex></Stack></Card> : <Flex><Button text="Choose replacement contributor" onClick={() => setPickerOpen(true)} /></Flex>}

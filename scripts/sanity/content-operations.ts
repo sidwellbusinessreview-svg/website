@@ -1,15 +1,14 @@
 export type RawDocument = Record<string, unknown> & { _id: string; _type: string; title?: string; name?: string };
 
-export const currentDocumentTypes = new Set(["article", "contributor", "staticPage", "siteSettings"]);
-export const legacyDocumentTypes = new Set(["masthead", "author", "issue", "category", "tag"]);
-export const legacySingletonIds = new Set(["masthead"]);
+export const currentDocumentTypes = new Set(["article", "contributor", "siteSettings"]);
+export const legacyDocumentTypes = new Set(["masthead", "author", "issue", "category", "tag", "staticPage"]);
+export const legacySingletonIds = new Set(["masthead", "about"]);
 export const editorialTypes = new Set([...currentDocumentTypes, ...legacyDocumentTypes]);
 
 const allowedFields: Record<string, Set<string>> = {
   article: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "title", "slug", "subtitle", "summary", "contributors", "publicationMonth", "publicationDate", "publicationDatePrecision", "sources", "featuredImage", "featuredImageAltText", "featuredImageCaption", "featuredImageCredit", "body", "pinned", "featuredRank", "seoTitle", "seoDescription", "migrationSourceId", "importBatchId"]),
   contributor: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "name", "slug", "graduationYear", "active", "migrationSourceId", "importBatchId"]),
-  staticPage: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "title", "slug", "eyebrow", "summary", "body", "editorsInChief", "editors", "facultyAdviser", "updatedDate", "seo"]),
-  siteSettings: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "publicationName", "shortName", "description", "affiliationText", "tagline", "location", "logoMode", "textWordmark", "logoImage", "logoImageAlt", "contactLabel", "contactTarget", "socialLinks", "defaultSeo", "homepageTagline"]),
+  siteSettings: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "publicationName", "shortName", "description", "affiliationText", "tagline", "location", "logoMode", "textWordmark", "logoImage", "logoImageAlt", "contactLabel", "contactTarget", "socialLinks", "defaultSeo", "homepageTagline", "aboutTitle", "aboutEyebrow", "aboutSummary", "aboutBody", "editorsInChief", "editors", "facultyAdviser", "aboutUpdatedDate", "aboutSeo"]),
 };
 
 export type Reference = { sourceId: string; targetId: string; path: string };
@@ -82,7 +81,7 @@ export function planFieldCleanup(documents: RawDocument[]): FieldCleanupPatch[] 
   };
   return documents.flatMap((document) => {
     const unset = (obsoleteByType[document._type] ?? []).filter((field) => field in document);
-    if (document._type === "staticPage") {
+    if (document._type === "siteSettings") {
       for (const field of ["editorsInChief", "editors", "facultyAdviser"]) {
         const entries = document[field];
         if (!Array.isArray(entries)) continue;
@@ -130,7 +129,7 @@ export function replaceContributorReferences(refs: Array<{ _key?: string; _ref: 
 
 export function contributorDeletionCase(references: Array<{ _type: string }>): "none" | "aboutOnly" | "articles" {
   if (references.some(({ _type }) => _type === "article")) return "articles";
-  if (references.some(({ _type }) => _type === "staticPage")) return "aboutOnly";
+  if (references.some(({ _type }) => _type === "siteSettings")) return "aboutOnly";
   return "none";
 }
 

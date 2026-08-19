@@ -1,5 +1,13 @@
 # Testing
 
+## Phase 14N manual acceptance
+
+Hard-refresh Studio and confirm Structure shows one **Publication Settings** entry and no separate About or Site Settings entries. Verify its General, About, Leadership, and SEO/Advanced groups contain the preserved data. Add a second Editor-in-Chief, reorder the list, preview `/about`, and confirm the plural heading and configured order; then confirm Contributor profiles contain no leadership label.
+
+Open an Article that already has a footnote without changing Article content. Confirm **Add footnote** opens beside its toolbar control, Escape and click-away close without inserting, and choosing a Source inserts exactly once without a Save step. Select an existing superscript and confirm Sanity's inline controls and anchored **Edit footnote** popover remain close to the marker; the Source selector is searchable, removal uses the native editor action, Escape preserves the value, and focus returns predictably. Check 1440, 1100, 768, and 390 CSS-pixel viewports for clipping and horizontal overflow. The component layout test covers those widths; authenticated Studio placement, keyboard traversal, undo/redo, and real editor patches remain human checks.
+
+The CMS browser suite always verifies Publication Settings-backed `/about` and public exclusion of local/draft Articles. Its deeper Article-discovery scenario uses the environment-configurable published Article fixture and skips explicitly when that fixture is not published; tests must never create or publish Article content.
+
 The project uses four complementary checks:
 
 - **ESLint** finds common code-quality and framework mistakes.

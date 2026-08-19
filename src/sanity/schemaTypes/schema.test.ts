@@ -7,7 +7,7 @@ import { ArticlePermanentDeleteAction, ContributorArchiveAction, ContributorDele
 import { articleBodyMigrationMarkerWarning, duplicateSourceWarning, prepareArticlePreview, unusedSourceWarning, validateArticleSlug, validatePublicationMonth, validatePublishedContributors, validateSourceUrl } from "./documents/article";
 import { articleBody, footnoteReference, validateOptionalSourceReference, validateSourceReference } from "./objects/articleBody";
 import { schemaTypes } from ".";
-import { validateUniqueStaff } from "./documents/staticPage";
+import { validateUniqueStaff } from "./documents/siteSettings";
 import { isSupportedImageAsset } from "./shared/mediaValidation";
 import { pairContributorVersions } from "../components/ContributorStateList";
 
@@ -33,18 +33,19 @@ describe("simplified Sanity editor model", () => {
     expect(articleBodyMigrationMarkerWarning([{ _type: "block", children: [{ _type: "span", text: "No marker." }] }])).toBe(true);
     expect(articleBodyMigrationMarkerWarning([{ _type: "editorialImage", caption: "Archive image [1]" }])).toBe(true);
   });
-  it("registers no Masthead document", () => expect(schemaTypes.filter((type) => type.type === "document").map((type) => type.name)).toEqual(["siteSettings", "contributor", "article", "staticPage"]));
+  it("registers only the current document types", () => expect(schemaTypes.filter((type) => type.type === "document").map((type) => type.name)).toEqual(["siteSettings", "contributor", "article"]));
   it.each(["masthead", "author", "issue", "category", "tag"])("has no legacy %s schema file", (type) => expect(existsSync(`src/sanity/schemaTypes/documents/${type}.ts`)).toBe(false));
   it("keeps the contributor form role-free with hidden migration identity", () => { const fields = fieldsFor("contributor"); expect(fields.map(({ name }) => name)).toEqual(["name", "slug", "graduationYear", "active", "migrationSourceId", "importBatchId"]); expect(fields.filter(({ name }) => ["migrationSourceId", "importBatchId"].includes(name)).every(({ readOnly }) => readOnly)).toBe(true); });
-  it("places staff sections on About", () => expect(fieldsFor("staticPage").map(({ name }) => name)).toEqual(expect.arrayContaining(["editorsInChief", "editors", "facultyAdviser"])));
-  it("keeps About leadership contextual and allows only one Editor-in-Chief", () => {
-    const field = fieldsFor("staticPage").find(({ name }) => name === "editorsInChief") as RawField & { validation?: Array<{ _rules?: Array<{ flag?: string; constraint?: number }> }> };
+  it("places About and leadership fields on Publication Settings", () => expect(fieldsFor("siteSettings").map(({ name }) => name)).toEqual(expect.arrayContaining(["aboutTitle", "aboutBody", "editorsInChief", "editors", "facultyAdviser"])));
+  it("keeps leadership contextual and supports multiple ordered Editors-in-Chief", () => {
+    const field = fieldsFor("siteSettings").find(({ name }) => name === "editorsInChief") as RawField & { validation?: Array<{ _rules?: Array<{ flag?: string; constraint?: number }> }> };
     expect(field.of?.[0].fields?.map(({ name }) => name)).toEqual(["contributor", "displayedRole"]);
     expect(JSON.stringify(field)).not.toContain('"role"');
+    expect(JSON.stringify(field)).not.toContain('"flag":"max"');
   });
   it("has no Contributor or About person-image fields", () => {
     expect(fieldsFor("contributor").map(({ name }) => name)).not.toEqual(expect.arrayContaining(["photo", "image", "portrait", "avatar"]));
-    const staffFields = fieldsFor("staticPage").filter(({ name }) => ["editorsInChief", "editors", "facultyAdviser"].includes(name)).flatMap(({ of }) => of?.flatMap(({ fields }) => fields ?? []) ?? []);
+    const staffFields = fieldsFor("siteSettings").filter(({ name }) => ["editorsInChief", "editors", "facultyAdviser"].includes(name)).flatMap(({ of }) => of?.flatMap(({ fields }) => fields ?? []) ?? []);
     expect(staffFields.map(({ name }) => name)).not.toEqual(expect.arrayContaining(["portrait", "portraitAltText", "photo", "image", "avatar"]));
   });
   it("warns when About repeats a contributor across sections", () => expect(validateUniqueStaff({ editorsInChief: [{ contributor: { _ref: "a" } }], editors: [{ contributor: { _ref: "a" } }] })).toMatch(/only once/i));
@@ -61,6 +62,7 @@ describe("simplified Sanity editor model", () => {
     expect(bodyBlock.of).toEqual([{ type: "footnoteReference" }]);
     expect(bodyBlock.marks?.annotations).not.toEqual(expect.arrayContaining([{ type: "footnoteReference" }]));
     expect(footnoteReference.type).toBe("object");
+    expect(footnoteReference).toMatchObject({ title: "footnote", options: { modal: { type: "popover", width: 1 } } });
   });
   it("supports Source citations in text and callouts", () => {
     const bodyTypes = (articleBody as unknown as { of: Array<{ type: string }> }).of.map(({ type }) => type);
@@ -111,5 +113,5 @@ describe("article actions", () => {
   it("replaces generic article deletion", () => expect(resolveDocumentActions([action("delete")], "article")).toContain(ArticlePermanentDeleteAction));
   it("adds archive and reference-aware contributor deletion", () => expect(resolveDocumentActions([action("delete")], "contributor")).toEqual([ContributorArchiveAction, ContributorDeleteAction]));
   it("removes Duplicate for Contributors", () => expect(resolveDocumentActions([action("duplicate"), action("delete")], "contributor").some(({ action }) => action === "duplicate")).toBe(false));
-  it.each(["staticPage", "siteSettings"])("allows no destructive singleton actions for %s", (type) => expect(resolveDocumentActions([action("publish"), action("discardChanges"), action("delete"), action("duplicate"), action("unpublish")], type).map(({ action }) => action)).toEqual(["publish", "discardChanges"]));
+  it("allows no destructive Publication Settings actions", () => expect(resolveDocumentActions([action("publish"), action("discardChanges"), action("delete"), action("duplicate"), action("unpublish")], "siteSettings").map(({ action }) => action)).toEqual(["publish", "discardChanges"]));
 });

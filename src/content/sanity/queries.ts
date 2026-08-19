@@ -29,7 +29,15 @@ const articleFilter = `_type == "article" && defined(slug.current)`;
 export const SITE_SETTINGS_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "siteSettings"][0]{
   _id,_type,publicationName,shortName,description,affiliationText,tagline,location,logoMode,textWordmark,
   "logoImage": logoImage${imageProjection},logoImageAlt,contactLabel,contactTarget,
-  socialLinks[]{label,url},defaultSeo,homepageTagline
+  socialLinks[]{label,url},defaultSeo,homepageTagline,
+  aboutTitle,aboutEyebrow,aboutSummary,"aboutBody":aboutBody[]{
+    ...,
+    _type == "editorialImage" => ${imageProjection},
+    markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}
+  },aboutUpdatedDate,aboutSeo,
+  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},
+  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},
+  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}}
 }`);
 
 export const ALL_PUBLISHED_ARTICLES_QUERY = defineQuery(
@@ -57,13 +65,5 @@ export const CONTRIBUTORS_QUERY = defineQuery(`*[
 export const CONTRIBUTOR_BY_SLUG_QUERY = defineQuery(`*[
   _type == "contributor" && slug.current == $slug
 ][0]{_id,_type,name,"slug":slug.current,graduationYear,active}`);
-
-export const STATIC_PAGE_BY_SLUG_QUERY = defineQuery(`*[
-  _type == "staticPage" && slug.current == $slug
-][0]{_id,_type,title,"slug":slug.current,eyebrow,summary,${bodyProjection},
-  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},
-  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},
-  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}}
-}`);
 
 export const articleProjectionForTests = articleProjection;

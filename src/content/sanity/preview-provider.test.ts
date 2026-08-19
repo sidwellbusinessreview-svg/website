@@ -28,21 +28,18 @@ describe("draft provider isolation", () => {
   });
 
   it("uses uncached draft results for About and Site Settings", async () => {
-    const fetch = vi.fn()
-      .mockResolvedValueOnce({
-        title: "Draft About",
-        slug: "about",
-        body: [{ _type: "block", style: "normal", children: [{ _type: "span", text: "Draft mission", marks: [] }] }],
+    const settings = {
+        aboutTitle: "Draft About",
+        aboutBody: [{ _type: "block", style: "normal", children: [{ _type: "span", text: "Draft mission", marks: [] }] }],
         editorsInChief: [], editors: [], facultyAdviser: [],
-      })
-      .mockResolvedValueOnce({
         publicationName: "Draft Publication",
         shortName: "DP",
         affiliationText: "Draft affiliation",
         tagline: "Draft tagline",
         contactLabel: "Contact",
         contactTarget: "editors@example.com",
-      });
+      };
+    const fetch = vi.fn().mockResolvedValue(settings);
     const provider = createSanityContentProvider({ fetch } as unknown as SanityClient, "drafts");
     await expect(provider.getStaticPageBySlug("about")).resolves.toMatchObject({ title: "Draft About" });
     await expect(provider.getSiteSettings()).resolves.toMatchObject({ name: "Draft Publication" });

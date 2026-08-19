@@ -1,6 +1,6 @@
 "use client";
 
-import { Autocomplete, Box, Button, Card, Dialog, Flex, Select, Stack, Text, Tooltip } from "@sanity/ui";
+import { Autocomplete, Box, Button, Card, Flex, Popover, Select, Stack, Text, Tooltip, useClickOutsideEvent, useGlobalKeyDown } from "@sanity/ui";
 import { BoldIcon } from "@sanity/icons/Bold";
 import { ImageIcon } from "@sanity/icons/Image";
 import { InfoOutlineIcon } from "@sanity/icons/InfoOutline";
@@ -17,7 +17,7 @@ import {
   type PortableTextInputProps,
 } from "sanity";
 import { createArticlePasteHandler } from "../articlePaste";
-import { footnoteSourceOptions } from "./FootnoteSourceInput";
+import { footnoteSourceOptions, matchesFootnoteSource } from "./FootnoteSourceInput";
 import styles from "./ArticleBodyInput.module.css";
 
 export const ARTICLE_TOOLBAR_LABELS = [
@@ -86,6 +86,13 @@ export function applyEditorHistory(editor: PortableEditor, action: "undo" | "red
   editorApi(editor)[action](editor);
 }
 
+export function insertFootnoteReference(editor: PortableEditor, sourceKey: string, selection: EditorSelection) {
+  const api = editorApi(editor);
+  if (selection) api.select(editor, selection);
+  const schemaType = editor.schemaTypes.inlineObjects.find((type) => type.name === "footnoteReference");
+  if (schemaType) api.insertChild(editor, schemaType, { sourceKey });
+}
+
 const EMPTY_STATE: EditorState = {
   hasSelection: false,
   hasTextBlock: false,
@@ -122,6 +129,7 @@ function ToolbarButton({
   label,
   icon,
   onAction,
+  buttonRef,
   tooltip = label,
 }: {
   active?: boolean;
@@ -129,6 +137,7 @@ function ToolbarButton({
   label: string;
   icon?: React.ComponentType;
   onAction: () => void;
+  buttonRef?: React.Ref<HTMLButtonElement>;
   tooltip?: string;
 }) {
   const activate = useCallback(() => {
@@ -147,6 +156,7 @@ function ToolbarButton({
         onClick={activate}
         onMouseDown={(event) => event.preventDefault()}
         padding={2}
+        ref={buttonRef}
         tone={active ? "primary" : "default"}
       />
     </Tooltip>
@@ -163,6 +173,8 @@ export function ArticleBodyInput(props: PortableTextInputProps) {
   const sources = useMemo(() => footnoteSourceOptions(sourceValue), [sourceValue]);
   const [editorState, setEditorState] = useState<EditorState>(EMPTY_STATE);
   const [footnoteOpen, setFootnoteOpen] = useState(false);
+  const [footnoteButtonElement, setFootnoteButtonElement] = useState<HTMLButtonElement | null>(null);
+  const footnotePopoverRef = useRef<HTMLDivElement | null>(null);
   const savedSelection = useRef<EditorSelection>(null);
   const toolbarSelection = useRef<EditorSelection>(null);
 
@@ -205,11 +217,27 @@ export function ArticleBodyInput(props: PortableTextInputProps) {
     const selection = savedSelection.current;
     setFootnoteOpen(false);
     runEditorAction((editor) => {
-      if (selection) editorApi(editor).select(editor, selection);
-      const schemaType = editor.schemaTypes.inlineObjects.find((type) => type.name === "footnoteReference");
-      if (schemaType) editorApi(editor).insertChild(editor, schemaType, { sourceKey });
+      insertFootnoteReference(editor, sourceKey, selection);
     });
   }, [runEditorAction]);
+
+  const closeFootnotePicker = useCallback((returnFocus = true) => {
+    setFootnoteOpen(false);
+    if (returnFocus) requestAnimationFrame(() => footnoteButtonElement?.focus());
+  }, [footnoteButtonElement]);
+
+  useGlobalKeyDown(useCallback((event) => {
+    if (footnoteOpen && event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      closeFootnotePicker();
+    }
+  }, [closeFootnotePicker, footnoteOpen]), { capture: true });
+
+  useClickOutsideEvent(
+    footnoteOpen ? () => closeFootnotePicker() : false,
+    useCallback(() => [footnoteButtonElement, footnotePopoverRef.current], [footnoteButtonElement]),
+  );
 
   const editLink = useCallback((editor: PortableEditor) => {
     const schemaType = editor.schemaTypes.annotations.find((type) => type.name === "linkAnnotation");
@@ -253,9 +281,9 @@ export function ArticleBodyInput(props: PortableTextInputProps) {
   })), [sources]);
 
   const focusSources = useCallback(() => {
-    setFootnoteOpen(false);
+    closeFootnotePicker(false);
     props.onPathFocus(["sources"]);
-  }, [props]);
+  }, [closeFootnotePicker, props]);
 
   const RenderDefault = props.renderDefault;
 
@@ -299,7 +327,7 @@ export function ArticleBodyInput(props: PortableTextInputProps) {
         </span>
         <Divider />
         <span className={styles.toolbarGroup}>
-          <ToolbarButton disabled={footnoteDisabled} icon={FootnoteIcon} label="Add footnote" onAction={openFootnotePicker} tooltip={footnoteTooltip} />
+          <ToolbarButton buttonRef={setFootnoteButtonElement} disabled={footnoteDisabled} icon={FootnoteIcon} label="Add footnote" onAction={openFootnotePicker} tooltip={footnoteTooltip} />
           <ToolbarButton disabled={!editorState.hasSelection || props.readOnly} icon={ImageIcon} label="Insert image" onAction={() => insertBlock("editorialImage")} tooltip="Insert image" />
           <ToolbarButton disabled={!editorState.hasSelection || props.readOnly} icon={InfoOutlineIcon} label="Insert callout" onAction={() => insertBlock("callout")} tooltip="Insert callout" />
         </span>
@@ -309,14 +337,16 @@ export function ArticleBodyInput(props: PortableTextInputProps) {
         <RenderDefault {...props} editorRef={editorRef} hideToolbar hotkeys={hotkeys} onEditorChange={onEditorChange} onPaste={onPaste} />
       </div>
       </Card>
-      {footnoteOpen && (
-        <Dialog header="Choose a Source" id="footnote-source-dialog" onClose={() => setFootnoteOpen(false)} width={1}>
-          <Box padding={4}>
+      <Popover
+        content={footnoteOpen ? <div className={styles.footnotePopover} ref={footnotePopoverRef}>
+          <Box padding={3}>
             <Stack space={4}>
+              <Text id="footnote-source-heading" weight="semibold">Add footnote</Text>
               {footnoteOptions.length ? <>
                 <Text size={1}>Choose the Source for this citation. Search by Source-list number or citation.</Text>
                 <Autocomplete
                   aria-label="Search Sources"
+                  aria-describedby="footnote-source-heading"
                   autoFocus
                   filterOption={matchesFootnoteSource}
                   id="footnote-source-search"
@@ -334,17 +364,20 @@ export function ArticleBodyInput(props: PortableTextInputProps) {
               </Flex>
             </Stack>
           </Box>
-        </Dialog>
-      )}
+        </div> : null}
+        constrainSize
+        fallbackPlacements={["top", "bottom"]}
+        open={footnoteOpen}
+        placement="bottom"
+        portal
+        preventOverflow
+        referenceElement={footnoteButtonElement}
+        width="auto"
+      />
     </Stack>
   );
 }
 
 function FootnoteIcon() {
   return <span aria-hidden="true" className={styles.footnoteIcon}>1</span>;
-}
-
-export function matchesFootnoteSource(query: string, option: { label: string; number: string }): boolean {
-  const normalized = query.trim().toLocaleLowerCase();
-  return option.number === normalized || option.label.toLocaleLowerCase().includes(normalized);
 }

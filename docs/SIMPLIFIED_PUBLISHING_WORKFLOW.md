@@ -33,16 +33,16 @@ Before publishing, use Studio’s **Preview** tool. Draft-only Articles and unpu
 3. Review the changed fields and preview.
 4. Select **Publish changes** to replace the public version, or **Discard unpublished changes** to keep the existing public version and remove the draft edits.
 
-## Edit About or Site Settings
+## Edit Publication Settings
 
-1. Open the permanent **About** or **Site Settings** entry in Structure. Do not use the global New menu.
-2. If neither current version exists, review the lifecycle pane. **Open revision history** enters Sanity’s built-in editor/history view so retained content can be inspected. **Create clean About draft** requires confirmation and uses Sanity’s supported Document Actions API to create a new unpublished draft for the same fixed published ID without restoring old content. The pane must verify the exact draft in raw Content Lake state before opening the editor.
+1. Open the permanent **Publication Settings** entry in Structure. Do not use the global New menu. General site settings, About content, and leadership live in this one page.
+2. If neither current version exists, review the lifecycle pane. **Open revision history** enters Sanity’s built-in editor/history view so retained content can be inspected. Clean draft creation requires confirmation and uses Sanity’s supported Document Actions API for the fixed `siteSettings` ID without restoring old content. The pane must verify the exact draft in raw Content Lake state before opening the editor.
 3. Never infer “never created” merely from an empty GROQ result. Sanity can retain a deleted/discarded-history tombstone that normal content queries do not return.
 4. Use **Publish** for the first version or **Publish changes** for later edits.
 5. **Discard unpublished changes** appears only when a published version also exists. It removes only the draft and immediately returns to the published values.
 6. Delete, permanent delete, duplicate, copy, and unpublish are intentionally unavailable. Clear optional fields manually instead of deleting the fixed page.
 
-On About, select the current Editor-in-Chief through the dedicated Contributor reference. This contextual leadership designation changes only About and never patches the Contributor record.
+Under Leadership, select one or more Editors-in-Chief in display order. This contextual designation changes only Publication Settings/About and never patches the Contributor record.
 
 ## Unpublish an article
 
@@ -50,7 +50,7 @@ On About, select the current Editor-in-Chief through the dedicated Contributor r
 2. Read the confirmation carefully and confirm only when the story should leave the public CMS dataset.
 3. If unpublished changes also existed, review the remaining draft before editing or publishing again.
 
-Unpublish is not delete. Duplicate is intentionally unavailable for Articles, Contributors, About, and Site Settings to reduce accidental records.
+Unpublish is not delete. Duplicate is intentionally unavailable for Articles, Contributors, and Publication Settings to reduce accidental records.
 
 The schema does not cascade-publish contributors. If article validation reports an unpublished contributor, open that contributor, review it, publish it, then return to the article. Never create duplicate contributor records merely to bypass the warning.
 
@@ -71,7 +71,7 @@ Article list panes can be searched by title, subtitle, summary, Contributor, or 
 3. Select existing Contributors in byline order and choose Publication Month and a four-digit Year.
 4. Add every citation once under **Sources**. URLs are optional but, when present, must begin with `http://` or `https://`.
 5. Paste or write the Article body. Normal Google Docs paste preserves supported paragraphs, emphasis, links, and lists. Plain-text paste makes each non-empty line a paragraph and collapses repeated blank lines. Bracketed markers such as `[1]` remain visible and produce a warning; replace each with the matching **Footnote** before publishing.
-6. To cite prose or a list item, place the caret immediately after punctuation, click **Footnote** in the visible body toolbar, then select the numbered Source. Do not highlight text and never type a footnote number.
+6. To cite prose or a list item, place the caret immediately after punctuation, click **Footnote** in the visible body toolbar, then choose the Source from the small anchored picker. The marker is inserted immediately; there is no Save step. Do not highlight text and never type a footnote number.
 7. For a quotation that should stand apart, put the caret in its paragraph and choose **Block quote** from **Paragraph style**. Place the caret after its punctuation and click the superscript Footnote icon normally. To cite a Callout, select its Source inside the block.
 8. Save, open Preview, and refresh. Check byline order, Month Year, superscript spacing, Source jumps/backlinks, external links, and mobile wrapping.
 9. Return to Structure to correct errors. Publish only after editorial review.

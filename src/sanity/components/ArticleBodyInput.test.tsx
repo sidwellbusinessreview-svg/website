@@ -1,13 +1,16 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { studioTheme, ThemeProvider } from "@sanity/ui";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { PortableTextInputProps } from "sanity";
+
+const formValues = vi.hoisted(() => ({ sources: [] as unknown[] }));
 
 vi.mock("sanity", async () => {
   const actual = await vi.importActual<typeof import("sanity")>("sanity");
   return {
     ...actual,
-    useFormValue: () => [],
+    useFormValue: (path: Array<string | number>) => path[0] === "sources" ? formValues.sources : [],
   };
 });
 
@@ -17,13 +20,16 @@ import {
   ArticleBodyInput,
   applyArticleBlockStyle,
   applyEditorHistory,
-  matchesFootnoteSource,
+  insertFootnoteReference,
   readArticleEditorState,
 } from "./ArticleBodyInput";
+import { matchesFootnoteSource } from "./FootnoteSourceInput";
 
 beforeAll(() => {
   window.matchMedia = vi.fn().mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() });
 });
+
+afterEach(() => { formValues.sources = []; });
 
 function portableTextProps(value: unknown[] = []): PortableTextInputProps {
   return {
@@ -118,5 +124,59 @@ describe("ArticleBodyInput", () => {
     applyEditorHistory(editor, "redo");
     expect(api.undo).toHaveBeenCalledWith(editor);
     expect(api.redo).toHaveBeenCalledWith(editor);
+  });
+
+  it("inserts exactly one footnote from the anchored Source picker without a Save step", async () => {
+    formValues.sources = [{ _key: "source-a", citation: "Federal Reserve report" }];
+    const user = userEvent.setup();
+    const insertChild = vi.fn();
+    const { editor } = fakeEditor({
+      focus: vi.fn(),
+      insertChild,
+      select: vi.fn(),
+    });
+    Object.assign(editor, { schemaTypes: { annotations: [], blockObjects: [], inlineObjects: [{ name: "footnoteReference" }] } });
+    let renderedInput: PortableTextInputProps | undefined;
+    const props = portableTextProps();
+    props.renderDefault = vi.fn((input) => {
+      renderedInput = input as PortableTextInputProps;
+      return <div data-testid="portable-text-editor" />;
+    }) as never;
+    render(<ThemeProvider theme={studioTheme}><ArticleBodyInput {...props} /></ThemeProvider>);
+    act(() => {
+      if (renderedInput?.editorRef) renderedInput.editorRef.current = editor;
+      renderedInput?.onEditorChange?.({ type: "selection" } as never, editor);
+    });
+    await user.click(screen.getByRole("button", { name: "Add footnote" }));
+    const search = screen.getByLabelText("Search Sources");
+    expect(search).toBeInTheDocument();
+    insertFootnoteReference(editor, "source-a", { anchor: {}, focus: {} });
+    expect(insertChild).toHaveBeenCalledTimes(1);
+    expect(insertChild).toHaveBeenCalledWith(editor, expect.objectContaining({ name: "footnoteReference" }), { sourceKey: "source-a" });
+    expect(screen.getByText("Choose the Source for this citation. Search by Source-list number or citation.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Save" })).not.toBeInTheDocument();
+  });
+
+  it("closes the add-footnote picker on Escape without creating a patch", async () => {
+    formValues.sources = [{ _key: "source-a", citation: "Federal Reserve report" }];
+    const user = userEvent.setup();
+    const insertChild = vi.fn();
+    const { editor } = fakeEditor({ focus: vi.fn(), insertChild, select: vi.fn() });
+    Object.assign(editor, { schemaTypes: { annotations: [], blockObjects: [], inlineObjects: [{ name: "footnoteReference" }] } });
+    let renderedInput: PortableTextInputProps | undefined;
+    const props = portableTextProps();
+    props.renderDefault = vi.fn((input) => { renderedInput = input as PortableTextInputProps; return <div data-testid="portable-text-editor" />; }) as never;
+    render(<ThemeProvider theme={studioTheme}><ArticleBodyInput {...props} /></ThemeProvider>);
+    act(() => {
+      if (renderedInput?.editorRef) renderedInput.editorRef.current = editor;
+      renderedInput?.onEditorChange?.({ type: "selection" } as never, editor);
+    });
+    const trigger = screen.getByRole("button", { name: "Add footnote" });
+    await user.click(trigger);
+    await user.keyboard("{Escape}");
+    expect(insertChild).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText("Search Sources")).not.toBeInTheDocument();
+    await act(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+    expect(trigger).toHaveFocus();
   });
 });

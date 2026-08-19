@@ -1,5 +1,11 @@
 # Content authoring rules
 
+## Publication Settings
+
+Use the single **Publication Settings** page for global publication text, `/about` content, and leadership. **Editors-in-Chief** is an ordered Contributor list: add one or more people, prevent duplicates, and arrange them in public display order. Leadership is About-page context only; never add role metadata to a Contributor or Article byline.
+
+Adding a footnote opens a compact Source picker beside the toolbar button. Choosing a Source inserts the marker immediately; there is no Save button. Editing a marker uses Sanity's anchored **Edit footnote** popover and searchable Source control. Escape and click-away close without changes, while Sanity's inline-object remove control deletes the selected occurrence through normal editor history. These controls do not alter stored Source keys, reading-order numbering, public Notes, or backlinks.
+
 ## Contributor identity
 
 Contributor identity is text-only. Do not upload or store Contributor portraits, avatars, initials artwork, other identity images, or publication roles. Article bylines contain linked names in editorial order, Contributor profiles contain name plus optional graduation year, and About staff entries contain linked names plus optional About-only displayed labels. Current leadership, including Editor-in-Chief, is configured on the About page through Contributor references. Article photography and publication-logo assets follow the separate editorial-image rules below.

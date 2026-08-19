@@ -2,15 +2,7 @@ import { siteConfig } from "@/config/site";
 import { getPublishedArticles, getPublishedContributors } from "@/content";
 import { absoluteUrl } from "@/lib/metadata";
 import { PUBLIC_CONTENT_REVALIDATE_SECONDS } from "@/content/sanity/cache";
-
-export function escapeXml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&apos;");
-}
+import { escapeXml } from "@/lib/xml";
 
 export async function GET() {
   const [articles, authors] = await Promise.all([getPublishedArticles(), getPublishedContributors()]);

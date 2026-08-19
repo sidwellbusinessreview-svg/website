@@ -6,10 +6,9 @@ Phase 11B keeps the Studio deliberately small. Phase 12 can serve published publ
 
 - **Articles:** All Articles, Draft Only, Published, Published with Unpublished Changes, Pinned
 - **Contributors:** Active Contributors, Archived Contributors, All Contributors
-- **About**
-- **Site Settings**
+- **Publication Settings**
 
-Vision, Releases, issues, categories, tags, and technical tools are absent. A separate **Preview** tool securely loads saved drafts on the frontend; it does not replace the Structure editing workflow and does not promise live updates while typing. About and Site Settings are fixed pages protected from ordinary duplicate/delete actions. Duplicate is also removed from Articles and Contributors. Studio has a dedicated full-screen shell without the public header or footer.
+Vision, Releases, issues, categories, tags, and technical tools are absent. A separate **Preview** tool securely loads saved drafts on the frontend; it does not replace the Structure editing workflow and does not promise live updates while typing. Publication Settings is one fixed page protected from ordinary duplicate/delete actions. Duplicate is also removed from Articles and Contributors. Studio has a dedicated full-screen shell without the public header or footer.
 
 Each Article pane shows a count, search field, sort control, New article button, status and pinned badges, title, subtitle or shortened summary, contributors, publication month, and an optional compact thumbnail. Search is case-insensitive and does not alter draft/published classification. Sorting supports newest month, oldest month, title, and recently updated. Image-free records use a deliberate compact text layout.
 
@@ -19,13 +18,13 @@ Only **Name** and **Slug** are required. Role and graduation year are optional. 
 
 Contributors default to active. Use **Archive contributor** for ordinary offboarding; archived people remain on old bylines and can be restored. The Contributor form shows live incoming references. Context-aware deletion allows unreferenced deletion, offers About removal for About-only references, and blocks Article-linked deletion until the bylines are reassigned.
 
-## About
+## Publication Settings and About
 
-About combines the publication mission/body with text-only Editor-in-Chief, Editors, and Faculty Adviser sections. Each staff entry references a Contributor and may supply an optional About-only displayed label. Editor-in-Chief and Faculty Adviser each select at most one Contributor. No staff entry has an image, portrait, avatar, or initials field. Contributor records do not store publication roles; leadership changes only on About. There is no separate Masthead document or public Masthead route.
+Publication Settings combines global site settings, the public About mission/body, and text-only Editors-in-Chief, Editors, and Faculty Adviser sections. Each staff entry references a Contributor and may supply an optional About-only displayed label. Editors-in-Chief is an ordered list supporting one or more unique Contributors; Faculty Adviser allows one. No staff entry has an image, portrait, avatar, or initials field. Contributor records do not store publication roles. There is no separate About or Masthead CMS document; the public About route remains `/about`.
 
 ## Durable fixed pages
 
-About uses the fixed document ID `about`; Site Settings uses `siteSettings`. Their permanent Structure entries first inspect the current draft/published pair with an exact uncached raw query. Existing records open normally. If neither variant exists, the pane does not assume the record is new: it explains that Sanity may retain document history and offers **Open revision history** or an explicitly confirmed **Create clean About draft** action. Clean creation uses Sanity’s `sanity.action.document.create` Document Action with the fixed published ID and a draft ID from `createDraftId`; generic mutations never write directly to `drafts.*`. The pane verifies the new draft through the exact raw query before opening the editor and never restores or publishes old content automatically. These durable resources cannot be deleted, duplicated, copied, or unpublished.
+Publication Settings uses fixed document ID `siteSettings`. Its permanent Structure entry inspects the current draft/published pair with an exact uncached raw query. Existing records open normally. If neither variant exists, the pane offers revision inspection or explicitly confirmed clean draft creation at that same fixed ID. Generic mutations never write directly to `drafts.*`. The pane verifies creation through the exact raw query before navigation and never restores or publishes old content automatically. Publication Settings cannot be deleted, duplicated, copied, or unpublished.
 
 The normal draft/publish workflow remains enabled. Draft-only fixed pages can be published but cannot be discarded or deleted. Published fixed pages remain editable. When a published fixed page has a draft, **Publish changes** and **Discard unpublished changes** are available; Discard removes only the draft and returns to the published values. Historical revision restoration, where Sanity supports it, must create unpublished changes rather than overwrite the public version directly.
 
@@ -37,7 +36,7 @@ Structure is the authoring workspace for metadata, body, Sources, and footnotes.
 
 Contributor selection is one authoritative custom array input. It does not render Sanity's default **Add item** control or default item menus. **Add contributors** opens a name-searchable multi-select of active published Contributors showing name and optional graduation year. Selection stays temporary until **Confirm selection**; X, Escape, outside click, and **Cancel** make no content change. Confirmed references receive stable keys, duplicates are blocked, and explicit text controls handle opening, removing, and reordering byline rows without avatars.
 
-About staff sections use the same confirmed picker. Editors-in-Chief and Editors allow multiple selections; Faculty Adviser allows one. Selected and candidate rows are entirely text-based.
+Publication Settings leadership sections use the same confirmed picker. Editors-in-Chief and Editors allow multiple ordered selections; Faculty Adviser allows one. Duplicate references are prevented. Selected and candidate rows are entirely text-based.
 
 Malformed historical members are never repaired automatically. The field can remove only invalid or duplicate members after an editor explicitly chooses **Repair invalid entries**; `npm run sanity:audit-contributors` remains the read-only dataset-wide dry run.
 
@@ -49,7 +48,7 @@ The toolbar and native rich-text canvas live in one Sanity-themed shell with one
 
 Clipboard input is classified by structure rather than MIME presence. Text-only, PRE-wrapped, and generic DIV/SPAN/BR browser-viewer content uses the SBR parser: CRLF/CR become LF, tabs become spaces, each non-empty line becomes one normal paragraph, and repeated blank lines do not create empty blocks. Genuine paragraph, quote, list, emphasis, or link HTML is converted with schema-aware Portable Text Block Tools so unsupported presentation styling is discarded. Either path returns one insertion fragment so Sanity retains selection replacement and undo semantics without duplicate insertion. A concise warning counts likely `[n]` migration markers in ordinary body text without blocking draft work. **Add source** expands the new Source row and focuses Citation; a bulk Source parser was rejected because delimiter inference and preview/undo behavior would add migration risk.
 
-The picker searches by citation or Studio Source-list number and says **Source 5**, never **Footnote 5**. Source-list numbers are lookup aids, not public numbers. Each inline Studio marker displays its current occurrence number from the same shared body-order traversal used by the public renderer. Inserting, deleting, or moving a citation therefore renumbers the visible markers live without changing stored Source keys. Hover text stays brief; clicking the marker opens the normal editor with the full wrapping citation and source selector.
+The picker searches by citation or Studio Source-list number and says **Source 5**, never **Footnote 5**. Source-list numbers are lookup aids, not public numbers. **Add footnote** opens a compact picker anchored to the toolbar control; choosing a Source inserts immediately and closes the picker, with no extra Save step. Each inline Studio marker displays its current occurrence number from the same shared body-order traversal used by the public renderer. Inserting, deleting, or moving a citation therefore renumbers the visible markers live without changing stored Source keys. Hover text stays brief; selecting a marker uses Sanity's anchored inline-object controls and **Edit footnote** popover, where the Source can be searched or the occurrence removed. Escape or click-away closes without a patch. This changes only the editing surface: source keys, occurrence numbering, public Notes, and backlinks are unchanged.
 
 ## Publishing dependency
 

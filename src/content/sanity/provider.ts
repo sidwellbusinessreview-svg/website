@@ -11,7 +11,7 @@ import {
   ALL_PUBLISHED_ARTICLES_QUERY, ARTICLE_BY_SLUG_QUERY, ARTICLES_BY_CONTRIBUTOR_QUERY,
   CONTRIBUTOR_BY_SLUG_QUERY, CONTRIBUTORS_QUERY,
   LATEST_ARTICLES_QUERY, PINNED_ARTICLE_QUERY, SEARCH_ARTICLES_QUERY,
-  SITE_SETTINGS_QUERY, STATIC_PAGE_BY_SLUG_QUERY,
+  SITE_SETTINGS_QUERY,
 } from "./queries";
 
 type QueryOptions = { tag: string; relatedTags?: string[]; params?: Record<string, unknown> };
@@ -67,7 +67,7 @@ export function createSanityContentProvider(client: SanityClient, mode: Provider
       const matches = articles(await fetch(SEARCH_ARTICLES_QUERY, { tag: "search", relatedTags: [PUBLIC_CACHE_TAGS.articles, PUBLIC_CACHE_TAGS.contributors], params: { term: `*${normalized}*` } }), mode === "drafts");
       return searchPublicArticles(matches, await this.getContributors(), normalized);
     },
-    async getStaticPageBySlug(slug) { return mapStaticPage(await fetch(STATIC_PAGE_BY_SLUG_QUERY, { tag: `page:${slug}`, relatedTags: [PUBLIC_CACHE_TAGS.pages], params: { slug } })); },
+    async getStaticPageBySlug(slug) { return slug === "about" ? mapStaticPage(await fetch(SITE_SETTINGS_QUERY, { tag: "settings", relatedTags: [PUBLIC_CACHE_TAGS.pages] })) : undefined; },
   };
 }
 

@@ -39,7 +39,6 @@ export const linkAnnotation = defineType({
       to: [
         { type: "article" },
         { type: "contributor" },
-        { type: "staticPage" },
       ],
       hidden: ({ parent }) => parent?.linkType !== "internal",
       validation: (Rule) =>

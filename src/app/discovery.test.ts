@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { escapeXml, GET as getFeed } from "./feed.xml/route";
+import { GET as getFeed } from "./feed.xml/route";
+import { escapeXml } from "@/lib/xml";
 import sitemap from "./sitemap";
 import { getArticles } from "@/content";
 import { createPageMetadata } from "@/lib/metadata";

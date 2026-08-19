@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -38,6 +38,8 @@
     "sanity:cleanup-fields": "sanity exec scripts/sanity/cleanup-obsolete-fields.ts --with-user-token",
     "sanity:cleanup-contributor-roles": "sanity exec scripts/sanity/cleanup-contributor-roles.ts --with-user-token",
     "sanity:cleanup-contributor-roles:apply": "sanity exec scripts/sanity/cleanup-contributor-roles.ts --with-user-token -- --apply",
+    "sanity:consolidate-publication-settings": "sanity exec scripts/sanity/consolidate-publication-settings.ts --with-user-token",
+    "sanity:consolidate-publication-settings:apply": "sanity exec scripts/sanity/consolidate-publication-settings.ts --with-user-token -- --apply",
     "sanity:reset-test-content": "sanity exec scripts/sanity/reset-test-content.ts --with-user-token",
     "validate:content": "node --import tsx scripts/validate-content.ts",
     "verify": "npm run lint && npm run typecheck && npm run validate:content && npm run test && npm run build"

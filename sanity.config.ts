@@ -44,7 +44,7 @@ export default environment.configured
           resolve: {
             mainDocuments: [
               { route: "/", type: "siteSettings" },
-              { route: "/about", type: "staticPage" },
+              { route: "/about", type: "siteSettings" },
               {
                 route: "/articles/:slug",
                 filter: `_type == "article" && slug.current == $slug`,
@@ -58,7 +58,10 @@ export default environment.configured
             ],
             locations: {
               siteSettings: {
-                locations: [{ title: "Homepage and site settings", href: "/", showHref: false }],
+                locations: [
+                  { title: "Homepage and publication settings", href: "/", showHref: false },
+                  { title: "About page", href: "/about" },
+                ],
               },
               article: {
                 select: { title: "title", slug: "slug.current" },
@@ -71,12 +74,6 @@ export default environment.configured
                 resolve: (value) => value?.slug ? {
                   locations: [{ title: value.name || "Contributor preview", href: `/authors/${value.slug}` }],
                 } : { message: "Generate the Contributor slug to open its frontend preview.", tone: "caution" },
-              },
-              staticPage: {
-                select: { title: "title", slug: "slug.current" },
-                resolve: (value) => value?.slug === "about" ? {
-                  locations: [{ title: "About page", href: "/about" }],
-                } : { message: "This page does not have a public preview route.", tone: "caution" },
               },
             },
           },

@@ -15,6 +15,13 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: src/sanity/schema.json
+export type ContributorReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "contributor";
+};
+
 export type SanityImageAssetReference = {
   _ref: string;
   _type: "reference";
@@ -34,6 +41,29 @@ export type SiteSettings = {
   affiliationText: string;
   tagline?: string;
   location?: string;
+  aboutTitle: string;
+  aboutEyebrow?: string;
+  aboutSummary?: string;
+  aboutBody: ArticleBody;
+  aboutUpdatedDate?: string;
+  editorsInChief?: Array<{
+    contributor: ContributorReference;
+    displayedRole?: string;
+    _type: "editorInChiefEntry";
+    _key: string;
+  }>;
+  editors?: Array<{
+    contributor: ContributorReference;
+    displayedRole?: string;
+    _type: "editorEntry";
+    _key: string;
+  }>;
+  facultyAdviser?: Array<{
+    contributor: ContributorReference;
+    displayedRole?: string;
+    _type: "facultyAdviserEntry";
+    _key: string;
+  }>;
   logoMode: "text" | "image";
   textWordmark?: string;
   logoImage?: {
@@ -53,6 +83,7 @@ export type SiteSettings = {
     _key: string;
   }>;
   defaultSeo?: Seo;
+  aboutSeo?: Seo;
   homepageTagline?: string;
 };
 
@@ -156,66 +187,12 @@ export type ArticleReference = {
   [internalGroqTypeReferenceTo]?: "article";
 };
 
-export type ContributorReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "contributor";
-};
-
-export type StaticPageReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "staticPage";
-};
-
 export type LinkAnnotation = {
   _type: "linkAnnotation";
   linkType: "external" | "internal";
   href?: string;
-  internalReference?:
-    ArticleReference | ContributorReference | StaticPageReference;
+  internalReference?: ArticleReference | ContributorReference;
   openInNewTab?: boolean;
-};
-
-export type StaticPage = {
-  _id: string;
-  _type: "staticPage";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title: string;
-  slug: Slug;
-  eyebrow?: string;
-  summary?: string;
-  body: ArticleBody;
-  editorsInChief?: Array<{
-    contributor: ContributorReference;
-    displayedRole?: string;
-    _type: "editorInChiefEntry";
-    _key: string;
-  }>;
-  editors?: Array<{
-    contributor: ContributorReference;
-    displayedRole?: string;
-    _type: "editorEntry";
-    _key: string;
-  }>;
-  facultyAdviser?: Array<{
-    contributor: ContributorReference;
-    displayedRole?: string;
-    _type: "facultyAdviserEntry";
-    _key: string;
-  }>;
-  updatedDate?: string;
-  seo?: Seo;
-};
-
-export type Slug = {
-  _type: "slug";
-  current: string;
-  source?: string;
 };
 
 export type Contributor = {
@@ -230,6 +207,12 @@ export type Contributor = {
   active?: boolean;
   migrationSourceId?: string;
   importBatchId?: string;
+};
+
+export type Slug = {
+  _type: "slug";
+  current: string;
+  source?: string;
 };
 
 export type Article = {
@@ -383,6 +366,7 @@ export type Geopoint = {
 };
 
 export type AllSanitySchemaTypes =
+  | ContributorReference
   | SanityImageAssetReference
   | SiteSettings
   | Seo
@@ -393,12 +377,9 @@ export type AllSanitySchemaTypes =
   | Callout
   | SimplePortableText
   | ArticleReference
-  | ContributorReference
-  | StaticPageReference
   | LinkAnnotation
-  | StaticPage
-  | Slug
   | Contributor
+  | Slug
   | Article
   | EditorialImage
   | SanityImagePaletteSwatch
@@ -412,7 +393,7 @@ export type AllSanitySchemaTypes =
 
 // Source: src/content/sanity/queries.ts
 // Variable: SITE_SETTINGS_QUERY
-// Query: *[_type == "siteSettings" && _id == "siteSettings"][0]{  _id,_type,publicationName,shortName,description,affiliationText,tagline,location,logoMode,textWordmark,  "logoImage": logoImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},logoImageAlt,contactLabel,contactTarget,  socialLinks[]{label,url},defaultSeo,homepageTagline}
+// Query: *[_type == "siteSettings" && _id == "siteSettings"][0]{  _id,_type,publicationName,shortName,description,affiliationText,tagline,location,logoMode,textWordmark,  "logoImage": logoImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},logoImageAlt,contactLabel,contactTarget,  socialLinks[]{label,url},defaultSeo,homepageTagline,  aboutTitle,aboutEyebrow,aboutSummary,"aboutBody":aboutBody[]{    ...,    _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},    markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}  },aboutUpdatedDate,aboutSeo,  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}}}
 export type SITE_SETTINGS_QUERY_RESULT = {
   _id: "siteSettings";
   _type: "siteSettings";
@@ -448,6 +429,97 @@ export type SITE_SETTINGS_QUERY_RESULT = {
   }> | null;
   defaultSeo: Seo | null;
   homepageTagline: string | null;
+  aboutTitle: string;
+  aboutEyebrow: string | null;
+  aboutSummary: string | null;
+  aboutBody: Array<
+    | {
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
+        style?: "blockquote" | "h2" | "h3" | "normal";
+        listItem?: "bullet" | "number";
+        markDefs: Array<{
+          _key: string;
+          _type: "linkAnnotation";
+          linkType: "external" | "internal";
+          href?: string;
+          internalReference?: ArticleReference | ContributorReference;
+          openInNewTab?: boolean;
+          internalSlug: string | null;
+          internalType: "article" | "contributor" | null;
+        }> | null;
+        level?: number;
+        _type: "block";
+        _key: string;
+      }
+    | {
+        _key: string;
+        _type: "callout";
+        variant: "context" | "data" | "definition" | "note";
+        title?: string;
+        body: SimplePortableText;
+        sourceKey?: string;
+        markDefs: null;
+      }
+    | {
+        _key: string;
+        _type: "editorialImage";
+        asset: {
+          _id: string;
+          url: string;
+          metadata: {
+            dimensions: {
+              width: number;
+              height: number;
+              aspectRatio: number;
+            } | null;
+          } | null;
+        } | null;
+        media?: unknown;
+        hotspot: SanityImageHotspot | null;
+        crop: SanityImageCrop | null;
+        altText?: string;
+        caption?: string;
+        credit?: string;
+        rightsNote?: string;
+        markDefs: null;
+      }
+  >;
+  aboutUpdatedDate: string | null;
+  aboutSeo: Seo | null;
+  editorsInChief: Array<{
+    displayedRole: string | null;
+    contributor: {
+      name: string;
+      slug: string;
+      graduationYear: number | null;
+    };
+  }> | null;
+  editors: Array<{
+    displayedRole: string | null;
+    contributor: {
+      name: string;
+      slug: string;
+      graduationYear: number | null;
+    };
+  }> | null;
+  facultyAdviser: Array<{
+    displayedRole: string | null;
+    contributor: {
+      name: string;
+      slug: string;
+      graduationYear: number | null;
+    };
+  }> | null;
 } | null;
 
 // Source: src/content/sanity/queries.ts
@@ -516,11 +588,10 @@ export type ALL_PUBLISHED_ARTICLES_QUERY_RESULT = Array<{
           _type: "linkAnnotation";
           linkType: "external" | "internal";
           href?: string;
-          internalReference?:
-            ArticleReference | ContributorReference | StaticPageReference;
+          internalReference?: ArticleReference | ContributorReference;
           openInNewTab?: boolean;
           internalSlug: string | null;
-          internalType: "article" | "contributor" | "staticPage" | null;
+          internalType: "article" | "contributor" | null;
         }> | null;
         level?: number;
         _type: "block";
@@ -627,11 +698,10 @@ export type ARTICLE_BY_SLUG_QUERY_RESULT = {
           _type: "linkAnnotation";
           linkType: "external" | "internal";
           href?: string;
-          internalReference?:
-            ArticleReference | ContributorReference | StaticPageReference;
+          internalReference?: ArticleReference | ContributorReference;
           openInNewTab?: boolean;
           internalSlug: string | null;
-          internalType: "article" | "contributor" | "staticPage" | null;
+          internalType: "article" | "contributor" | null;
         }> | null;
         level?: number;
         _type: "block";
@@ -738,11 +808,10 @@ export type PINNED_ARTICLE_QUERY_RESULT = {
           _type: "linkAnnotation";
           linkType: "external" | "internal";
           href?: string;
-          internalReference?:
-            ArticleReference | ContributorReference | StaticPageReference;
+          internalReference?: ArticleReference | ContributorReference;
           openInNewTab?: boolean;
           internalSlug: string | null;
-          internalType: "article" | "contributor" | "staticPage" | null;
+          internalType: "article" | "contributor" | null;
         }> | null;
         level?: number;
         _type: "block";
@@ -849,11 +918,10 @@ export type LATEST_ARTICLES_QUERY_RESULT = Array<{
           _type: "linkAnnotation";
           linkType: "external" | "internal";
           href?: string;
-          internalReference?:
-            ArticleReference | ContributorReference | StaticPageReference;
+          internalReference?: ArticleReference | ContributorReference;
           openInNewTab?: boolean;
           internalSlug: string | null;
-          internalType: "article" | "contributor" | "staticPage" | null;
+          internalType: "article" | "contributor" | null;
         }> | null;
         level?: number;
         _type: "block";
@@ -960,11 +1028,10 @@ export type ARTICLES_BY_CONTRIBUTOR_QUERY_RESULT = Array<{
           _type: "linkAnnotation";
           linkType: "external" | "internal";
           href?: string;
-          internalReference?:
-            ArticleReference | ContributorReference | StaticPageReference;
+          internalReference?: ArticleReference | ContributorReference;
           openInNewTab?: boolean;
           internalSlug: string | null;
-          internalType: "article" | "contributor" | "staticPage" | null;
+          internalType: "article" | "contributor" | null;
         }> | null;
         level?: number;
         _type: "block";
@@ -1071,11 +1138,10 @@ export type SEARCH_ARTICLES_QUERY_RESULT = Array<{
           _type: "linkAnnotation";
           linkType: "external" | "internal";
           href?: string;
-          internalReference?:
-            ArticleReference | ContributorReference | StaticPageReference;
+          internalReference?: ArticleReference | ContributorReference;
           openInNewTab?: boolean;
           internalSlug: string | null;
-          internalType: "article" | "contributor" | "staticPage" | null;
+          internalType: "article" | "contributor" | null;
         }> | null;
         level?: number;
         _type: "block";
@@ -1140,110 +1206,11 @@ export type CONTRIBUTOR_BY_SLUG_QUERY_RESULT = {
   active: boolean | null;
 } | null;
 
-// Source: src/content/sanity/queries.ts
-// Variable: STATIC_PAGE_BY_SLUG_QUERY
-// Query: *[  _type == "staticPage" && slug.current == $slug][0]{_id,_type,title,"slug":slug.current,eyebrow,summary,body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}},  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}}}
-export type STATIC_PAGE_BY_SLUG_QUERY_RESULT = {
-  _id: string;
-  _type: "staticPage";
-  title: string;
-  slug: string;
-  eyebrow: string | null;
-  summary: string | null;
-  body: Array<
-    | {
-        children?: Array<
-          | ({
-              _key: string;
-            } & FootnoteReference)
-          | {
-              marks?: Array<string>;
-              text?: string;
-              _type: "span";
-              _key: string;
-            }
-        >;
-        style?: "blockquote" | "h2" | "h3" | "normal";
-        listItem?: "bullet" | "number";
-        markDefs: Array<{
-          _key: string;
-          _type: "linkAnnotation";
-          linkType: "external" | "internal";
-          href?: string;
-          internalReference?:
-            ArticleReference | ContributorReference | StaticPageReference;
-          openInNewTab?: boolean;
-          internalSlug: string | null;
-          internalType: "article" | "contributor" | "staticPage" | null;
-        }> | null;
-        level?: number;
-        _type: "block";
-        _key: string;
-      }
-    | {
-        _key: string;
-        _type: "callout";
-        variant: "context" | "data" | "definition" | "note";
-        title?: string;
-        body: SimplePortableText;
-        sourceKey?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "editorialImage";
-        asset: {
-          _id: string;
-          url: string;
-          metadata: {
-            dimensions: {
-              width: number;
-              height: number;
-              aspectRatio: number;
-            } | null;
-          } | null;
-        } | null;
-        media?: unknown;
-        hotspot: SanityImageHotspot | null;
-        crop: SanityImageCrop | null;
-        altText?: string;
-        caption?: string;
-        credit?: string;
-        rightsNote?: string;
-        markDefs: null;
-      }
-  >;
-  editorsInChief: Array<{
-    displayedRole: string | null;
-    contributor: {
-      name: string;
-      slug: string;
-      graduationYear: number | null;
-    };
-  }> | null;
-  editors: Array<{
-    displayedRole: string | null;
-    contributor: {
-      name: string;
-      slug: string;
-      graduationYear: number | null;
-    };
-  }> | null;
-  facultyAdviser: Array<{
-    displayedRole: string | null;
-    contributor: {
-      name: string;
-      slug: string;
-      graduationYear: number | null;
-    };
-  }> | null;
-} | null;
-
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  _id,_type,publicationName,shortName,description,affiliationText,tagline,location,logoMode,textWordmark,\n  "logoImage": logoImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},logoImageAlt,contactLabel,contactTarget,\n  socialLinks[]{label,url},defaultSeo,homepageTagline\n}': SITE_SETTINGS_QUERY_RESULT;
+    '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  _id,_type,publicationName,shortName,description,affiliationText,tagline,location,logoMode,textWordmark,\n  "logoImage": logoImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},logoImageAlt,contactLabel,contactTarget,\n  socialLinks[]{label,url},defaultSeo,homepageTagline,\n  aboutTitle,aboutEyebrow,aboutSummary,"aboutBody":aboutBody[]{\n    ...,\n    _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n    markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n  },aboutUpdatedDate,aboutSeo,\n  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},\n  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},\n  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}}\n}': SITE_SETTINGS_QUERY_RESULT;
     '*[_type == "article" && defined(slug.current)]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc){\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': ALL_PUBLISHED_ARTICLES_QUERY_RESULT;
     '*[_type == "article" && defined(slug.current) && slug.current == $slug][0]{\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': ARTICLE_BY_SLUG_QUERY_RESULT;
     '*[_type == "article" && defined(slug.current) && pinned == true]|order(featuredRank asc, coalesce(publicationMonth,publicationDate) desc, slug.current asc)[0]{\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': PINNED_ARTICLE_QUERY_RESULT;
@@ -1252,6 +1219,5 @@ declare module "@sanity/client" {
     '*[_type == "article" && defined(slug.current) && [title,subtitle,summary,pt::text(body),contributors[]->name] match $term]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc){\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': SEARCH_ARTICLES_QUERY_RESULT;
     '*[\n  _type == "contributor" && defined(slug.current)\n]|order(name asc){_id,_type,name,"slug":slug.current,graduationYear,active}': CONTRIBUTORS_QUERY_RESULT;
     '*[\n  _type == "contributor" && slug.current == $slug\n][0]{_id,_type,name,"slug":slug.current,graduationYear,active}': CONTRIBUTOR_BY_SLUG_QUERY_RESULT;
-    '*[\n  _type == "staticPage" && slug.current == $slug\n][0]{_id,_type,title,"slug":slug.current,eyebrow,summary,body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n},\n  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},\n  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},\n  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}}\n}': STATIC_PAGE_BY_SLUG_QUERY_RESULT;
   }
 }

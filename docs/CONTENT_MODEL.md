@@ -18,6 +18,10 @@ This provider-independent contract is the Phase 11B source of truth. Sanity reco
 | socialLinks | List | No | Approved publication accounts | Empty at launch |
 | defaultSeo | Object | No | Global title/description/image defaults | Provider mapping |
 | homepageTagline | String | No | Optional short homepage line | Replaces the retired recent-story count and homepage-introduction fields |
+| aboutTitle / aboutEyebrow / aboutSummary | String | Title required; others optional | Public About heading and discovery text | Migrated from the retired About document |
+| aboutBody | Structured body | Yes | Public About content; no raw HTML | Migrated without rewriting copy |
+| editorsInChief / editors / facultyAdviser | Ordered Contributor references | No | About-only leadership context; unique across sections | Editors-in-Chief supports one or more in display order |
+| aboutUpdatedDate / aboutSeo | Date / SEO object | No | About maintenance and optional discovery overrides | Migrated from the retired About document |
 
 ## Contributor
 
@@ -29,7 +33,7 @@ This provider-independent contract is the Phase 11B source of truth. Sanity reco
 | graduationYear | Integer | No | 2000–2200; public when approved | `2027` |
 | active | Boolean | Yes | Defaults true; archived records remain public where referenced | Editor lifecycle state |
 
-The CMS type and local domain type are both `contributor`. Contributor records do not store publication roles. Current leadership, including Editor-in-Chief, is configured on the About page through Contributor references. The public `/authors/[slug]` route remains for URL continuity, but implementation and content fields use Contributor terminology. Contributor identity is text-only: biography, portrait/photo, avatar, initials artwork, email, and social fields are not part of the launch contract. Article bylines link to text-only Contributor profile pages.
+The CMS type and local domain type are both `contributor`. Contributor records do not store publication roles. Current leadership is configured in Publication Settings through Contributor references rendered on About. The public `/authors/[slug]` route remains for URL continuity, but implementation and content fields use Contributor terminology. Contributor identity is text-only: biography, portrait/photo, avatar, initials artwork, email, and social fields are not part of the launch contract. Article bylines link to text-only Contributor profile pages.
 
 Active controls eligibility for new Article/About selections, not historical visibility. Archiving never removes an existing byline or contributor history.
 
@@ -60,7 +64,7 @@ Portable Text cursor objects store a source key, never a display number. A Sourc
 
 ## About
 
-`staticPage` is the fixed About document. It contains title, the fixed `about` slug, optional summary, structured mission/body content, updated date, optional SEO, and `editorsInChief`, `editors`, and `facultyAdviser` staff arrays. Each staff entry requires a Contributor reference and permits an optional About-only displayed label. Editor-in-Chief and Faculty Adviser each allow at most one entry. Leadership context belongs to this relationship and never changes the referenced Contributor. There is no separate Masthead document.
+About is a public projection of fixed `siteSettings`, not a separate CMS document. Publication Settings contains its title, optional eyebrow/summary, structured body, update date, optional SEO, and ordered `editorsInChief`, `editors`, and `facultyAdviser` arrays. Editors-in-Chief supports one or more unique Contributors; Faculty Adviser allows at most one. Each entry may have an About-only displayed label. Leadership never changes the referenced Contributor. There is no separate About or Masthead document.
 
 ## Body blocks and images
 

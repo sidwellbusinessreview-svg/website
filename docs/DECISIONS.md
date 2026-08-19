@@ -1,5 +1,11 @@
 # Architecture decision log
 
+### ADR-019: Consolidate publication administration in Publication Settings
+
+- **Date:** August 18, 2026
+- **Decision:** Retain fixed internal document `siteSettings`, rename it **Publication Settings** for editors, and move About content and ordered leadership references into it. The public `/about` route remains an adapter projection. Retire standalone `staticPage` after a guarded published/draft migration and verification. Editors-in-Chief is an ordered list; leadership never becomes Contributor metadata.
+- **Reason:** One durable publication-level document removes duplicate lifecycle, Preview, query, and navigation concepts while preserving independent draft/public values and the public information architecture.
+
 This file records durable technical and operational decisions. Add a dated entry when a choice changes the project’s architecture, dependencies, service ownership, security posture, or editorial workflow.
 
 ## Decision template

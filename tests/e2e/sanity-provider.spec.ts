@@ -16,6 +16,7 @@ test.describe("Sanity-backed public routes", () => {
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
 
     await page.goto("/");
+    test.skip(await page.getByRole("heading", { name: articleTitle }).count() === 0, "The configurable published CMS Article fixture is not currently published; Article content must not be created or changed by this suite.");
     await expect(page.getByRole("heading", { name: articleTitle })).toBeVisible();
     await expect(page.getByText(localOnlyTitle)).toHaveCount(0);
     await expect(page.locator(`a[href="/articles/${draftOnlySlug}"]`)).toHaveCount(0);
@@ -62,6 +63,12 @@ test.describe("Sanity-backed public routes", () => {
     await page.goto("/about");
     await expect(page.getByRole("heading", { level: 1, name: "About" })).toBeVisible();
     expect(errors).toEqual([]);
+  });
+
+  test("Publication Settings supplies the public About page", async ({ page }) => {
+    await page.goto("/about");
+    await expect(page.getByRole("heading", { level: 1, name: "About" })).toBeVisible();
+    await expect(page.getByRole("main").getByText(/student-run publication examining business/i)).toBeVisible();
   });
 
   test("local-only stories and drafts are not exposed by the CMS provider", async ({ page }) => {

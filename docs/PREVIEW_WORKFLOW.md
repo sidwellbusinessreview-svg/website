@@ -12,7 +12,7 @@
 
 Site Settings changes are identified in the preview banner, and Homepage reflects saved pinning changes. Articles may be image-free. The frontend renders Sanity’s Visual Editing bridge so Presentation can connect and list documents on the page. The current implementation still promises saved changes after refresh, not live updates while typing; no Sanity Live subscription is installed.
 
-The Studio location named **Homepage and site settings** opens `/`, because there is no public Site Settings route. Saved Site Settings changes appear through the Homepage header, footer, logo, structured publication data, and metadata. The Homepage tagline is the clearest quick check.
+Publication Settings offers both **Homepage and publication settings** (`/`) and **About page** (`/about`) Preview destinations. Saved global changes appear through the Homepage header, footer, logo, structured publication data, and metadata; saved About and leadership changes appear at `/about`. There is no separate public settings route or standalone About CMS document.
 
 A complete draft-only Article is previewable before publication. Generate its slug, save it, then use its Article preview location or open `/articles/{slug}` inside Preview. It may appear on Preview Homepage, Latest, Archive, Search, and its Contributor page, but must remain absent from the ordinary published site.
 

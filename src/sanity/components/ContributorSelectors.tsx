@@ -197,7 +197,7 @@ function normalizeStaffEntries(value: unknown): { entries: StaffEntry[]; invalid
 
 export function AboutStaffArrayInput(props: InputProps) {
   const field = props.schemaType.name;
-  const single = field === "facultyAdviser" || field === "editorsInChief";
+  const single = field === "facultyAdviser";
   const entryType: StaffEntry["_type"] = field === "editorsInChief" ? "editorInChiefEntry" : field === "facultyAdviser" ? "facultyAdviserEntry" : "editorEntry";
   const [open, setOpen] = useState(false);
   const normalized = useMemo(() => normalizeStaffEntries(props.value), [props.value]);

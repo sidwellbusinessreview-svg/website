@@ -2,7 +2,6 @@ import type { SchemaTypeDefinition } from "sanity";
 import { article } from "./documents/article";
 import { contributor } from "./documents/contributor";
 import { siteSettings } from "./documents/siteSettings";
-import { staticPage } from "./documents/staticPage";
 import { articleBody, callout, footnoteReference, simplePortableText } from "./objects/articleBody";
 import { editorialImage } from "./objects/editorialImage";
 import { linkAnnotation } from "./objects/linkAnnotation";
@@ -19,5 +18,4 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   siteSettings,
   contributor,
   article,
-  staticPage,
 ];
