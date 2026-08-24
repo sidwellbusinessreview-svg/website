@@ -151,6 +151,31 @@ test("search route loads", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("launch surfaces stay restrained and usable at desktop and mobile widths", async ({ page }) => {
+  for (const width of [390, 768, 1100, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    await expect(page.getByText("Menu", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible();
+    const purpose = page.locator(".purpose-section");
+    await expect(purpose).toBeVisible();
+    expect(await purpose.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe("rgb(247, 245, 239)");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+  }
+  await page.goto("/search");
+  await expect(page.getByRole("heading", { name: "Start with a person, topic, or phrase." })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /Browse the archive/ })).toBeVisible();
+  await page.goto("/archive");
+  const filters = page.getByText("Filter articles", { exact: true });
+  await expect(filters).toBeVisible();
+  await expect(page.getByLabel("School year")).not.toBeVisible();
+  await filters.click();
+  await expect(page.getByLabel("School year")).toBeVisible();
+  await page.goto("/");
+  await expect(page.locator("footer")).not.toContainText("Student-run. Editorially independent.");
+  await expect(page.locator("footer")).toContainText("Editorially independent.");
+});
+
 test("search displays a no-results state", async ({ page }) => {
   await page.goto("/search?q=volcanology");
   await expect(
@@ -160,6 +185,7 @@ test("search displays a no-results state", async ({ page }) => {
 
 test("archive filters published articles", async ({ page }) => {
   await page.goto("/archive");
+  await page.getByText("Filter articles", { exact: true }).click();
   await page.getByLabel("Contributor").selectOption("maya-chen");
   await page.getByRole("button", { name: "Apply filters" }).click();
   await expect(page).toHaveURL(/contributor=maya-chen/);
@@ -249,6 +275,7 @@ test("captures targeted editorial screenshots", async ({
   for (const capture of captures) {
     await page.setViewportSize(capture);
     await page.goto(capture.route);
+    await expect(page.locator(".loading-state")).toHaveCount(0);
     await page.screenshot({
       path: testInfo.outputPath(`${capture.name}.png`),
       fullPage: true,
@@ -267,16 +294,17 @@ test("keyboard navigation exposes the skip link and moves to main content", asyn
   await expect(page).toHaveURL(/#main-content$/);
 });
 
-test("mobile navigation opens from the keyboard and exposes its links", async ({ page }) => {
+test("mobile navigation remains visible and keyboard operable", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/");
-  const summary = page.locator("summary");
-  await expect(summary).toBeVisible();
-  await summary.press("Enter");
-  const mobileNavigation = page.getByRole("navigation", { name: "Mobile navigation" });
-  await expect(mobileNavigation).toBeVisible();
-  await page.keyboard.press("Tab");
-  await expect(mobileNavigation.getByRole("link", { name: "Latest" })).toBeFocused();
+  const navigation = page.getByRole("navigation", { name: "Primary navigation" });
+  await expect(navigation).toBeVisible();
+  await expect(page.getByText("Menu", { exact: true })).toHaveCount(0);
+  const latest = navigation.getByRole("link", { name: "Latest" });
+  await latest.focus();
+  await expect(latest).toBeFocused();
+  await latest.press("Enter");
+  await expect(page).toHaveURL(/\/latest$/);
 });
 
 test("article images have non-empty alternative text", async ({ page }) => {

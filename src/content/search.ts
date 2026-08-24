@@ -27,13 +27,8 @@ function blockText(block: ArticleContentBlock): string {
 }
 
 function occurrences(value: string, query: string): number {
-  let count = 0;
-  let start = 0;
-  while ((start = value.indexOf(query, start)) !== -1) {
-    count += 1;
-    start += query.length;
-  }
-  return count;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return [...value.matchAll(new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}(?=$|[^\\p{L}\\p{N}])`, "gu"))].length;
 }
 
 export function searchPublicArticles(

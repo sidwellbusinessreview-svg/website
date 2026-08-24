@@ -38,6 +38,8 @@
     "sanity:cleanup-fields": "sanity exec scripts/sanity/cleanup-obsolete-fields.ts --with-user-token",
     "sanity:cleanup-contributor-roles": "sanity exec scripts/sanity/cleanup-contributor-roles.ts --with-user-token",
     "sanity:cleanup-contributor-roles:apply": "sanity exec scripts/sanity/cleanup-contributor-roles.ts --with-user-token -- --apply",
+    "sanity:cleanup-redundant-contributor-drafts": "sanity exec scripts/sanity/cleanup-redundant-contributor-drafts.ts --with-user-token",
+    "sanity:cleanup-redundant-contributor-drafts:apply": "sanity exec scripts/sanity/cleanup-redundant-contributor-drafts.ts --with-user-token -- --apply",
     "sanity:consolidate-publication-settings": "sanity exec scripts/sanity/consolidate-publication-settings.ts --with-user-token",
     "sanity:consolidate-publication-settings:apply": "sanity exec scripts/sanity/consolidate-publication-settings.ts --with-user-token -- --apply",
     "sanity:reset-test-content": "sanity exec scripts/sanity/reset-test-content.ts --with-user-token",

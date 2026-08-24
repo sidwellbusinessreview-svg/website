@@ -64,7 +64,7 @@ export function createSanityContentProvider(client: SanityClient, mode: Provider
     async getContributorBySlug(slug) { return mapContributor(await fetch(CONTRIBUTOR_BY_SLUG_QUERY, { tag: `contributor:${slug}`, relatedTags: [PUBLIC_CACHE_TAGS.contributors], params: { slug } })); },
     async searchArticles(query) {
       const normalized = query.trim(); if (!normalized) return [];
-      const matches = articles(await fetch(SEARCH_ARTICLES_QUERY, { tag: "search", relatedTags: [PUBLIC_CACHE_TAGS.articles, PUBLIC_CACHE_TAGS.contributors], params: { term: `*${normalized}*` } }), mode === "drafts");
+      const matches = articles(await fetch(SEARCH_ARTICLES_QUERY, { tag: "search", relatedTags: [PUBLIC_CACHE_TAGS.articles, PUBLIC_CACHE_TAGS.contributors] }), mode === "drafts");
       return searchPublicArticles(matches, await this.getContributors(), normalized);
     },
     async getStaticPageBySlug(slug) { return slug === "about" ? mapStaticPage(await fetch(SITE_SETTINGS_QUERY, { tag: "settings", relatedTags: [PUBLIC_CACHE_TAGS.pages] })) : undefined; },

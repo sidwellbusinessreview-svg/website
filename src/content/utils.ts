@@ -1,4 +1,12 @@
-import type { Article } from "./types";
+import type { Article, Contributor } from "./types";
+
+export function getArticleContributors(article: Article, contributors: Contributor[]): Contributor[] {
+  const bySlug = new Map(contributors.map((contributor) => [contributor.slug, contributor]));
+  return article.contributorSlugs.flatMap((slug) => {
+    const contributor = bySlug.get(slug);
+    return contributor ? [contributor] : [];
+  });
+}
 
 export function selectLeadArticle(articles: Article[]): Article | undefined {
   return (

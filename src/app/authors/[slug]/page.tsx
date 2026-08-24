@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
-import { getArticlesByContributor, getContributorBySlug, getPublishedContributors } from "@/content";
+import { getArticleContributors, getArticlesByContributor, getContributorBySlug, getContributors, getPublishedContributors } from "@/content";
 import { createPageMetadata } from "@/lib/metadata";
 
 export async function generateStaticParams() {
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function AuthorPage({ params }: { params: Promise<{ slug: string }> }) {
   const author = await getContributorBySlug((await params).slug);
   if (!author) notFound();
-  const articles = await getArticlesByContributor(author.slug);
+  const [articles, contributors] = await Promise.all([getArticlesByContributor(author.slug), getContributors()]);
   return (
     <div className="container page-shell">
       <header className="profile-header contributor-profile-header">
@@ -32,7 +32,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
       </header>
       <div className="section-title-row"><h2 className="section-title">Articles by {author.name}</h2></div>
       <div className="article-list">
-        {articles.map((article) => <ArticleCard key={article.slug} article={article} authors={[author]} />)}
+        {articles.map((article) => <ArticleCard key={article.slug} article={article} authors={getArticleContributors(article, contributors)} />)}
       </div>
       {articles.length === 0 && (
         <div className="empty-state">

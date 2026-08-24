@@ -1,5 +1,13 @@
 # Project status
 
+## Focused launch QA correction pass
+
+- On August 24, 2026, real-data search was corrected by removing the unsafe GROQ nested-reference prefilter. Every published Article is now projected with its own resolved Contributor references and matched article-by-article with case-insensitive, whole-term matching across title, summary, body, and every Contributor name. This prevents `evan` from matching text such as “relevant,” while `areg`, `Areg`, and other Contributor names resolve to only their actual Articles. Generated Notes are not added to the search document.
+- Contributor profile pages still use the selected Contributor to choose Articles, but cards now resolve the complete canonical byline in stored reference order. Homepage, Search, and Archive use the same order-preserving helper.
+- Launch presentation refinements keep the Homepage purpose statement on the light editorial surface, keep primary navigation visible and wrapping on mobile, reduce the empty Search state to one Archive link, remove repeated Footer copy, and move Archive filters into a native disclosure with active-filter count and unchanged query parameters.
+- A guarded authenticated audit compared all meaningful fields in eight Contributor draft/published pairs, ignoring only Sanity-managed metadata. All eight were identical. After a fresh production export and JSON pre-mutation report, only the eight redundant `drafts.*` records were deleted. Post-apply verification proved published Contributor revisions, every Article revision/reference, and Publication Settings leadership references unchanged. The follow-up dry run reports zero pairs; the authenticated content audit reports zero invalid published Articles, dangling references, obsolete fields, or draft/published pairs.
+- Focused unit and browser regression coverage was added for realistic multi-Contributor search, unrelated substring exclusion, canonical bylines, mobile navigation, the light purpose section, simplified Search state, Footer copy, Archive disclosure, and guarded cleanup planning. Phase 15 has not begun.
+
 ## Phase 14N publication administration consolidation
 
 - On August 18, 2026, the guarded production migration copied published and draft About data independently into published and draft `siteSettings`, verified every mapped field checksum, deleted the obsolete `about` and `drafts.about` documents, and confirmed every Article `_rev` remained unchanged. Archive Article content was not modified.

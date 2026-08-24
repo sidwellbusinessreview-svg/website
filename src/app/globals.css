@@ -91,10 +91,7 @@ a:hover { color: var(--color-accent); }
 .main-nav { border-block: 1px solid var(--color-ink); }
 .main-nav__inner { display: flex; justify-content: center; gap: clamp(.5rem, 3vw, 3.8rem); overflow-x: auto; scrollbar-width: thin; }
 .main-nav a { display: inline-flex; min-height: var(--touch-target); flex: 0 0 auto; align-items: center; padding-inline: .35rem; font-size: .76rem; font-weight: 700; letter-spacing: .055em; text-decoration: none; text-transform: uppercase; }
-.mobile-nav { display: none; border-bottom: var(--border-ink); }
-.mobile-nav summary { min-height: var(--touch-target); cursor: pointer; padding: .65rem; font-size: var(--font-size-sm); font-weight: 750; letter-spacing: .055em; list-style-position: inside; text-transform: uppercase; }
-.mobile-nav nav { display: grid; border-top: var(--border-thin); padding: var(--space-2) var(--space-page-gutter); }
-.mobile-nav nav a { display: inline-flex; min-height: var(--touch-target); align-items: center; border-bottom: var(--border-thin); font-size: var(--font-size-sm); font-weight: 700; text-decoration: none; text-transform: uppercase; }
+.main-nav__mobile-search { display: none !important; }
 .hero-section { padding-block: var(--space-4) var(--space-6); }
 .section-heading { display: flex; justify-content: space-between; margin-bottom: var(--space-3); border-bottom: 1px solid var(--color-rule); padding-bottom: var(--space-2); color: var(--color-muted); font-family: var(--font-display); font-size: .9rem; }
 .section-heading p { margin: 0; }
@@ -117,8 +114,7 @@ a:hover { color: var(--color-accent); }
 .section-title { margin: 0 0 .55rem; font-family: var(--font-display); font-size: clamp(1.8rem, 3vw, 2.8rem); letter-spacing: -.03em; }
 .text-link { font-size: .77rem; font-weight: 750; letter-spacing: .03em; text-decoration: none; text-transform: uppercase; }
 .article-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
-.ink-section { background: var(--color-ink); color: var(--color-paper); padding-block: var(--space-6); }
-.ink-section .eyebrow { color: var(--color-accent-on-dark); }
+.purpose-section { border-block: var(--border-ink); background: var(--color-paper); padding-block: var(--space-6); }
 .statement-grid { display: grid; grid-template-columns: .45fr 1.7fr .85fr; gap: var(--space-5); align-items: start; }
 .statement-grid blockquote { margin: 0; font-family: var(--font-display); font-size: clamp(2.5rem, 5vw, 5rem); letter-spacing: -.04em; line-height: .98; }
 .statement-grid > div { font-family: var(--font-display); font-size: 1.15rem; }
@@ -229,6 +225,10 @@ a:hover { color: var(--color-accent); }
 .empty-state h2 { margin-top: 0; font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 3rem); line-height: var(--line-height-tight); }
 .loading-state { min-height: 45vh; }
 .archive-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); align-items: end; margin-bottom: var(--space-5); border-block: var(--border-thin); padding-block: var(--space-3); }
+.archive-filter-disclosure { margin-bottom: var(--space-4); border-block: var(--border-thin); }
+.archive-filter-disclosure > summary { min-height: var(--touch-target); cursor: pointer; padding-block: .75rem; font-size: var(--font-size-sm); font-weight: 750; letter-spacing: .035em; text-transform: uppercase; }
+.archive-filter-disclosure .archive-filters { margin-bottom: 0; border-bottom: 0; }
+.search-empty-link { margin: 0; }
 .archive-filters label { display: grid; gap: var(--space-1); font-size: var(--font-size-sm); font-weight: 700; }
 .archive-filters button { cursor: pointer; }
 .archive-filters > a { display: inline-flex; min-height: var(--touch-target); align-items: center; font-size: var(--font-size-sm); font-weight: 700; }
@@ -277,8 +277,9 @@ a:hover { color: var(--color-accent); }
   .site-logo { max-width: calc(100vw - 7.5rem); font-size: clamp(1.35rem, 7vw, 1.65rem); line-height: .95; }
   .site-logo__image { max-width: 100%; max-height: 3.5rem; }
   .search-link { font-size: .68rem; }
-  .main-nav { display: none; }
-  .mobile-nav { display: block; }
+  .main-nav__inner { flex-wrap: wrap; gap: 0 .9rem; justify-content: flex-start; overflow-x: visible; padding-block: .15rem; }
+  .main-nav__mobile-search { display: inline-flex !important; }
+  .wordmark-header .search-link { display: none; }
   .section-heading { display: block; }
   .section-heading span { display: none; }
   .article-card--featured :is(h1, h2, h3) { font-size: 2.55rem; }

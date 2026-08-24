@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { siteConfig } from "@/config/site";
 import { siteSettingsSchema } from "@/content/schemas";
@@ -13,5 +13,7 @@ describe("SiteHeader", () => {
     render(<SiteHeader settings={settings} />);
     expect(screen.getByText("Unpublished Site Settings tagline")).toBeVisible();
     expect(screen.queryByText(siteConfig.tagline)).not.toBeInTheDocument();
+    expect(screen.queryByText("Menu")).not.toBeInTheDocument();
+    expect(within(screen.getByRole("navigation", { name: "Primary navigation" })).getByRole("link", { name: "Search" })).toBeInTheDocument();
   });
 });

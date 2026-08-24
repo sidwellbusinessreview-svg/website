@@ -8,6 +8,9 @@ const contributorSlug = fixtureValue("CMS_TEST_CONTRIBUTOR_SLUG", "cms-integrati
 const localOnlyTitle = "The New Economics of School Lunch";
 const localOnlySlug = "the-new-economics-of-school-lunch";
 const draftOnlySlug = fixtureValue("CMS_TEST_DRAFT_ONLY_ARTICLE_SLUG", "preview-draft-article");
+const multiAuthorTitle = fixtureValue("CMS_MULTI_AUTHOR_ARTICLE_TITLE", "The Economic Implications of Trump’s Mass Deportations");
+const multiAuthorSlugs = fixtureValue("CMS_MULTI_AUTHOR_SLUGS", "evan-tan,felix-pacheco-lynch,steven-huang").split(",");
+const multiAuthorNames = fixtureValue("CMS_MULTI_AUTHOR_NAMES", "Evan Tan,Felix Pacheco Lynch,Steven Huang").split(",");
 
 test.describe("Sanity-backed public routes", () => {
   test.skip(process.env.CONTENT_SOURCE !== "sanity", "Run with npm run test:e2e:sanity.");
@@ -76,5 +79,20 @@ test.describe("Sanity-backed public routes", () => {
     await expect(page.getByRole("heading", { name: "This story is not in our archive." })).toBeVisible({ timeout: 20_000 });
     await page.goto(`/articles/${draftOnlySlug}`);
     await expect(page.getByRole("heading", { name: "This story is not in our archive." })).toBeVisible({ timeout: 20_000 });
+  });
+
+  test("real Contributor search and profile cards retain canonical multi-author bylines", async ({ page }) => {
+    for (let index = 0; index < multiAuthorSlugs.length; index += 1) {
+      const slug = multiAuthorSlugs[index];
+      const name = multiAuthorNames[index];
+      await page.goto(`/search?q=${encodeURIComponent(name.split(" ")[0])}`);
+      await expect(page.getByRole("link", { name: multiAuthorTitle, exact: true })).toBeVisible();
+      await page.goto(`/authors/${slug}`);
+      const card = page.locator(".article-card").filter({ has: page.getByRole("link", { name: multiAuthorTitle, exact: true }) });
+      for (const contributorName of multiAuthorNames) await expect(card.getByRole("link", { name: contributorName })).toBeVisible();
+    }
+    await page.goto("/search?q=areg");
+    await expect(page.getByRole("link", { name: "$Trump: The Memecoin From the Guy Who Lives Down the Street", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: multiAuthorTitle, exact: true })).toHaveCount(0);
   });
 });

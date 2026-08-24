@@ -56,7 +56,7 @@ export const ARTICLES_BY_CONTRIBUTOR_QUERY = defineQuery(
   `*[${articleFilter} && $slug in contributors[]->slug.current]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)${articleProjection}`,
 );
 export const SEARCH_ARTICLES_QUERY = defineQuery(
-  `*[${articleFilter} && [title,subtitle,summary,pt::text(body),contributors[]->name] match $term]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)${articleProjection}`,
+  `*[${articleFilter}]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)${articleProjection}`,
 );
 
 export const CONTRIBUTORS_QUERY = defineQuery(`*[

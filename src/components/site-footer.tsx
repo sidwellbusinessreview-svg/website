@@ -20,7 +20,6 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
           <a href={`mailto:${settings.contact.email}`}>
             {settings.contact.label}
           </a>
-          <p>{settings.affiliation}</p>
           {settings.socialLinks.map((link) => (
             <a key={link.href} href={link.href} rel="noreferrer">
               {link.label}
@@ -30,7 +29,7 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
       </div>
       <div className="container footer-bottom">
         <span>© {new Date().getFullYear()} {settings.name}</span>
-        <span>Student-run. Editorially independent.</span>
+        <span>Editorially independent.</span>
       </div>
     </footer>
   );
