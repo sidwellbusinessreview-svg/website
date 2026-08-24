@@ -48,7 +48,7 @@ export default async function SearchPage({
             name="q"
             type="search"
             defaultValue={query}
-            placeholder="Try “Federal Reserve” or “Maya Chen”"
+            placeholder="Search by author or title"
           />
           <button type="submit">Search</button>
         </div>
