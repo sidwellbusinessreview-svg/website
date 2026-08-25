@@ -9,6 +9,6 @@ if (!environment.configured) throw new Error("Sanity target configuration is inc
 console.log(`Project: ${environment.projectId}`);
 console.log(`Dataset: ${environment.dataset}`);
 console.log(`API version: ${environment.apiVersion}`);
-console.log(`Studio base path: ${environment.studioBasePath}`);
+console.log(`Studio URL: ${environment.studioUrl}`);
 console.log("Public provider: published perspective, token-free");
 console.log("Draft audits: authenticated CLI user locally, or server-only read token in CI");

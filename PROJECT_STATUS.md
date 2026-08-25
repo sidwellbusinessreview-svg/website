@@ -1,5 +1,12 @@
 # Project status
 
+## Separate Sanity Studio hosting
+
+- On August 24, 2026, the embedded `src/app/studio/[[...tool]]` route was removed so the public Next.js/OpenNext bundle no longer imports `NextStudio`, `next-sanity/studio`, or the full Studio configuration and custom editor graph. `/studio` and nested paths now use the normal public 404 behavior.
+- `sanity.config.ts` remains the authoritative standalone Studio with all current schemas, Structure, Presentation, custom Article/Source/Footnote controls, lifecycle actions, and Publication Settings behavior unchanged. It runs at the Studio root through `npm run studio:dev` and builds through `npm run studio:build`; no hosted Studio hostname has been selected or deployed.
+- `sanity.cli.ts` explicitly targets public project `bumxf5q6` and dataset `production` without a token. `NEXT_PUBLIC_SANITY_STUDIO_BASE_PATH` was retired; `NEXT_PUBLIC_SANITY_STUDIO_URL` now supplies the standalone local or hosted Studio origin used by stega/Visual Editing. Presentation continues to resolve the frontend from `NEXT_PUBLIC_SITE_URL`, falling back to `http://localhost:3000` locally.
+- Public published reads, server-only draft reads, Preview endpoints, revalidation, Search, sitemap, feed, and all content-provider behavior remain intact. No Sanity content, schema, or editor behavior changed. Phase 15 has not begun.
+
 ## Focused launch QA correction pass
 
 - On August 24, 2026, real-data search was corrected by removing the unsafe GROQ nested-reference prefilter. Every published Article is now projected with its own resolved Contributor references and matched article-by-article with case-insensitive, whole-term matching across title, summary, body, and every Contributor name. This prevents `evan` from matching text such as “relevant,” while `areg`, `Areg`, and other Contributor names resolve to only their actual Articles. Generated Notes are not added to the search document.

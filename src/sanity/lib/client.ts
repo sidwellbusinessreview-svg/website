@@ -40,7 +40,7 @@ export function createDraftSanityClient(
     token,
     stega: {
       enabled: true,
-      studioUrl: environment.studioBasePath,
+      studioUrl: environment.studioUrl,
     },
   });
 }

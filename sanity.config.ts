@@ -1,5 +1,3 @@
-"use client";
-
 import { defineConfig, defineLocaleResourceBundle } from "sanity";
 import { structureTool } from "sanity/structure";
 import { presentationTool } from "sanity/presentation";
@@ -28,7 +26,6 @@ export default environment.configured
   ? defineConfig({
       name: "sidwell_business_review",
       title: "Sidwell Business Review",
-      basePath: environment.studioBasePath,
       projectId: environment.projectId,
       dataset: environment.dataset,
       plugins: [

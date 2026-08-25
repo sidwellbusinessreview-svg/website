@@ -4,7 +4,7 @@ Before publishing, use Studio’s **Preview** tool. Draft-only Articles and unpu
 
 ## First-time contributor setup
 
-1. Open `/studio` and choose **Contributors**.
+1. Open standalone Studio (`npm run studio:dev`, normally `http://localhost:3333`) and choose **Contributors**.
 2. Create a contributor with Name and generated Slug. Add an optional graduation year. Contributor records do not store publication roles, portraits, avatars, initials artwork, photos, or biographies.
 3. Review the public spelling and slug.
 4. Select **Publish**. Publishing a contributor creates no article and sends no notification.

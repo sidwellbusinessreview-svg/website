@@ -16,7 +16,7 @@ Publication Settings offers both **Homepage and publication settings** (`/`) and
 
 A complete draft-only Article is previewable before publication. Generate its slug, save it, then use its Article preview location or open `/articles/{slug}` inside Preview. It may appear on Preview Homepage, Latest, Archive, Search, and its Contributor page, but must remain absent from the ordinary published site.
 
-The Draft Mode cookie applies to the local origin, but preview UI is deliberately limited to public frontend pages. Studio, nested Studio tools, API routes, feed, sitemap, and robots never mount the preview banner or Visual Editing bridge. This keeps the Studio shell and tool navigation independent from the frontend preview chrome.
+The Draft Mode cookie applies to the public frontend origin, and preview UI is deliberately limited to public frontend pages. API routes, feed, sitemap, and robots never mount the preview banner or Visual Editing bridge. Standalone Studio runs on its own origin, so its shell and tool navigation are not part of the Next.js layout.
 
 ## Faculty adviser review
 
@@ -43,4 +43,4 @@ Draft Mode is a browser-session setting for the localhost origin, not a setting 
 - **Public page shows a draft:** exit preview and retry in a clean browser. Stop publishing if it remains visible.
 - **Preview returns after exiting inside Studio:** the exit control must navigate the top-level window away from Presentation. Confirm the resulting URL is the clean public page path and the banner stays absent after refresh.
 - **Presentation says it cannot connect:** confirm Draft Mode is active, the preview banner appears, and the frontend renders the Visual Editing bridge. Then align `NEXT_PUBLIC_SITE_URL` and Sanity CORS with credentials.
-- **Studio shows the frontend preview banner:** stop acceptance. Hard refresh `/studio`; neither the banner nor the Visual Editing bridge may be mounted on Studio or any nested Studio tool.
+- **Hosted Studio cannot open Preview:** confirm `NEXT_PUBLIC_SITE_URL` points to the public frontend, its Draft Mode endpoint is reachable, and Sanity CORS/trusted origins are exact. Local Studio defaults to the public site at `http://localhost:3000`.

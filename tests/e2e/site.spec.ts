@@ -125,17 +125,11 @@ test("About contains staff sections and Masthead is removed", async ({ page }) =
 });
 
 for (const studioRoute of ["/studio", "/studio/structure"] as const) {
-  test(`${studioRoute} is handled by the optional Studio catch-all`, async ({ page }) => {
+  test(`${studioRoute} is absent from the public Next.js application`, async ({ page }) => {
     const response = await page.goto(studioRoute);
-    expect(response?.status()).toBe(200);
-
-    const title = await page.title();
-    expect(title).toBe("Sidwell Business Review Studio | Sidwell Business Review");
-    const robots = await page.locator('meta[name="robots"]').getAttribute("content");
-    expect(robots).toContain("noindex");
-    await expect(page.locator("html")).not.toContainText("setuprequired");
-    await expect(page.locator("header.site-header")).toHaveCount(0);
-    await expect(page.locator("footer.site-footer")).toHaveCount(0);
+    expect(response?.status()).toBe(404);
+    await expect(page.getByRole("heading", { name: "This story is not in our archive." })).toBeVisible();
+    await expect(page.locator("html")).not.toContainText("Sanity Studio");
   });
 }
 

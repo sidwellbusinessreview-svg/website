@@ -108,13 +108,13 @@ This file records durable technical and operational decisions. Add a dated entry
 - **Decision:** Use a separately deployed Sanity Studio whose source lives in this repository, with editorial content in Sanity Content Lake. The public application will read through a Sanity adapter behind the existing content-access layer. Use explicit local/Sanity provider selection during migration, authenticated Draft Mode for preview, Sanity image delivery, and verified webhook-driven revalidation. Obtain school approval and confirm the seat/role plan before adding real student data or accounts.
 - **Consequences:** Phases 10–14 implement the design in `docs/CMS_DECISION.md`. No CMS package, credential, or frontend behavior changes in Phase 09. Granular editor roles or private datasets may require a paid plan; Payload is the documented fallback if policy requires school-controlled hosting. A different CMS requires a superseding ADR with a concrete blocker.
 
-### ADR-012: Embed Sanity Studio at `/studio`
+### ADR-012: Host Sanity Studio separately from the public application
 
 - **Status:** Accepted
-- **Date:** 2026-07-17
-- **Context:** Phase 10 requires the editorial Studio at a stable application route. Current official `next-sanity` guidance supports an App Router optional catch-all route, static Studio shell, noindex metadata, and Sanity-managed authentication.
-- **Decision:** Embed Studio at `/studio` in the existing Next.js application instead of deploying a separate Studio. Keep it out of public navigation, disallow it in `robots.txt`, retain Sanity's noindex metadata, and render safe setup guidance when public configuration is absent.
-- **Consequences:** This supersedes only ADR-011's separate-Studio hosting detail. Content remains in Content Lake, public pages retain the content-provider boundary and local source, and Sanity authentication—not application authentication—controls editing. Trusted Studio origins require tightly scoped credentialed CORS entries.
+- **Date:** 2026-08-24 (supersedes the embedded decision from 2026-07-17)
+- **Context:** The embedded App Router route imports the complete Studio application into the public Next.js bundle. The resulting OpenNext Worker exceeds Cloudflare Free's compressed Worker limit, while Sanity provides purpose-built Studio hosting.
+- **Decision:** Keep Studio source, schemas, Structure, Presentation, custom inputs, and document actions in this repository, but run and deploy Studio separately through Sanity CLI. The public Next.js application has no `/studio` route. The Studio runs at its root locally and on a future `*.sanity.studio` hostname. `NEXT_PUBLIC_SANITY_STUDIO_URL` tells public Draft Mode/Visual Editing where Studio lives; `NEXT_PUBLIC_SITE_URL` tells Presentation which frontend to preview.
+- **Consequences:** Public content reads, Draft Mode endpoints, revalidation, sitemap, feed, and the provider boundary remain unchanged. Editors run `npm run studio:dev` locally and later `npm run studio:deploy`. The chosen hosted Studio URL must be added to deployment environment settings and trusted origins after the first deploy. Sanity authentication—not application authentication—continues to control editing.
 
 ### ADR-013: Derive Sanity types and use native drafts
 

@@ -88,7 +88,7 @@ GitHub Actions uploads `playwright-report` and `playwright-test-results` artifac
 
 ## Studio regression checks
 
-After changing Contributor selection or Article browsing, run the unit suite and then verify `/studio` while signed in. Article lists support search across title, subtitle, summary, contributor name, and publication month. Test Newest, Oldest, Title A–Z, and Recently updated sorting in every state pane.
+After changing Contributor selection or Article browsing, run the unit suite, start `npm run studio:dev`, and verify standalone Studio at `http://localhost:3333` while signed in. Article lists support search across title, subtitle, summary, contributor name, and publication month. Test Newest, Oldest, Title A–Z, and Recently updated sorting in every state pane.
 
 The Article field must show exactly one **Add contributors** button and no native **Add item** or default item menu. The modal searches by name, shows optional graduation year, supports temporary multiple selection, and only **Confirm selection** patches the field. X, Escape, outside click, and **Cancel** never save. Verify About uses a single Contributor selection for Editor-in-Chief, that the Contributor form has no Role field, and that the public Contributor page does not inherit the About label. A malformed historical selection must show a friendly repair action instead of crashing.
 
@@ -106,16 +106,12 @@ It writes a dry-run report and never repairs or deletes dataset content.
 
 ## Preview chrome regression checks
 
-With Draft Mode enabled, public Homepage, Article, Contributor, and About paths must show **Previewing unpublished content** and mount the Presentation bridge. The same browser session must not show the banner or mount that bridge on:
+With Draft Mode enabled, public Homepage, Article, Contributor, and About paths must show **Previewing unpublished content** and mount the Presentation bridge. The public browser session must not show the banner or mount that bridge on:
 
-- `/studio`
-- `/studio/structure`
-- nested document editors
-- the Studio Preview tool shell
 - `/api/...`
 - `/feed.xml`, `/sitemap.xml`, or `/robots.txt`
 
-Hard refresh Studio and move between Structure, About, Site Settings, an Article editor, and Preview. Studio’s header, tool tabs, document pane, and form controls must remain undisplaced. **Exit preview** should retain the current public Article path, but unsafe Studio, API, external, or protocol-relative redirect targets must return to Homepage. Unit coverage for these rules lives in `preview-chrome.test.tsx`, `preview.test.ts`, and the Draft Mode route tests.
+Run standalone Studio and the public site together, then move between Structure, Publication Settings, an Article editor, and Preview. **Exit preview** should retain the current public Article path, but unsafe API, external, or protocol-relative redirect targets must return to Homepage. Unit coverage for these rules lives in `preview-chrome.test.tsx`, `preview.test.ts`, and the Draft Mode route tests. Public browser tests must also confirm `/studio` and `/studio/*` return 404.
 
 For provider-loss investigations, run:
 

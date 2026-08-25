@@ -16,8 +16,9 @@ All pages use `src/content/index.ts` and therefore the selected local or Sanity 
 | `/sitemap.xml` | `getArticles`, `getContributors` | Static routes remain | Excludes drafts and removed collection routes |
 
 `/masthead` is intentionally retired and must use the application not-found behavior. Its former staff content is part of `/about`.
-| `/robots.txt` | Site config | Always available | Disallows Studio |
-| `/studio/[[...tool]]` | Sanity Studio | Setup page when env is absent | Noindex; dedicated full-screen shell |
+| `/robots.txt` | Site config | Always available | Disallows Search indexing |
 | Unknown path | None | Custom HTTP 404 | No misleading content metadata |
 
 Removed routes `/issues` and `/issues/[slug]` use normal custom not-found behavior. There are no Issue, Category, Tag, or Masthead provider methods, queries, or public routes. Provider selection, projections, mapping, caching, and controlled errors are implemented in Phase 12; authenticated draft preview remains later work.
+
+Sanity Studio is a separately built and hosted application. `/studio` and nested `/studio/*` paths are unknown public Next.js routes and return the custom 404.
