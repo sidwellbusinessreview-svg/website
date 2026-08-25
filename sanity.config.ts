@@ -1,8 +1,8 @@
 import { defineConfig, defineLocaleResourceBundle } from "sanity";
 import { structureTool } from "sanity/structure";
 import { presentationTool } from "sanity/presentation";
-import { getSanityEnvironment } from "./src/sanity/env";
 import { schemaTypes } from "./src/sanity/schemaTypes";
+import { SANITY_STUDIO_DATASET, SANITY_STUDIO_PROJECT_ID } from "./src/sanity/studio-target";
 import {
   filterSingletonNewDocumentOptions,
   filterSingletonTemplates,
@@ -12,8 +12,7 @@ import {
 import { structure } from "./src/sanity/structure";
 import { ArticleStatusBadge, ContributorAvailabilityBadge, resolveDocumentActions, SingletonStatusBadge } from "./src/sanity/documentStatus";
 
-const environment = getSanityEnvironment();
-const previewOrigin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const previewOrigin = process.env.SANITY_STUDIO_PREVIEW_ORIGIN || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 const articleEditorLocale = defineLocaleResourceBundle({
   locale: "en-US",
   namespace: "studio",
@@ -22,12 +21,11 @@ const articleEditorLocale = defineLocaleResourceBundle({
   },
 });
 
-export default environment.configured
-  ? defineConfig({
+export default defineConfig({
       name: "sidwell_business_review",
       title: "Sidwell Business Review",
-      projectId: environment.projectId,
-      dataset: environment.dataset,
+      projectId: SANITY_STUDIO_PROJECT_ID,
+      dataset: SANITY_STUDIO_DATASET,
       plugins: [
         structureTool({ structure }),
         presentationTool({
@@ -88,7 +86,6 @@ export default environment.configured
         badges: (badges, context) => context.schemaType === "article" ? [ArticleStatusBadge] : context.schemaType === "contributor" ? [ContributorAvailabilityBadge, ...badges] : isSingletonSchemaType(context.schemaType) ? [SingletonStatusBadge] : badges,
         newDocumentOptions: filterSingletonNewDocumentOptions,
       },
-    })
-  : [];
+    });
 
 export { SITE_SETTINGS_ID };

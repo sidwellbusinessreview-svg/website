@@ -1,8 +1,12 @@
 import { defineCliConfig } from "sanity/cli";
+import { SANITY_STUDIO_DATASET, SANITY_STUDIO_PROJECT_ID } from "./src/sanity/studio-target";
 export default defineCliConfig({
   api: {
-    projectId: "bumxf5q6",
-    dataset: "production",
+    projectId: SANITY_STUDIO_PROJECT_ID,
+    dataset: SANITY_STUDIO_DATASET,
+  },
+  deployment: {
+    appId: "fmycvx6k6sss6ltq7ut0remd",
   },
   schemaExtraction: {
     enabled: true,

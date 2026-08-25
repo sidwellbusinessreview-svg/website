@@ -5,8 +5,8 @@ import { Box, Button, Card, Dialog, Flex, Stack, Text } from "@sanity/ui";
 import { createDraftId } from "@sanity/id-utils";
 import { useClient } from "sanity";
 import { IntentLink, useRouter } from "sanity/router";
-import { getSanityEnvironment } from "../env";
 import { CURRENT_PAGE_QUERY, exactCurrentPageVersions, type CurrentPageVersion } from "../pageExistence";
+import { SANITY_STUDIO_API_VERSION } from "../studio-target";
 
 export type SingletonPaneOptions = {
   documentId: string;
@@ -17,15 +17,12 @@ export type SingletonPaneOptions = {
 
 type LoadedVersions = { documentId: string; versions: CurrentPageVersion[] };
 
-const studioEnvironment = getSanityEnvironment();
-const studioApiVersion = studioEnvironment.configured ? studioEnvironment.apiVersion : "2025-02-19";
-
 export function SingletonPane({ options }: { options?: Partial<SingletonPaneOptions> }) {
   const documentId = options?.documentId ?? "";
   const schemaType = options?.schemaType ?? "";
   const title = options?.title ?? "Singleton";
   const initialValue = options?.initialValue ?? {};
-  const studioClient = useClient({ apiVersion: studioApiVersion });
+  const studioClient = useClient({ apiVersion: SANITY_STUDIO_API_VERSION });
   const client = useMemo(() => studioClient.withConfig({ perspective: "raw", useCdn: false }), [studioClient]);
   const router = useRouter();
   const [loaded, setLoaded] = useState<LoadedVersions | null>(null);
@@ -47,7 +44,7 @@ export function SingletonPane({ options }: { options?: Partial<SingletonPaneOpti
         requested: { documentId, draftId: `drafts.${documentId}`, schemaType },
         returned: Array.isArray(raw) ? raw.map((item) => item && typeof item === "object" ? { _id: (item as Partial<CurrentPageVersion>)._id, _type: (item as Partial<CurrentPageVersion>)._type } : item) : raw,
         accepted: versions.map(({ _id, _type }) => ({ _id, _type })),
-        client: { projectId: config.projectId, dataset: config.dataset, apiVersion: studioApiVersion, perspective: "raw", useCdn: false },
+        client: { projectId: config.projectId, dataset: config.dataset, apiVersion: SANITY_STUDIO_API_VERSION, perspective: "raw", useCdn: false },
       });
     }
     return versions;

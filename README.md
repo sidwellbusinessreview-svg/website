@@ -43,6 +43,8 @@ npm run studio:dev
 
 The public site normally uses port 3000 and standalone Studio normally uses port 3333. Build Studio with `npm run studio:build`; after the publication chooses a `*.sanity.studio` hostname, deploy it with `npm run studio:deploy`.
 
+Standalone Studio always targets the approved `bumxf5q6` project and `production` dataset. `SANITY_STUDIO_PREVIEW_ORIGIN` may point Presentation at a different public frontend origin; it is public configuration and must never contain credentials.
+
 Run the token-free connectivity check after configuring `.env.local`:
 
 ```bash

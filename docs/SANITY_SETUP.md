@@ -33,9 +33,12 @@ NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id
 NEXT_PUBLIC_SANITY_DATASET=production
 NEXT_PUBLIC_SANITY_API_VERSION=YYYY-MM-DD
 NEXT_PUBLIC_SANITY_STUDIO_URL=http://localhost:3333
+SANITY_STUDIO_PREVIEW_ORIGIN=http://localhost:3000
 ```
 
 Choose and retain one documented API date rather than changing it on every build. Leave `SANITY_API_READ_TOKEN`, `SANITY_PREVIEW_SECRET`, and `SANITY_REVALIDATE_SECRET` blank in Phase 10. They are reserved for later server-only preview and webhook work.
+
+The standalone workspace target itself is fixed in source to project `bumxf5q6` and dataset `production`; it never depends on `NEXT_PUBLIC_*` variables to exist. `SANITY_STUDIO_PREVIEW_ORIGIN` is optional public configuration for Presentation and must contain the frontend origin, not a token or secret.
 
 `.env.local` is ignored by Git. Confirm before proceeding:
 
