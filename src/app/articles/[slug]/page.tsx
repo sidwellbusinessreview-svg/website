@@ -8,6 +8,7 @@ import { JsonLd } from "@/components/json-ld";
 import { siteConfig } from "@/config/site";
 import { getArticleBySlug, getPublishedArticles, getContributors } from "@/content";
 import { absoluteUrl, createPageMetadata } from "@/lib/metadata";
+import { structuredArticleDate } from "@/lib/article-date";
 
 export async function generateStaticParams() {
   return (await getPublishedArticles()).map(({ slug }) => ({ slug }));
@@ -28,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
           description: article.dek,
           url: `/articles/${article.slug}`,
           siteName: siteConfig.name,
-          publishedTime: article.publishedAt,
+          publishedTime: structuredArticleDate(article.publicationMonth),
           authors: article.contributorSlugs.map((slug) => absoluteUrl(`/authors/${slug}`)),
           images: article.featuredImage ? [{
             url: article.featuredImage.src,
@@ -62,7 +63,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           "@type": "NewsArticle",
           headline: article.title,
           description: article.dek,
-          datePublished: article.publishedAt,
+          datePublished: structuredArticleDate(article.publicationMonth),
           mainEntityOfPage: absoluteUrl(`/articles/${article.slug}`),
           ...(article.featuredImage ? { image: [article.featuredImage.src] } : {}),
           author: authors.map((author) => ({
@@ -114,7 +115,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         </div>
         <ImageCaption caption={article.featuredImage.caption} credit={article.featuredImage.credit} />
       </figure>}
-      <div className="container article-layout"><ArticleBody blocks={article.content} /></div>
+      <div className="container article-layout"><ArticleBody blocks={article.content} sources={article.sources} /></div>
     </article>
   );
 }

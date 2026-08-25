@@ -9,7 +9,6 @@ function blockText(block: ArticleContentBlock): string {
   switch (block.type) {
     case "paragraph":
     case "heading":
-    case "pullQuote":
       return block.text;
     case "bulletedList":
     case "numberedList":
@@ -28,13 +27,8 @@ function blockText(block: ArticleContentBlock): string {
 }
 
 function occurrences(value: string, query: string): number {
-  let count = 0;
-  let start = 0;
-  while ((start = value.indexOf(query, start)) !== -1) {
-    count += 1;
-    start += query.length;
-  }
-  return count;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return [...value.matchAll(new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}(?=$|[^\\p{L}\\p{N}])`, "gu"))].length;
 }
 
 export function searchPublicArticles(
@@ -71,7 +65,7 @@ export function searchPublicArticles(
     .sort(
       (a, b) =>
         b.score - a.score ||
-        b.article.publishedAt.localeCompare(a.article.publishedAt) ||
+        b.article.publicationMonth.localeCompare(a.article.publicationMonth) ||
         a.article.slug.localeCompare(b.article.slug),
     );
 }

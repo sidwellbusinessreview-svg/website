@@ -1,6 +1,3 @@
-"use client";
-
-import { usePathname } from "next/navigation";
 import type { SiteSettings } from "@/content/types";
 import { JsonLd } from "./json-ld";
 import { SiteFooter } from "./site-footer";
@@ -8,8 +5,6 @@ import { SiteHeader } from "./site-header";
 import { absoluteUrl } from "@/lib/metadata";
 
 export function SiteShell({ children, settings }: { children: React.ReactNode; settings: SiteSettings }) {
-  const pathname = usePathname();
-  if (pathname === "/studio" || pathname.startsWith("/studio/")) return children;
   return (
     <>
       <JsonLd data={{ "@context": "https://schema.org", "@type": "Organization", name: settings.name, url: absoluteUrl("/"), description: settings.description, parentOrganization: { "@type": "EducationalOrganization", name: settings.school } }} />

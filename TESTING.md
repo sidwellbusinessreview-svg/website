@@ -1,5 +1,13 @@
 # Testing
 
+## Phase 14N manual acceptance
+
+Hard-refresh Studio and confirm Structure shows one **Publication Settings** entry and no separate About or Site Settings entries. Verify its General, About, Leadership, and SEO/Advanced groups contain the preserved data. Add a second Editor-in-Chief, reorder the list, preview `/about`, and confirm the plural heading and configured order; then confirm Contributor profiles contain no leadership label.
+
+Open an Article that already has a footnote without changing Article content. Confirm **Add footnote** opens beside its toolbar control, Escape and click-away close without inserting, and choosing a Source inserts exactly once without a Save step. Select an existing superscript and confirm Sanity's inline controls and anchored **Edit footnote** popover remain close to the marker; the Source selector is searchable, removal uses the native editor action, Escape preserves the value, and focus returns predictably. Check 1440, 1100, 768, and 390 CSS-pixel viewports for clipping and horizontal overflow. The component layout test covers those widths; authenticated Studio placement, keyboard traversal, undo/redo, and real editor patches remain human checks.
+
+The CMS browser suite always verifies Publication Settings-backed `/about` and public exclusion of local/draft Articles. Its deeper Article-discovery scenario uses the environment-configurable published Article fixture and skips explicitly when that fixture is not published; tests must never create or publish Article content.
+
 The project uses four complementary checks:
 
 - **ESLint** finds common code-quality and framework mistakes.
@@ -25,6 +33,8 @@ Run the fast blocking checks:
 
 ```bash
 npm run verify
+npm run sanity:migration:validate
+npm run sanity:migration:dry-run
 ```
 
 This runs lint, typecheck, unit/component tests, and the production build in that order. It intentionally does not start a browser because browser tests are slower and may need a downloaded Chromium binary.
@@ -78,9 +88,13 @@ GitHub Actions uploads `playwright-report` and `playwright-test-results` artifac
 
 ## Studio regression checks
 
-After changing Contributor selection or Article browsing, run the unit suite and then verify `/studio` while signed in. Article lists support search across title, subtitle, summary, contributor name, and publication date. Test Newest, Oldest, Title A–Z, and Recently updated sorting in every state pane.
+After changing Contributor selection or Article browsing, run the unit suite, start `npm run studio:dev`, and verify standalone Studio at `http://localhost:3333` while signed in. Article lists support search across title, subtitle, summary, contributor name, and publication month. Test Newest, Oldest, Title A–Z, and Recently updated sorting in every state pane.
 
-The Article field must show exactly one **Add contributors** button and no native **Add item** or default item menu. The modal shows role and graduation year, supports temporary multiple selection, and only **Confirm selection** patches the field. X, Escape, outside click, and **Cancel** never save. Verify About staff uses the same rules and contributor reassignment uses the same searchable single-select. A malformed historical selection must show a friendly repair action instead of crashing.
+The Article field must show exactly one **Add contributors** button and no native **Add item** or default item menu. The modal searches by name, shows optional graduation year, supports temporary multiple selection, and only **Confirm selection** patches the field. X, Escape, outside click, and **Cancel** never save. Verify About uses a single Contributor selection for Editor-in-Chief, that the Contributor form has no Role field, and that the public Contributor page does not inherit the About label. A malformed historical selection must show a friendly repair action instead of crashing.
+
+After Contributor-model changes, run the authenticated dry-run cleanup with `npm run sanity:cleanup-contributor-roles`. It must report zero affected documents after the approved cleanup. The apply command is guarded by exact target, recent-export, and typed-confirmation requirements and must never run without explicit authorization.
+
+For date/source model changes, use the existing unpublished draft in **Structure**. Choose **March** and enter **2025** using the friendly controls; editors must never type `2025-03`. Add each Source once, then cite one Source more than once. Confirm Studio markers show the actual live body-order numbers and renumber after inserting, moving, or removing an occurrence; hover must stay brief and the click editor must wrap the full citation. Preview must show **March 2025**, matching sequential occurrence numbers, a collapsed **Notes (N)** disclosure, one Note per citation occurrence, working occurrence-specific jumps/backlinks, and no read time or numerical day. Studio must reject a blank citation, non-HTTP/S URL, and nonexistent source. Do not publish this acceptance record.
 
 The read-only persisted-data check is:
 
@@ -92,16 +106,12 @@ It writes a dry-run report and never repairs or deletes dataset content.
 
 ## Preview chrome regression checks
 
-With Draft Mode enabled, public Homepage, Article, Contributor, and About paths must show **Previewing unpublished content** and mount the Presentation bridge. The same browser session must not show the banner or mount that bridge on:
+With Draft Mode enabled, public Homepage, Article, Contributor, and About paths must show **Previewing unpublished content** and mount the Presentation bridge. The public browser session must not show the banner or mount that bridge on:
 
-- `/studio`
-- `/studio/structure`
-- nested document editors
-- the Studio Preview tool shell
 - `/api/...`
 - `/feed.xml`, `/sitemap.xml`, or `/robots.txt`
 
-Hard refresh Studio and move between Structure, About, Site Settings, an Article editor, and Preview. Studio’s header, tool tabs, document pane, and form controls must remain undisplaced. **Exit preview** should retain the current public Article path, but unsafe Studio, API, external, or protocol-relative redirect targets must return to Homepage. Unit coverage for these rules lives in `preview-chrome.test.tsx`, `preview.test.ts`, and the Draft Mode route tests.
+Run standalone Studio and the public site together, then move between Structure, Publication Settings, an Article editor, and Preview. **Exit preview** should retain the current public Article path, but unsafe API, external, or protocol-relative redirect targets must return to Homepage. Unit coverage for these rules lives in `preview-chrome.test.tsx`, `preview.test.ts`, and the Draft Mode route tests. Public browser tests must also confirm `/studio` and `/studio/*` return 404.
 
 For provider-loss investigations, run:
 
@@ -174,6 +184,8 @@ The test covers Homepage, Article, Contributor, Search, Latest, Archive, sitemap
 
 It also verifies that the canonical CMS Article renders a real bulleted list with semantic `<ul>/<li>` markup, visible markers, and no mobile horizontal overflow.
 
+Migration tests use injected clients and temporary backup fixtures. They exercise preflight and action ordering without real tokens or Sanity mutations. Apply and rollback-apply commands must never run during tests, CI, builds, installation, deployment, or server startup.
+
 ### CMS cache diagnostic
 
 Run `npm run sanity:check-cache` to compare the canonical Article from uncached Sanity origin, Sanity CDN, provider detail, and provider collection reads. The command is read-only, uses no token, prints no secret, and exits unsuccessfully when public sources disagree. It does not inspect the browser or Next development cache and deliberately does not wait through the five-minute refresh window.
@@ -189,3 +201,15 @@ For a token-free check, use `npm run sanity:audit-pages:published` or `npm run s
 ## CI behavior
 
 GitHub Actions runs on pull requests and pushes to `main`. The first job performs lint, typecheck, Vitest, and the production build. After that succeeds, a separate job installs Chromium and runs Playwright. Public-site tests require no token. If a future CI job runs `npm run sanity:audit-pages:ci`, it may receive `SANITY_API_READ_TOKEN` as a server-only repository secret; without that secret it performs an explicitly published-only audit. Never use a personal CLI user token in CI.
+
+## Article authoring regression checks
+
+Vitest covers the full image-free Article fixture; the toolbar and layout; Source controls; shared Studio/public occurrence numbering through paragraphs, Block quotes, lists, and Callouts; repeated Sources; 21-note sequences; insertion, deletion, body and Source reordering; anchors; backlinks; Month Year output; and validation. Playwright checks toolbar and footnote-editor geometry, Article metadata without read time, collapsed Notes behavior, direct hashes, exact backlinks, numbered-list visibility, overflow, typography, and accessibility at desktop/mobile sizes.
+
+Authenticated Studio acceptance is still manual: create no automated records. Hard-refresh Studio, open the Mass Deportations draft, confirm the toolbar resembles compact document-editor chrome, choose Block quote from Paragraph style with only a caret, add a Footnote, bold one word and undo, scan/reorder Sources, and refresh Preview once. Do not claim this acceptance from unit tests alone.
+
+For the Article-body surface, confirm the existing nine-block Mass Deportations text appears after a hard refresh. Toolbar and canvas must share one border, the native empty state must read **Start writing or paste here…** exactly once, an empty canvas should be roughly 200px tall without a resize handle, and longer content should use normal Studio page scrolling. Component coverage verifies that a non-empty value is passed to Sanity's native renderer and cannot be replaced by empty-state UI; browser geometry coverage checks normal and narrow widths.
+
+Clipboard tests cover true text-only input; browser-viewer `text/plain` plus PRE HTML; generic DIV/SPAN/BR wrappers; CRLF/CR; tabs; whitespace-only lines; repeated blank lines; Unicode; URLs; `[n]`; empty fallback; and a browser-wrapped 20-paragraph manuscript over 5,000 characters. Genuine HTML fixtures verify separate paragraphs, Bold, Italic, external Link, bulleted list, numbered-list support through the configured schema, and Block quote conversion using `@portabletext/block-tools`. Each handled paste returns exactly one insertion fragment. The browser harness renders the converted manuscript with 20 Source controls and checks vertical growth, toolbar usability, and horizontal overflow. Selection replacement and undo remain native Sanity transaction behavior because the hook never patches the document directly.
+
+If a development server already owns port 3000, preserve it and run an isolated suite with `PLAYWRIGHT_PORT=3001 CI=1 npm run test:e2e` (or `test:e2e:sanity`). Port 3000 remains the default.

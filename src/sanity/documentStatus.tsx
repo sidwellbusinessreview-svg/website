@@ -67,7 +67,7 @@ UnpublishArticleAction.action = "unpublish";
 
 export function resolveDocumentActions(actions: DocumentActionComponent[], schemaType: string): DocumentActionComponent[] {
   if (isSingletonSchemaType(schemaType)) return filterSingletonActions(actions, schemaType);
-  const removeDuplicate = ["article", "contributor", "staticPage", "siteSettings"].includes(schemaType);
+  const removeDuplicate = ["article", "contributor", "siteSettings"].includes(schemaType);
   let resolved = removeDuplicate ? actions.filter((action) => action.action !== "duplicate") : actions;
   resolved = resolved.filter((action) => action.action !== "delete");
   if (schemaType === "contributor") return [...resolved, ContributorArchiveAction, ContributorDeleteAction];

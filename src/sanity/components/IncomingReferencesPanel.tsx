@@ -17,13 +17,13 @@ export function ContributorDocumentInput(props: ObjectInputProps) {
     client.withConfig({ perspective: "raw", useCdn: false }).fetch<ReferencingDocument[]>('*[references($id)]{_id,_type,title,"_originalId":_id}', { id }).then(setDocuments).catch(() => setDocuments([]));
   }, [client, id]);
   const articles = documents?.filter(({ _type }) => _type === "article") ?? [];
-  const about = documents?.filter(({ _type }) => _type === "staticPage") ?? [];
-  const other = documents?.filter(({ _type }) => !["article", "staticPage"].includes(_type)) ?? [];
+  const about = documents?.filter(({ _type }) => _type === "siteSettings") ?? [];
+  const other = documents?.filter(({ _type }) => !["article", "siteSettings"].includes(_type)) ?? [];
   return <><Card aria-live="polite" border marginBottom={4} padding={4} radius={2}><Stack space={4}>
     <Text size={2} weight="semibold">Referenced by</Text>
     {!documents ? <Text muted>Checking where this contributor is used…</Text> : <>
       <Text>This contributor is used by {articles.length} {articles.length === 1 ? "article" : "articles"}{about.length ? " and the About page" : ""}.</Text>
-      {[...articles, ...about, ...other].map((document) => <Card border key={document._id} padding={3} radius={2}><Flex align="center" gap={3} justify="space-between"><Box><IntentLink intent="edit" params={{ id: document._id.replace(/^drafts\./, ""), type: document._type }}>{document.title || (document._type === "staticPage" ? "About" : "Untitled")}</IntentLink></Box><Badge tone={document._id.startsWith("drafts.") ? "caution" : "positive"}>{document._id.startsWith("drafts.") ? "Unpublished changes" : "Published"}</Badge></Flex></Card>)}
+      {[...articles, ...about, ...other].map((document) => <Card border key={document._id} padding={3} radius={2}><Flex align="center" gap={3} justify="space-between"><Box><IntentLink intent="edit" params={{ id: document._id.replace(/^drafts\./, ""), type: document._type }}>{document.title || (document._type === "siteSettings" ? "Publication Settings" : "Untitled")}</IntentLink></Box><Badge tone={document._id.startsWith("drafts.") ? "caution" : "positive"}>{document._id.startsWith("drafts.") ? "Unpublished changes" : "Published"}</Badge></Flex></Card>)}
       {!documents.length && <Text muted>Nothing currently references this contributor.</Text>}
     </>}
   </Stack></Card>{props.renderDefault(props)}</>;

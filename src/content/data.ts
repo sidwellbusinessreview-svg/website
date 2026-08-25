@@ -15,25 +15,21 @@ export const contributors: Contributor[] = [
   {
     slug: "maya-chen",
     name: "Maya Chen",
-    role: "Editor in Chief",
     grade: "Class of 2026",
   },
   {
     slug: "jonah-patel",
     name: "Jonah Patel",
-    role: "Economics Editor",
     grade: "Class of 2027",
   },
   {
     slug: "lena-brooks",
     name: "Lena Brooks",
-    role: "Technology Editor",
     grade: "Class of 2026",
   },
   {
     slug: "samir-okafor",
     name: "Samir Okafor",
-    role: "Staff Writer",
     grade: "Class of 2028",
   },
 ];
@@ -60,8 +56,7 @@ export const articles: ArticleInput[] = [
     title: "The New Economics of School Lunch",
     dek: "Rising costs, tighter budgets, and changing tastes are reshaping one of the school day’s most familiar institutions.",
     contributorSlugs: ["maya-chen", "jonah-patel"],
-    publishedAt: "2026-05-18",
-    readTime: 8,
+    publicationMonth: "2026-05",
     pinned: true,
     featuredImage: {
       src: photos.meeting,
@@ -72,12 +67,14 @@ export const articles: ArticleInput[] = [
     content: [
       ...opening,
       {
-        type: "pullQuote",
+        type: "quote",
         text: "A lunch price is not one number. It is a compressed account of dozens of choices.",
+        content: [{ text: "A lunch price is not one number. It is a compressed account of dozens of choices.", sourceKey: "usda" }],
       },
       {
         type: "paragraph",
         text: "Food-service operators balance nutrition standards, student preferences, staffing, waste, and supplier contracts. A small change in any one variable can move the whole system.",
+        content: [{ text: "Food-service operators balance nutrition standards, student preferences, staffing, waste, and supplier contracts. A small change in any one variable can move the whole system.", sourceKey: "budget" }],
       },
       {
         type: "bulletedList",
@@ -92,6 +89,7 @@ export const articles: ArticleInput[] = [
         type: "callout",
         title: "What to watch",
         text: "The strongest programs will measure participation and waste alongside cost. A cheaper meal that students do not choose is not an efficient meal.",
+        sourceKey: "usda",
       },
       { type: "divider" },
       {
@@ -102,6 +100,7 @@ export const articles: ArticleInput[] = [
       {
         type: "paragraph",
         text: "Schools can test ideas at a human scale. Clearer pricing, smaller batches, and more regular student feedback can turn the cafeteria into a practical lesson in operations.",
+        content: [{ text: "Schools can test ideas at a human scale. Clearer pricing, smaller batches, and more regular student feedback can turn the cafeteria into a practical lesson in operations.", sourceKey: "usda" }],
       },
       {
         type: "link",
@@ -110,6 +109,10 @@ export const articles: ArticleInput[] = [
         href: "https://www.fns.usda.gov/",
       },
     ],
+    sources: [
+      { key: "usda", citation: "U.S. Department of Agriculture, “School Nutrition Programs.”", url: "https://www.fns.usda.gov/school-meals" },
+      { key: "budget", citation: "School Nutrition Association, “2025 School Nutrition Trends Report.”" },
+    ],
   },
   {
     slug: "semiconductors-and-the-geography-of-risk",
@@ -117,8 +120,7 @@ export const articles: ArticleInput[] = [
       "Semiconductors and the Geography of Risk in a World That Can No Longer Take Frictionless Trade for Granted",
     dek: "The chip supply chain reveals how efficiency, national security, and resilience now compete for corporate attention.",
     contributorSlugs: ["lena-brooks"],
-    publishedAt: "2026-05-11",
-    readTime: 13,
+    publicationMonth: "2026-05",
     featuredImage: {
       src: photos.chips,
       alt: "Close view of a computer circuit board",
@@ -178,8 +180,7 @@ export const articles: ArticleInput[] = [
     title: "Small Businesses, Big Rates",
     dek: "For local entrepreneurs, higher borrowing costs turn ordinary decisions into consequential bets.",
     contributorSlugs: ["samir-okafor"],
-    publishedAt: "2026-04-28",
-    readTime: 6,
+    publicationMonth: "2026-04",
     featuredImage: {
       src: photos.shop,
       alt: "Interior of an independent retail shop",
@@ -203,8 +204,7 @@ export const articles: ArticleInput[] = [
     title: "What Metro Ridership Can Tell Us About Washington’s New Workweek",
     dek: "Transit patterns provide a surprisingly clear view of hybrid work, downtown demand, and a region still finding its rhythm.",
     contributorSlugs: ["jonah-patel"],
-    publishedAt: "2026-02-12",
-    readTime: 7,
+    publicationMonth: "2026-02",
     featuredImage: {
       src: photos.metro,
       alt: "Underground train platform",
@@ -244,8 +244,7 @@ export const articles: ArticleInput[] = [
     title: "Reading the Fed Without Reading Tea Leaves",
     dek: "A practical guide to separating central-bank signals from market noise.",
     contributorSlugs: ["maya-chen"],
-    publishedAt: "2026-01-26",
-    readTime: 5,
+    publicationMonth: "2026-01",
     featuredImage: {
       src: photos.books,
       alt: "Open books and notes on a desk",
@@ -269,8 +268,7 @@ export const articles: ArticleInput[] = [
     title: "How a Student Solar Proposal Became a Capital-Budget Lesson",
     dek: "A campus sustainability idea shows why payback periods are only the beginning of an investment case.",
     contributorSlugs: ["lena-brooks"],
-    publishedAt: "2025-12-08",
-    readTime: 6,
+    publicationMonth: "2025-12",
     featuredImage: {
       src: photos.solar,
       alt: "Rows of solar panels facing the sun",

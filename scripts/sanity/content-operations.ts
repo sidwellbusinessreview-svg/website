@@ -1,15 +1,14 @@
 export type RawDocument = Record<string, unknown> & { _id: string; _type: string; title?: string; name?: string };
 
-export const currentDocumentTypes = new Set(["article", "contributor", "staticPage", "siteSettings"]);
-export const legacyDocumentTypes = new Set(["masthead", "author", "issue", "category", "tag"]);
-export const legacySingletonIds = new Set(["masthead"]);
+export const currentDocumentTypes = new Set(["article", "contributor", "siteSettings"]);
+export const legacyDocumentTypes = new Set(["masthead", "author", "issue", "category", "tag", "staticPage"]);
+export const legacySingletonIds = new Set(["masthead", "about"]);
 export const editorialTypes = new Set([...currentDocumentTypes, ...legacyDocumentTypes]);
 
 const allowedFields: Record<string, Set<string>> = {
-  article: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "title", "slug", "subtitle", "summary", "contributors", "publicationDate", "featuredImage", "featuredImageAltText", "featuredImageCaption", "featuredImageCredit", "body", "pinned", "featuredRank", "seoTitle", "seoDescription"]),
-  contributor: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "name", "slug", "role", "graduationYear", "active"]),
-  staticPage: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "title", "slug", "eyebrow", "summary", "body", "editorsInChief", "editors", "facultyAdviser", "updatedDate", "seo"]),
-  siteSettings: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "publicationName", "shortName", "description", "affiliationText", "tagline", "location", "logoMode", "textWordmark", "logoImage", "logoImageAlt", "contactLabel", "contactTarget", "socialLinks", "defaultSeo", "homepageTagline"]),
+  article: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "title", "slug", "subtitle", "summary", "contributors", "publicationMonth", "publicationDate", "publicationDatePrecision", "sources", "featuredImage", "featuredImageAltText", "featuredImageCaption", "featuredImageCredit", "body", "pinned", "featuredRank", "seoTitle", "seoDescription", "migrationSourceId", "importBatchId"]),
+  contributor: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "name", "slug", "graduationYear", "active", "migrationSourceId", "importBatchId"]),
+  siteSettings: new Set(["_id", "_type", "_rev", "_createdAt", "_updatedAt", "publicationName", "shortName", "description", "affiliationText", "tagline", "location", "logoMode", "textWordmark", "logoImage", "logoImageAlt", "contactLabel", "contactTarget", "socialLinks", "defaultSeo", "homepageTagline", "aboutTitle", "aboutEyebrow", "aboutSummary", "aboutBody", "editorsInChief", "editors", "facultyAdviser", "aboutUpdatedDate", "aboutSeo"]),
 };
 
 export type Reference = { sourceId: string; targetId: string; path: string };
@@ -28,6 +27,7 @@ export type ContentAudit = {
   danglingReferences: Reference[];
   pairs: string[];
   obsoleteFields: Array<{ id: string; fields: string[] }>;
+  legacyArticleDates: Array<{ id: string; fields: string[]; hasPublicationMonth: boolean }>;
   orphanedAssets: string[];
   valid: boolean;
 };
@@ -47,11 +47,16 @@ export function auditDocuments(documents: RawDocument[]): ContentAudit {
     const fields = Object.keys(document).filter((field) => !field.startsWith("_") && !allowed.has(field)).sort();
     return fields.length ? [{ id: document._id, fields }] : [];
   });
+  const legacyArticleDates = documents.flatMap((document) => {
+    if (document._type !== "article") return [];
+    const fields = ["publicationDate", "publicationDatePrecision"].filter((field) => field in document);
+    return fields.length ? [{ id: document._id, fields, hasPublicationMonth: typeof document.publicationMonth === "string" }] : [];
+  }).sort((a, b) => a.id.localeCompare(b.id));
   const referencedAssets = new Set(references.filter(({ targetId }) => targetId.startsWith("image-") || targetId.startsWith("file-")).map(({ targetId }) => targetId));
   const orphanedAssets = documents.filter(({ _type, _id }) => _type.startsWith("sanity.") && (_id.startsWith("image-") || _id.startsWith("file-")) && !referencedAssets.has(_id)).map(({ _id }) => _id).sort();
   return {
     documents: documents.filter((document) => !isSystemDocument(document)).map<ContentAudit["documents"][number]>((document) => ({ id: document._id, type: document._type, label: document.title || document.name || "Untitled", state: document._id.startsWith("drafts.") ? "draft" : "published" })).sort((a, b) => a.id.localeCompare(b.id)),
-    legacyDocuments, unregisteredTypes, danglingReferences, pairs, obsoleteFields, orphanedAssets,
+    legacyDocuments, unregisteredTypes, danglingReferences, pairs, obsoleteFields, legacyArticleDates, orphanedAssets,
     valid: legacyDocuments.length === 0 && unregisteredTypes.length === 0 && danglingReferences.length === 0 && obsoleteFields.length === 0,
   };
 }
@@ -76,7 +81,7 @@ export function planFieldCleanup(documents: RawDocument[]): FieldCleanupPatch[] 
   };
   return documents.flatMap((document) => {
     const unset = (obsoleteByType[document._type] ?? []).filter((field) => field in document);
-    if (document._type === "staticPage") {
+    if (document._type === "siteSettings") {
       for (const field of ["editorsInChief", "editors", "facultyAdviser"]) {
         const entries = document[field];
         if (!Array.isArray(entries)) continue;
@@ -124,7 +129,7 @@ export function replaceContributorReferences(refs: Array<{ _key?: string; _ref: 
 
 export function contributorDeletionCase(references: Array<{ _type: string }>): "none" | "aboutOnly" | "articles" {
   if (references.some(({ _type }) => _type === "article")) return "articles";
-  if (references.some(({ _type }) => _type === "staticPage")) return "aboutOnly";
+  if (references.some(({ _type }) => _type === "siteSettings")) return "aboutOnly";
   return "none";
 }
 

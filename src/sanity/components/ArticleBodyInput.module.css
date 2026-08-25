@@ -1,0 +1,112 @@
+.editorShell {
+  overflow: visible;
+  border: 1px solid var(--card-border-color, #d8d8d8);
+  background: var(--card-bg-color, #fff);
+}
+
+.editorShell:focus-within {
+  outline: 2px solid var(--card-focus-ring-color, currentColor);
+  outline-offset: 1px;
+}
+
+.toolbarShell {
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  overflow: visible;
+  border-bottom: 1px solid var(--card-border-color, #d8d8d8);
+  border-radius: 3px 3px 0 0;
+  background: var(--card-bg-color, #fff);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  align-content: center;
+  min-height: 2.5rem;
+  padding: 0.25rem 0.375rem;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.toolbarGroup {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 0.125rem;
+  align-items: center;
+}
+
+.divider {
+  align-self: stretch;
+  flex: 0 0 1px;
+  width: 1px;
+  min-height: 1.125rem;
+  max-height: 1.25rem;
+  margin: 0 0.4375rem;
+  background: var(--card-border-color, #d8d8d8);
+}
+
+.styleSelect {
+  display: inline-block;
+  flex: 0 0 10rem;
+  width: 10rem;
+  min-width: 10rem;
+  max-width: 10rem;
+}
+
+.editorSurface {
+  min-height: 12.5rem;
+  padding: 0.25rem;
+  border-radius: 0 0 3px 3px;
+  background: var(--card-bg-color, #fff);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.editorSurface :global([data-testid="pt-editor"]) {
+  height: auto !important;
+  min-height: 12rem !important;
+  resize: none !important;
+  overflow: visible !important;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.footnoteIcon {
+  display: inline-block;
+  min-width: 1em;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  transform: translateY(-0.12em);
+}
+
+.footnotePopover {
+  width: clamp(20rem, 28vw, 27.5rem);
+  max-width: calc(100vw - 2rem);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 42rem) {
+  .toolbarShell {
+    position: static;
+  }
+
+  .toolbar {
+    flex-wrap: wrap;
+    row-gap: 0.25rem;
+  }
+
+  .styleSelect {
+    flex-basis: 9rem;
+    width: 9rem;
+    min-width: 9rem;
+    max-width: 9rem;
+  }
+}

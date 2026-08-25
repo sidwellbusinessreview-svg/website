@@ -18,7 +18,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...staticRoutes.map((path) => ({ url: absoluteUrl(path || "/") })),
     ...articles.map((article) => ({
       url: absoluteUrl(`/articles/${article.slug}`),
-      lastModified: article.publishedAt,
     })),
     ...authors.map((author) => ({ url: absoluteUrl(`/authors/${author.slug}`) })),
   ];

@@ -12,11 +12,12 @@ const bodyProjection = `body[]{
 }`;
 
 const articleProjection = `{
-  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,
+  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,
   seoTitle,seoDescription,
-  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},
+  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},
   "featuredImage": featuredImage${imageProjection},
   featuredImageAltText,featuredImageCaption,featuredImageCredit,
+  sources[]{"key":_key,citation,url},
   ${bodyProjection}
 }`;
 
@@ -28,41 +29,41 @@ const articleFilter = `_type == "article" && defined(slug.current)`;
 export const SITE_SETTINGS_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "siteSettings"][0]{
   _id,_type,publicationName,shortName,description,affiliationText,tagline,location,logoMode,textWordmark,
   "logoImage": logoImage${imageProjection},logoImageAlt,contactLabel,contactTarget,
-  socialLinks[]{label,url},defaultSeo,homepageTagline
+  socialLinks[]{label,url},defaultSeo,homepageTagline,
+  aboutTitle,aboutEyebrow,aboutSummary,"aboutBody":aboutBody[]{
+    ...,
+    _type == "editorialImage" => ${imageProjection},
+    markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}
+  },aboutUpdatedDate,aboutSeo,
+  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},
+  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},
+  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}}
 }`);
 
 export const ALL_PUBLISHED_ARTICLES_QUERY = defineQuery(
-  `*[${articleFilter}]|order(publicationDate desc, slug.current asc)${articleProjection}`,
+  `*[${articleFilter}]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)${articleProjection}`,
 );
 export const ARTICLE_BY_SLUG_QUERY = defineQuery(
   `*[${articleFilter} && slug.current == $slug][0]${articleProjection}`,
 );
 export const PINNED_ARTICLE_QUERY = defineQuery(
-  `*[${articleFilter} && pinned == true]|order(featuredRank asc, publicationDate desc, slug.current asc)[0]${articleProjection}`,
+  `*[${articleFilter} && pinned == true]|order(featuredRank asc, coalesce(publicationMonth,publicationDate) desc, slug.current asc)[0]${articleProjection}`,
 );
 export const LATEST_ARTICLES_QUERY = defineQuery(
-  `*[${articleFilter}]|order(publicationDate desc, slug.current asc)[0...$limit]${articleProjection}`,
+  `*[${articleFilter}]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)[0...$limit]${articleProjection}`,
 );
 export const ARTICLES_BY_CONTRIBUTOR_QUERY = defineQuery(
-  `*[${articleFilter} && $slug in contributors[]->slug.current]|order(publicationDate desc, slug.current asc)${articleProjection}`,
+  `*[${articleFilter} && $slug in contributors[]->slug.current]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)${articleProjection}`,
 );
 export const SEARCH_ARTICLES_QUERY = defineQuery(
-  `*[${articleFilter} && [title,subtitle,summary,pt::text(body),contributors[]->name] match $term]|order(publicationDate desc, slug.current asc)${articleProjection}`,
+  `*[${articleFilter}]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)${articleProjection}`,
 );
 
 export const CONTRIBUTORS_QUERY = defineQuery(`*[
   _type == "contributor" && defined(slug.current)
-]|order(name asc){_id,_type,name,"slug":slug.current,role,graduationYear,active}`);
+]|order(name asc){_id,_type,name,"slug":slug.current,graduationYear,active}`);
 export const CONTRIBUTOR_BY_SLUG_QUERY = defineQuery(`*[
   _type == "contributor" && slug.current == $slug
-][0]{_id,_type,name,"slug":slug.current,role,graduationYear,active}`);
-
-export const STATIC_PAGE_BY_SLUG_QUERY = defineQuery(`*[
-  _type == "staticPage" && slug.current == $slug
-][0]{_id,_type,title,"slug":slug.current,eyebrow,summary,${bodyProjection},
-  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}},
-  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}},
-  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}}
-}`);
+][0]{_id,_type,name,"slug":slug.current,graduationYear,active}`);
 
 export const articleProjectionForTests = articleProjection;

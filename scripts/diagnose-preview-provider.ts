@@ -11,7 +11,6 @@ import {
   LATEST_ARTICLES_QUERY,
   SEARCH_ARTICLES_QUERY,
   SITE_SETTINGS_QUERY,
-  STATIC_PAGE_BY_SLUG_QUERY,
 } from "../src/content/sanity/queries";
 import { getDraftSanityClient, getPublicSanityClient } from "../src/sanity/lib/client";
 
@@ -122,7 +121,7 @@ async function runMode(mode: Mode) {
     client.fetch(CONTRIBUTOR_BY_SLUG_QUERY, { slug: CONTRIBUTOR_SLUG }, options),
     client.fetch(ARTICLES_BY_CONTRIBUTOR_QUERY, { slug: CONTRIBUTOR_SLUG }, options),
     client.fetch(CONTRIBUTORS_QUERY, {}, options),
-    client.fetch(STATIC_PAGE_BY_SLUG_QUERY, { slug: "about" }, options),
+    client.fetch(SITE_SETTINGS_QUERY, {}, options),
     client.fetch(SITE_SETTINGS_QUERY, {}, options),
     provider.getArticles(),
     provider.getArticleBySlug(ARTICLE_SLUG),

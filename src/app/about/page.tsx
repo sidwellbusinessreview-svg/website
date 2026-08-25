@@ -9,26 +9,24 @@ export const metadata: Metadata = createPageMetadata({ title: "About", descripti
 export default async function AboutPage() {
   const [contributors, managedPage] = await Promise.all([getContributors(), getStaticPageBySlug("about")]);
   const contributorBySlug = new Map(contributors.map((contributor) => [contributor.slug, contributor]));
-  const localEditorsInChief = contributors.filter(({ role }) => role?.toLowerCase().includes("editor in chief"));
-  const localEditors = contributors.filter(({ slug }) => !localEditorsInChief.some((editor) => editor.slug === slug));
   const staff = (entries: Array<{ contributorSlug: string; displayedRole?: string }>) => entries.flatMap((entry) => {
     const contributor = contributorBySlug.get(entry.contributorSlug);
-    return contributor ? [{ ...contributor, role: entry.displayedRole ?? contributor.role }] : [];
+    return contributor ? [{ ...contributor, displayedRole: entry.displayedRole }] : [];
   });
-  const editorsInChief = managedPage ? staff(managedPage.staff.editorsInChief) : localEditorsInChief;
-  const editors = managedPage ? staff(managedPage.staff.editors) : localEditors;
+  const editorsInChief = managedPage ? staff(managedPage.staff.editorsInChief) : [];
+  const editors = managedPage ? staff(managedPage.staff.editors) : [];
   const facultyAdviser = managedPage ? staff(managedPage.staff.facultyAdviser) : [];
   return <div className="container prose-page about-page">
     <header className="page-header"><p className="eyebrow">{managedPage?.eyebrow ?? "About the Review"}</p><h1>{managedPage?.title ?? "Serious curiosity, clearly expressed."}</h1></header>
     <div className="prose-page__body">
       {managedPage ? <ArticleBody blocks={managedPage.body} /> : <><p className="lead">Sidwell Business Review is a student-run publication examining business, economics, markets, technology, and public policy.</p><h2>Our mission</h2><p>We give student writers space to ask ambitious questions, report carefully, and make clear arguments. Business journalism is strongest when it treats companies and markets as human institutions—not abstractions.</p><h2>Our standards</h2><p>Writers distinguish reporting from opinion, identify sources, disclose relevant conflicts, and correct errors transparently. Editors work with every contributor on evidence, structure, fairness, and clarity.</p></>}
-      <h2>Editors-in-Chief</h2><div className="about-staff-grid">{editorsInChief.map((contributor) => <StaffCard key={contributor.slug} slug={contributor.slug} name={contributor.name} role={contributor.role} grade={contributor.grade} />)}</div>
-      <h2>Editors</h2><div className="about-staff-grid">{editors.map((contributor) => <StaffCard key={contributor.slug} slug={contributor.slug} name={contributor.name} role={contributor.role} grade={contributor.grade} />)}</div>
-      <h2>Faculty Adviser</h2>{facultyAdviser.length ? <div className="about-staff-grid">{facultyAdviser.map((contributor) => <StaffCard key={contributor.slug} slug={contributor.slug} name={contributor.name} role={contributor.role} grade={contributor.grade} />)}</div> : <p>To be announced.</p>}
+      <h2>{editorsInChief.length === 1 ? "Editor-in-Chief" : "Editors-in-Chief"}</h2><div className="about-staff-grid">{editorsInChief.map((contributor) => <StaffCard key={contributor.slug} slug={contributor.slug} name={contributor.name} contextLabel={contributor.displayedRole} grade={contributor.grade} />)}</div>
+      <h2>Editors</h2><div className="about-staff-grid">{editors.map((contributor) => <StaffCard key={contributor.slug} slug={contributor.slug} name={contributor.name} contextLabel={contributor.displayedRole} grade={contributor.grade} />)}</div>
+      <h2>Faculty Adviser</h2>{facultyAdviser.length ? <div className="about-staff-grid">{facultyAdviser.map((contributor) => <StaffCard key={contributor.slug} slug={contributor.slug} name={contributor.name} contextLabel={contributor.displayedRole} grade={contributor.grade} />)}</div> : <p>To be announced.</p>}
     </div>
   </div>;
 }
 
-function StaffCard({ slug, name, role, grade }: { slug: string; name: string; role?: string; grade?: string }) {
-  return <article className="about-staff-card"><Link href={`/authors/${slug}`}>{name}</Link>{(role || grade) && <p>{[role, grade].filter(Boolean).join(" · ")}</p>}</article>;
+function StaffCard({ slug, name, contextLabel, grade }: { slug: string; name: string; contextLabel?: string; grade?: string }) {
+  return <article className="about-staff-card"><Link href={`/authors/${slug}`}>{name}</Link>{(contextLabel || grade) && <p>{[contextLabel, grade].filter(Boolean).join(" · ")}</p>}</article>;
 }

@@ -1,0 +1,16 @@
+.editor {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  overflow-wrap: anywhere;
+}
+
+.citation {
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.editor select {
+  max-width: 100%;
+}

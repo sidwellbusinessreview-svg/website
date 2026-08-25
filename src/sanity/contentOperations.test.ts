@@ -7,9 +7,10 @@ describe("dataset audit", () => {
   it("detects a legacy Masthead draft", () => expect(auditDocuments([doc("drafts.masthead", "masthead")]).legacyDocuments).toEqual(["drafts.masthead"]));
   it.each(["author", "issue", "category", "tag"])("detects legacy %s documents", (type) => expect(auditDocuments([doc(`legacy-${type}`, type)]).legacyDocuments).toHaveLength(1));
   it("detects missing references", () => expect(auditDocuments([doc("a", "article", { contributors: [{ _ref: "missing" }] })]).danglingReferences).toHaveLength(1));
-  it("does not misclassify Sanity-managed underscore metadata as an obsolete editorial field", () => expect(auditDocuments([doc("about", "staticPage", { _system: { base: { id: "x" } } })]).obsoleteFields).toEqual([]));
+  it("does not misclassify Sanity-managed underscore metadata as an obsolete editorial field", () => expect(auditDocuments([doc("siteSettings", "siteSettings", { _system: { base: { id: "x" } } })]).obsoleteFields).toEqual([]));
   it("ignores Sanity-managed system document types", () => expect(auditDocuments([doc("_.groups.read", "system.group")]).unregisteredTypes).toEqual([]));
   it("detects draft/published pairs", () => expect(auditDocuments([doc("a", "article"), doc("drafts.a", "article")]).pairs).toEqual(["a"]));
+  it("reports transitional legacy Article date fields without mutating them", () => expect(auditDocuments([doc("article-a", "article", { publicationDate: "2025-03-17", publicationDatePrecision: "month" })]).legacyArticleDates).toEqual([{ id: "article-a", fields: ["publicationDate", "publicationDatePrecision"], hasPublicationMonth: false }]));
 });
 
 describe("destructive plans remain pure", () => {
@@ -20,8 +21,8 @@ describe("destructive plans remain pure", () => {
   it("plans obsolete field removal without mutating data", () => { const documents = [doc("c", "contributor", { photo: {}, biography: "old" }), doc("settings", "siteSettings", { recentArticleCount: 4, homepageIntro: "old" })]; expect(planFieldCleanup(documents)).toEqual([{ id: "c", unset: ["photo", "biography"] }, { id: "settings", unset: ["recentArticleCount", "homepageIntro"] }]); expect(documents[0].photo).toEqual({}); });
   it("dry-runs nested About portrait cleanup without deleting assets", () => {
     const portrait = { asset: { _ref: "image-staff-portrait" } };
-    const documents = [doc("about", "staticPage", { editorsInChief: [{ _key: "lead", contributor: { _ref: "person" }, portrait, portraitAltText: "Portrait" }] })];
-    expect(planFieldCleanup(documents)).toEqual([{ id: "about", unset: ['editorsInChief[_key=="lead"].portrait', 'editorsInChief[_key=="lead"].portraitAltText'] }]);
+    const documents = [doc("siteSettings", "siteSettings", { editorsInChief: [{ _key: "lead", contributor: { _ref: "person" }, portrait, portraitAltText: "Portrait" }] })];
+    expect(planFieldCleanup(documents)).toEqual([{ id: "siteSettings", unset: ['editorsInChief[_key=="lead"].portrait', 'editorsInChief[_key=="lead"].portraitAltText'] }]);
     expect((documents[0].editorsInChief as Array<{ portrait: unknown }>)[0].portrait).toEqual(portrait);
   });
   it("creates a dry-run repair plan for incomplete and duplicate contributor selections", () => { const plan = planMalformedContributorRepairs([doc("drafts.article", "article", { title: "Test article", contributors: [{ _ref: "one" }, null, {}, { _ref: "drafts.one" }] })]); expect(plan).toEqual([{ id: "drafts.article", title: "Test article", state: "draft", unsetPaths: ["contributors[1]", "contributors[2]", "contributors[3]"] }]); });
@@ -29,7 +30,7 @@ describe("destructive plans remain pure", () => {
 
 describe("contributor reassignment", () => {
   it("allows unreferenced deletion", () => expect(contributorDeletionCase([])).toBe("none"));
-  it("identifies About-only cleanup", () => expect(contributorDeletionCase([{ _type: "staticPage" }])).toBe("aboutOnly"));
+  it("identifies Publication-Settings-only cleanup", () => expect(contributorDeletionCase([{ _type: "siteSettings" }])).toBe("aboutOnly"));
   it("blocks immediate article-linked deletion", () => expect(contributorDeletionCase([{ _type: "article" }])).toBe("articles"));
   it("preserves order and avoids duplicate references", () => expect(replaceContributorReferences([{ _key: "1", _ref: "old" }, { _key: "2", _ref: "new" }], "old", "new")).toEqual([{ _key: "1", _ref: "new" }]));
 });

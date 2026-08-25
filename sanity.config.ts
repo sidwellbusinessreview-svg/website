@@ -1,10 +1,8 @@
-"use client";
-
-import { defineConfig } from "sanity";
+import { defineConfig, defineLocaleResourceBundle } from "sanity";
 import { structureTool } from "sanity/structure";
 import { presentationTool } from "sanity/presentation";
-import { getSanityEnvironment } from "./src/sanity/env";
 import { schemaTypes } from "./src/sanity/schemaTypes";
+import { SANITY_STUDIO_DATASET, SANITY_STUDIO_PROJECT_ID } from "./src/sanity/studio-target";
 import {
   filterSingletonNewDocumentOptions,
   filterSingletonTemplates,
@@ -14,16 +12,20 @@ import {
 import { structure } from "./src/sanity/structure";
 import { ArticleStatusBadge, ContributorAvailabilityBadge, resolveDocumentActions, SingletonStatusBadge } from "./src/sanity/documentStatus";
 
-const environment = getSanityEnvironment();
-const previewOrigin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const previewOrigin = process.env.SANITY_STUDIO_PREVIEW_ORIGIN || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const articleEditorLocale = defineLocaleResourceBundle({
+  locale: "en-US",
+  namespace: "studio",
+  resources: {
+    "inputs.portable-text.empty-placeholder": "Start writing or paste here…",
+  },
+});
 
-export default environment.configured
-  ? defineConfig({
+export default defineConfig({
       name: "sidwell_business_review",
       title: "Sidwell Business Review",
-      basePath: environment.studioBasePath,
-      projectId: environment.projectId,
-      dataset: environment.dataset,
+      projectId: SANITY_STUDIO_PROJECT_ID,
+      dataset: SANITY_STUDIO_DATASET,
       plugins: [
         structureTool({ structure }),
         presentationTool({
@@ -37,7 +39,7 @@ export default environment.configured
           resolve: {
             mainDocuments: [
               { route: "/", type: "siteSettings" },
-              { route: "/about", type: "staticPage" },
+              { route: "/about", type: "siteSettings" },
               {
                 route: "/articles/:slug",
                 filter: `_type == "article" && slug.current == $slug`,
@@ -51,7 +53,10 @@ export default environment.configured
             ],
             locations: {
               siteSettings: {
-                locations: [{ title: "Homepage and site settings", href: "/", showHref: false }],
+                locations: [
+                  { title: "Homepage and publication settings", href: "/", showHref: false },
+                  { title: "About page", href: "/about" },
+                ],
               },
               article: {
                 select: { title: "title", slug: "slug.current" },
@@ -65,18 +70,13 @@ export default environment.configured
                   locations: [{ title: value.name || "Contributor preview", href: `/authors/${value.slug}` }],
                 } : { message: "Generate the Contributor slug to open its frontend preview.", tone: "caution" },
               },
-              staticPage: {
-                select: { title: "title", slug: "slug.current" },
-                resolve: (value) => value?.slug === "about" ? {
-                  locations: [{ title: "About page", href: "/about" }],
-                } : { message: "This page does not have a public preview route.", tone: "caution" },
-              },
             },
           },
         }),
       ],
       releases: { enabled: false },
       scheduledDrafts: { enabled: false },
+      i18n: { bundles: [articleEditorLocale] },
       schema: {
         types: schemaTypes,
         templates: filterSingletonTemplates,
@@ -86,7 +86,6 @@ export default environment.configured
         badges: (badges, context) => context.schemaType === "article" ? [ArticleStatusBadge] : context.schemaType === "contributor" ? [ContributorAvailabilityBadge, ...badges] : isSingletonSchemaType(context.schemaType) ? [SingletonStatusBadge] : badges,
         newDocumentOptions: filterSingletonNewDocumentOptions,
       },
-    })
-  : [];
+    });
 
 export { SITE_SETTINGS_ID };

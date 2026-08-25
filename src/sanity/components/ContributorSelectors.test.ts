@@ -84,9 +84,9 @@ describe("Contributor selector patches", () => {
 });
 
 describe("Contributor editorial presentation", () => {
-  it("spaces role and graduation year clearly", () => expect(contributorSecondaryLine({ role: "Editor", graduationYear: 2027 })).toBe("Editor · Class of 2027"));
+  it("shows graduation year without publication-role metadata", () => expect(contributorSecondaryLine({ graduationYear: 2027 })).toBe("Class of 2027"));
   it("search metadata remains useful when either optional value is missing", () => {
-    expect(contributorSecondaryLine({ role: "Editor" })).toBe("Editor");
+    expect(contributorSecondaryLine({})).toBe("");
     expect(contributorSecondaryLine({ graduationYear: 2028 })).toBe("Class of 2028");
   });
 });

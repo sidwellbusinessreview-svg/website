@@ -5,7 +5,7 @@ import { Badge, Box, Button, Card, Flex, Stack, Text } from "@sanity/ui";
 import { useClient } from "sanity";
 import { IntentLink } from "sanity/router";
 
-type ContributorRecord = { _id: string; name?: string; role?: string; active?: boolean };
+type ContributorRecord = { _id: string; name?: string; active?: boolean };
 type ContributorState = "active" | "archived" | "all";
 
 export function pairContributorVersions(records: ContributorRecord[]): ContributorRecord[] {
@@ -28,18 +28,18 @@ export function ContributorStateList({ options }: { options?: Record<string, unk
   const [error, setError] = useState(false);
   const load = useCallback(() => {
     setError(false); setRecords(null);
-    client.withConfig({ perspective: "raw", useCdn: false }).fetch<ContributorRecord[]>('*[_type == "contributor" && !(_id in path("versions.**"))]{_id,name,role,active}')
+    client.withConfig({ perspective: "raw", useCdn: false }).fetch<ContributorRecord[]>('*[_type == "contributor" && !(_id in path("versions.**"))]{_id,name,active}')
       .then((contributors) => setRecords(pairContributorVersions(contributors).filter(({ active }) => state === "all" || (state === "active" ? active !== false : active === false))))
       .catch((reason: unknown) => { console.error("Contributor list query failed", reason); setError(true); });
   }, [client, state]);
   useEffect(() => {
     let current = true;
-    client.withConfig({ perspective: "raw", useCdn: false }).fetch<ContributorRecord[]>('*[_type == "contributor" && !(_id in path("versions.**"))]{_id,name,role,active}')
+    client.withConfig({ perspective: "raw", useCdn: false }).fetch<ContributorRecord[]>('*[_type == "contributor" && !(_id in path("versions.**"))]{_id,name,active}')
       .then((contributors) => { if (current) setRecords(pairContributorVersions(contributors).filter(({ active }) => state === "all" || (state === "active" ? active !== false : active === false))); })
       .catch((reason: unknown) => { if (current) { console.error("Contributor list query failed", reason); setError(true); } });
     return () => { current = false; };
   }, [client, state]);
   if (error) return <Flex align="center" height="fill" justify="center" padding={5}><Card padding={5} tone="critical"><Stack space={3}><Text>Contributors could not be loaded.</Text><Button text="Retry" onClick={load} /></Stack></Card></Flex>;
   if (!records) return <Flex align="center" aria-live="polite" height="fill" justify="center" padding={5}><Text muted>Loading contributors…</Text></Flex>;
-  return <Box padding={5}><Stack space={4}><Flex align="center" gap={4} justify="space-between"><Stack space={2}><Text as="h1" size={4} weight="bold">{title}</Text><Text size={1}>{records.length} {records.length === 1 ? "contributor" : "contributors"}</Text></Stack><Button as={IntentLink} intent="create" params={{ type: "contributor" }} text="New contributor" tone="primary" /></Flex>{records.length === 0 && <Card border padding={4}><Text muted>No contributors are in this list.</Text></Card>}{records.map((record) => <Card border key={record._id} padding={4} radius={2}><Flex align="center" gap={3} justify="space-between"><Stack space={2}><IntentLink intent="edit" params={{ id: record._id, type: "contributor" }}>{record.name || "Unnamed contributor"}</IntentLink>{record.role && <Text muted size={1}>{record.role}</Text>}</Stack><Badge tone={record.active === false ? "default" : "positive"}>{record.active === false ? "Archived" : "Active"}</Badge></Flex></Card>)}</Stack></Box>;
+  return <Box padding={5}><Stack space={4}><Flex align="center" gap={4} justify="space-between"><Stack space={2}><Text as="h1" size={4} weight="bold">{title}</Text><Text size={1}>{records.length} {records.length === 1 ? "contributor" : "contributors"}</Text></Stack><Button as={IntentLink} intent="create" params={{ type: "contributor" }} text="New contributor" tone="primary" /></Flex>{records.length === 0 && <Card border padding={4}><Text muted>No contributors are in this list.</Text></Card>}{records.map((record) => <Card border key={record._id} padding={4} radius={2}><Flex align="center" gap={3} justify="space-between"><IntentLink intent="edit" params={{ id: record._id, type: "contributor" }}>{record.name || "Unnamed contributor"}</IntentLink><Badge tone={record.active === false ? "default" : "positive"}>{record.active === false ? "Archived" : "Active"}</Badge></Flex></Card>)}</Stack></Box>;
 }

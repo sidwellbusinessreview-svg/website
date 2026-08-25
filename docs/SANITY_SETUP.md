@@ -1,6 +1,6 @@
 # Sanity setup
 
-Phase 10 embeds Sanity Studio at `/studio` while every public page continues to use validated local sample content. Connecting a Sanity project enables the Studio and the manual health check; it does not switch the publication website to CMS content.
+Sanity Studio is hosted separately from the public Next.js application. Its source, schemas, custom editor controls, Structure, and Presentation configuration remain in this repository, while the public deployment contains no `/studio` route.
 
 ## Before creating anything
 
@@ -13,7 +13,7 @@ Do not paste tokens into source code, issues, chat, screenshots, or this documen
 1. Sign in at [sanity.io/manage](https://www.sanity.io/manage) with the approved publication administrative identity.
 2. Create a project for Sidwell Business Review, or select the project already approved for the publication.
 3. In project settings, find the project ID. A project ID is public configuration, not a password.
-4. Create or confirm a public `development` dataset for local work. Keep the later `production` dataset separate.
+4. Confirm the existing `production` dataset. This project intentionally uses the same production dataset for local Studio, hosted Studio, preview, and public reads.
 5. Do not put private student information in a public dataset. Published documents in a public dataset can be read without authentication.
 
 The current code does not create projects or datasets automatically because doing so changes an external account and requires the human owner to confirm policy, organization, region, and billing choices.
@@ -30,12 +30,15 @@ Set these public values in `.env.local`:
 
 ```text
 NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id
-NEXT_PUBLIC_SANITY_DATASET=development
+NEXT_PUBLIC_SANITY_DATASET=production
 NEXT_PUBLIC_SANITY_API_VERSION=YYYY-MM-DD
-NEXT_PUBLIC_SANITY_STUDIO_BASE_PATH=/studio
+NEXT_PUBLIC_SANITY_STUDIO_URL=http://localhost:3333
+SANITY_STUDIO_PREVIEW_ORIGIN=http://localhost:3000
 ```
 
 Choose and retain one documented API date rather than changing it on every build. Leave `SANITY_API_READ_TOKEN`, `SANITY_PREVIEW_SECRET`, and `SANITY_REVALIDATE_SECRET` blank in Phase 10. They are reserved for later server-only preview and webhook work.
+
+The standalone workspace target itself is fixed in source to project `bumxf5q6` and dataset `production`; it never depends on `NEXT_PUBLIC_*` variables to exist. `SANITY_STUDIO_PREVIEW_ORIGIN` is optional public configuration for Presentation and must contain the frontend origin, not a token or secret.
 
 `.env.local` is ignored by Git. Confirm before proceeding:
 
@@ -48,12 +51,13 @@ Never add `NEXT_PUBLIC_` to a secret. Values with that prefix can be included in
 
 ## 3. Add trusted CORS origins
 
-Because `/studio` runs in the browser and makes authenticated requests to Sanity, each trusted Studio origin must be in the project's CORS list with credentials enabled.
+Because Studio runs in the browser and makes authenticated requests to Sanity, each trusted Studio origin must be in the project's CORS list with credentials enabled.
 
 In Sanity Manage, select the project, open **Settings → API settings → CORS Origins**, and add:
 
-- `http://localhost:3000` with credentials for local Studio access.
-- The exact production site origin with credentials when production Studio access is approved.
+- `http://localhost:3333` with credentials for local standalone Studio access.
+- The chosen `https://<hostname>.sanity.studio` origin with credentials after the first Studio deployment.
+- The exact public site origin when Presentation/Preview is configured.
 - Only exact, trusted preview origins that need Studio access.
 
 Do not add a platform-wide wildcard such as all Vercel or Netlify sites with credentials. A public repository's fork previews make broad credentialed wildcards especially dangerous. Remove temporary preview origins after review. Server-side public reads do not require a CORS entry.
@@ -72,15 +76,24 @@ Run the public, token-free connectivity check:
 npm run sanity:check
 ```
 
-Then start the application:
+Then start the public application and Studio in separate terminals:
 
 ```bash
 npm run dev
+npm run studio:dev
 ```
 
-Open [http://localhost:3000/studio](http://localhost:3000/studio). Sanity should present its sign-in flow to a signed-out visitor. Signing in does not grant access by itself: the identity must be a member of the selected project. A visitor without membership cannot edit publication content.
+Open [http://localhost:3333](http://localhost:3333). Sanity should present its sign-in flow to a signed-out visitor. Signing in does not grant access by itself: the identity must be a member of the selected project. A visitor without membership cannot edit publication content.
 
-If the public environment values are blank, `/studio` intentionally shows a setup message and the rest of the website continues normally. If only some values are present or malformed, validation stops the build with a configuration-focused error.
+The public site remains at [http://localhost:3000](http://localhost:3000) and has no Studio route. If public Sanity values are incomplete or malformed, validation stops with a configuration-focused error.
+
+Build standalone Studio without deploying it:
+
+```bash
+npm run studio:build
+```
+
+When the publication is ready to choose its Sanity-hosted hostname, run `npm run studio:deploy`. After deployment, set `NEXT_PUBLIC_SANITY_STUDIO_URL` to that exact HTTPS origin in the public hosting environment and rebuild the public site. Do not commit a hostname merely to complete a local build.
 
 ## 5. Invite and revoke editors
 
@@ -105,8 +118,8 @@ The publication Gmail remains the durable administrator or recovery identity. A 
 
 ## Common problems
 
-- **Setup message at `/studio`:** the three required public Sanity variables are blank. Add all three to `.env.local` and restart Next.js.
-- **Configuration error during build:** one value is missing, the API version is not `YYYY-MM-DD`, or the base path is not `/studio`.
+- **Studio does not start:** confirm the three public Sanity variables are present, then restart `npm run studio:dev`.
+- **Configuration error during build:** one value is missing, the API version is not `YYYY-MM-DD`, or `NEXT_PUBLIC_SANITY_STUDIO_URL` is not an absolute HTTP(S) origin.
 - **CORS or credentials error:** add the exact current origin with credentials enabled. Do not solve this using a broad wildcard.
 - **Sign-in succeeds but editing is unavailable:** confirm the signed-in identity was invited to this project and has an appropriate role.
 - **Health check fails while Studio signs in:** confirm the dataset exists and is public; Phase 10's health client intentionally sends no token.
@@ -117,4 +130,4 @@ Phase 11C provides the simplified Contributor, Article, About-with-staff, and Si
 
 Before schema removal or a dataset reset, follow `DATASET_AUDIT_AND_RESET.md`. Schema changes alone never remove old Content Lake documents. Always inspect both published and draft records and export before an approved destructive cleanup.
 
-Official references: [embedded Studio for Next.js](https://www.sanity.io/docs/nextjs/embedding-sanity-studio-in-nextjs), [CORS configuration](https://www.sanity.io/docs/content-lake/cors), and [token safety](https://www.sanity.io/docs/content-lake/keeping-your-data-safe).
+Official references: [Studio deployment](https://www.sanity.io/docs/studio/deployment), [CORS configuration](https://www.sanity.io/docs/content-lake/cors), and [token safety](https://www.sanity.io/docs/content-lake/keeping-your-data-safe).

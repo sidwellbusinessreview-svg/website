@@ -2,17 +2,16 @@ import { createElement, useState } from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { DocumentActionComponent } from "sanity";
-import { ABOUT_ID, filterSingletonActions, filterSingletonNewDocumentOptions, filterSingletonTemplates, SITE_SETTINGS_ID, singletonDefinitions } from "./singletons";
+import { filterSingletonActions, filterSingletonNewDocumentOptions, filterSingletonTemplates, SITE_SETTINGS_ID, singletonDefinitions } from "./singletons";
 import { auditSingletonDocuments } from "./singletonAudit";
 import { singletonDocumentState, singletonStatusLabel } from "./singletonState";
 
 const action = (name: string): DocumentActionComponent => Object.assign(() => ({ label: name, onHandle: () => undefined }), { action: name }) as DocumentActionComponent;
-const props = (draft: object | null, published: object | null) => ({ id: ABOUT_ID, type: "staticPage", draft, published, liveEdit: false, onComplete: () => undefined } as never);
+const props = (draft: object | null, published: object | null) => ({ id: SITE_SETTINGS_ID, type: "siteSettings", draft, published, liveEdit: false, onComplete: () => undefined } as never);
 
 describe("singleton lifecycle", () => {
-  it("uses authoritative fixed IDs", () => expect(singletonDefinitions).toEqual([
-    { schemaType: "staticPage", documentId: ABOUT_ID, title: "About" },
-    { schemaType: "siteSettings", documentId: SITE_SETTINGS_ID, title: "Site Settings" },
+  it("uses the authoritative Publication Settings ID", () => expect(singletonDefinitions).toEqual([
+    { schemaType: "siteSettings", documentId: SITE_SETTINGS_ID, title: "Publication Settings" },
   ]));
   it.each([
     [null, null, "neverCreated", "Not published"], [{}, null, "draftOnly", "Draft only"],
@@ -21,7 +20,8 @@ describe("singleton lifecycle", () => {
     expect(singletonDocumentState(draft, published)).toBe(state);
     expect(singletonStatusLabel(draft, published)).toBe(label);
   });
-  it.each(["staticPage", "siteSettings"])("allows only publish and guarded discard for %s", (schemaType) => {
+  it("allows only publish and guarded discard for Publication Settings", () => {
+    const schemaType = "siteSettings";
     const result = filterSingletonActions([action("publish"), action("discardChanges"), action("delete"), action("duplicate"), action("unpublish"), action("copy")], schemaType);
     expect(result.map(({ action }) => action)).toEqual(["publish", "discardChanges"]);
     const discard = result.find(({ action }) => action === "discardChanges")!;
@@ -36,7 +36,7 @@ describe("singleton lifecycle", () => {
       invocations();
       return { label: "Discard changes", onHandle: actionProps.onComplete };
     }) as DocumentActionComponent, { action: "discardChanges" });
-    const discard = filterSingletonActions([hookAction], "staticPage")[0];
+    const discard = filterSingletonActions([hookAction], "siteSettings")[0];
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
     function Harness({ draft, published }: { draft: object | null; published: object | null }) {
       const result = discard(props(draft, published));
@@ -53,19 +53,18 @@ describe("singleton lifecycle", () => {
     expect(consoleError.mock.calls.flat().join(" ")).not.toContain("change in the order of Hooks");
     consoleError.mockRestore();
   });
-  it("removes both singleton types from creation menus and templates", () => {
-    expect(filterSingletonTemplates([{ schemaType: "article" }, { schemaType: "staticPage" }, { schemaType: "siteSettings" }])).toEqual([{ schemaType: "article" }]);
-    expect(filterSingletonNewDocumentOptions([{ templateId: "article", schemaType: "article" }, { templateId: "staticPage", schemaType: "staticPage" }, { templateId: "siteSettings", schemaType: "siteSettings" }] as never)).toEqual([{ templateId: "article", schemaType: "article" }]);
+  it("removes Publication Settings from creation menus and templates", () => {
+    expect(filterSingletonTemplates([{ schemaType: "article" }, { schemaType: "siteSettings" }])).toEqual([{ schemaType: "article" }]);
+    expect(filterSingletonNewDocumentOptions([{ templateId: "article", schemaType: "article" }, { templateId: "siteSettings", schemaType: "siteSettings" }] as never)).toEqual([{ templateId: "article", schemaType: "article" }]);
   });
   it("audits missing, paired, incorrectly named, and legacy singleton records", () => {
     const result = auditSingletonDocuments([
-      { _id: ABOUT_ID, _type: "staticPage" }, { _id: `drafts.${ABOUT_ID}`, _type: "staticPage" },
+      { _id: SITE_SETTINGS_ID, _type: "siteSettings" }, { _id: `drafts.${SITE_SETTINGS_ID}`, _type: "siteSettings" },
       { _id: "wrong-settings", _type: "siteSettings" }, { _id: "masthead", _type: "masthead" },
       { _id: "referrer", _type: "article", old: { _ref: "masthead" } },
     ]);
     expect(result.singletons).toEqual(expect.arrayContaining([
-      expect.objectContaining({ documentId: ABOUT_ID, state: "publishedWithChanges" }),
-      expect.objectContaining({ documentId: SITE_SETTINGS_ID, state: "historyIndeterminate", incorrectIds: ["wrong-settings"] }),
+      expect.objectContaining({ documentId: SITE_SETTINGS_ID, state: "publishedWithChanges", incorrectIds: ["wrong-settings"] }),
     ]));
     expect(result.legacySingletonIds).toEqual(["masthead"]);
     expect(result.obsoleteSingletonReferences).toHaveLength(1);

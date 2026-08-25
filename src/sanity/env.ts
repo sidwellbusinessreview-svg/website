@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const SANITY_STUDIO_BASE_PATH = "/studio";
+export const DEFAULT_SANITY_STUDIO_URL = "http://localhost:3333";
 
 const projectIdSchema = z
   .string()
@@ -17,29 +17,33 @@ const apiVersionSchema = z
   .trim()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "must use YYYY-MM-DD format");
 
+const studioUrlSchema = z
+  .string()
+  .trim()
+  .url("must be an absolute URL")
+  .refine((value) => /^https?:\/\//.test(value), "must use http or https");
+
 const configuredEnvironmentSchema = z.object({
   projectId: projectIdSchema,
   dataset: datasetSchema,
   apiVersion: apiVersionSchema,
-  studioBasePath: z.literal(SANITY_STUDIO_BASE_PATH),
+  studioUrl: studioUrlSchema,
 });
 
 export type SanityEnvironment =
-  | { configured: false; studioBasePath: typeof SANITY_STUDIO_BASE_PATH }
+  | { configured: false }
   | ({ configured: true } & z.infer<typeof configuredEnvironmentSchema>);
 
 type PublicEnvironment = Record<string, string | undefined>;
 
 export function readPublicSanityEnvironment(): PublicEnvironment {
-  // These property accesses must stay explicit. Next.js only inlines statically
-  // referenced NEXT_PUBLIC_* values into client bundles; passing process.env as
-  // an object leaves the embedded Studio without its configuration.
+  // These property accesses stay explicit so Next.js can inline public values
+  // where required and standalone Studio can read the same checked settings.
   return {
     NEXT_PUBLIC_SANITY_PROJECT_ID: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
     NEXT_PUBLIC_SANITY_DATASET: process.env.NEXT_PUBLIC_SANITY_DATASET,
     NEXT_PUBLIC_SANITY_API_VERSION: process.env.NEXT_PUBLIC_SANITY_API_VERSION,
-    NEXT_PUBLIC_SANITY_STUDIO_BASE_PATH:
-      process.env.NEXT_PUBLIC_SANITY_STUDIO_BASE_PATH,
+    NEXT_PUBLIC_SANITY_STUDIO_URL: process.env.NEXT_PUBLIC_SANITY_STUDIO_URL,
   };
 }
 
@@ -50,13 +54,12 @@ export function getSanityEnvironment(
     projectId: source.NEXT_PUBLIC_SANITY_PROJECT_ID?.trim() ?? "",
     dataset: source.NEXT_PUBLIC_SANITY_DATASET?.trim() ?? "",
     apiVersion: source.NEXT_PUBLIC_SANITY_API_VERSION?.trim() ?? "",
-    studioBasePath:
-      source.NEXT_PUBLIC_SANITY_STUDIO_BASE_PATH?.trim() || SANITY_STUDIO_BASE_PATH,
+    studioUrl: source.NEXT_PUBLIC_SANITY_STUDIO_URL?.trim() || DEFAULT_SANITY_STUDIO_URL,
   };
 
   const suppliedValues = [values.projectId, values.dataset, values.apiVersion];
   if (suppliedValues.every((value) => value.length === 0)) {
-    return { configured: false, studioBasePath: SANITY_STUDIO_BASE_PATH };
+    return { configured: false };
   }
 
   if (suppliedValues.some((value) => value.length === 0)) {

@@ -3,17 +3,68 @@ import { getArticleValidationFailures, mapArticle, mapContributor, mapPortableTe
 
 const span = (text: string, marks: string[] = []) => ({ _type: "span", _key: text, text, marks });
 const paragraph = (text: string, overrides = {}) => ({ _type: "block", _key: text, style: "normal", children: [span(text)], markDefs: [], ...overrides });
-const contributor = { slug: "maya-chen", name: "Maya Chen", role: "Editor", graduationYear: 2027, active: true };
+const contributor = { slug: "maya-chen", name: "Maya Chen", graduationYear: 2027, active: true };
 const rawArticle = (overrides = {}) => ({
   slug: "cms-test", title: "CMS Test Article", summary: "A sufficiently complete summary for the public article card.",
-  publicationDate: "2026-05-01", pinned: false, contributors: [contributor], body: [paragraph("A complete paragraph of test article content for adapter verification.")], ...overrides,
+  publicationMonth: "2026-05", pinned: false, contributors: [contributor], body: [paragraph("A complete paragraph of test article content for adapter verification.")], ...overrides,
 });
 const stega = (value: string) => `${value}\u200b\u200c\u200d\ufeff\u200b\u200c\u200d\ufeff`;
 
 describe("Sanity domain adapters", () => {
   it("maps published Article and Contributor records into the existing domain", () => {
-    expect(mapContributor(contributor)).toEqual({ slug: "maya-chen", name: "Maya Chen", role: "Editor", grade: "Class of 2027" });
+    expect(mapContributor(contributor)).toEqual({ slug: "maya-chen", name: "Maya Chen", grade: "Class of 2027" });
     expect(mapArticle(rawArticle())).toMatchObject({ slug: "cms-test", contributorSlugs: ["maya-chen"], status: "published" });
+  });
+  it("uses publicationMonth and supports transitional legacy publicationDate", () => {
+    expect(mapArticle(rawArticle())).toMatchObject({ publicationMonth: "2026-05" });
+    expect(mapArticle(rawArticle({ publicationMonth: undefined, publicationDate: "2024-11-19" }))).toMatchObject({ publicationMonth: "2024-11" });
+  });
+  it("maps cursor-inserted inline footnotes without storing a visible number", () => {
+    const mapped = mapArticle(rawArticle({
+      sources: [{ key: "report", citation: "Researcher, “Report.”", url: "https://example.com/report" }],
+      body: [paragraph("Supported claim.", { children: [span("Supported claim."), { _type: "footnoteReference", _key: "fn", sourceKey: "report" }] })],
+    }));
+    expect(mapped).toMatchObject({ sources: [{ key: "report", citation: "Researcher, “Report.”" }], content: [{ type: "paragraph", content: [{ text: "Supported claim." }, { text: "", sourceKey: "report" }] }] });
+    expect(JSON.stringify(mapped?.content)).not.toContain('"number"');
+  });
+  it("maps footnotes in bulleted and numbered list items", () => {
+    const body = mapPortableText([
+      paragraph("Bullet.", { listItem: "bullet", children: [span("Bullet."), { _type: "footnoteReference", _key: "one", sourceKey: "report" }] }),
+      paragraph("Numbered.", { listItem: "number", children: [span("Numbered."), { _type: "footnoteReference", _key: "two", sourceKey: "report" }] }),
+    ]);
+    expect(body).toMatchObject([
+      { type: "bulletedList", items: [{ content: [{ text: "Bullet." }, { text: "", sourceKey: "report" }] }] },
+      { type: "numberedList", items: [{ content: [{ text: "Numbered." }, { text: "", sourceKey: "report" }] }] },
+    ]);
+  });
+  it("maps a Portable Text Block quote with inline emphasis and a normal footnote", () => {
+    expect(mapPortableText([paragraph("Quoted evidence.", {
+      style: "blockquote",
+      children: [span("Quoted ", ["em"]), span("evidence."), { _type: "footnoteReference", _key: "quote-source", sourceKey: "report" }],
+    })])).toEqual([{ type: "quote", text: "Quoted evidence.", content: [{ text: "Quoted ", marks: ["em"] }, { text: "evidence." }, { text: "", sourceKey: "report" }] }]);
+  });
+  it("maps a cited Callout", () => {
+    expect(mapPortableText([
+      { _type: "callout", title: "Context", body: [paragraph("Callout body")], sourceKey: "report" },
+    ])).toEqual([
+      { type: "callout", title: "Context", text: "Callout body", sourceKey: "report" },
+    ]);
+  });
+  it("rejects broken Callout Sources publicly", () => {
+    const raw = rawArticle({ body: [{ _type: "callout", body: [paragraph("Callout body")], sourceKey: "gone" }] });
+    expect(mapArticle(raw)).toBeUndefined();
+    expect(mapArticle(raw, { allowBrokenFootnotes: true })).toBeDefined();
+  });
+  it("rejects broken footnotes publicly but preserves a safe Preview fallback", () => {
+    const raw = rawArticle({ body: [paragraph("Broken claim.", { children: [span("Broken claim."), { _type: "footnoteReference", _key: "fn", sourceKey: "missing" }] })] });
+    expect(mapArticle(raw)).toBeUndefined();
+    expect(mapArticle(raw, { allowBrokenFootnotes: true })?.content[0]).toMatchObject({ content: expect.arrayContaining([{ text: "", sourceKey: "missing" }]) });
+  });
+  it("does not silently drop an inline footnote with a missing source selection", () => {
+    const raw = rawArticle({ body: [paragraph("Broken claim.", { children: [span("Broken claim."), { _type: "footnoteReference", _key: "fn" }] })] });
+    expect(getArticleValidationFailures(raw)).toEqual(expect.arrayContaining([expect.stringContaining("footnote source __missing_source__ does not exist")]));
+    expect(mapArticle(raw)).toBeUndefined();
+    expect(mapArticle(raw, { allowBrokenFootnotes: true })).toBeDefined();
   });
   it("uses the required summary for cards and routing instead of an optional short subtitle", () => {
     expect(mapArticle(rawArticle({
@@ -29,7 +80,7 @@ describe("Sanity domain adapters", () => {
       slug: stega("cms-test"),
       title: stega("CMS Test Article"),
       summary: stega("A sufficiently complete summary for the public article card."),
-      publicationDate: stega("2026-05-01"),
+      publicationMonth: stega("2026-05"),
       contributors: [encodedContributor],
       body: [paragraph(stega("A complete paragraph of test article content for adapter verification."))],
     });
@@ -39,7 +90,7 @@ describe("Sanity domain adapters", () => {
       slug: "cms-test",
       title: expect.stringContaining("\u200b"),
       contributorSlugs: ["maya-chen"],
-      publishedAt: "2026-05-01",
+      publicationMonth: "2026-05",
     });
     expect(mapped?.content[0]).toMatchObject({ text: expect.stringContaining("\u200b") });
     expect(mapContributor(encodedContributor)).toMatchObject({ slug: "maya-chen", name: expect.stringContaining("\u200b") });
@@ -69,17 +120,16 @@ describe("Sanity domain adapters", () => {
       expect.stringContaining("contributors"), expect.stringContaining("dek"), expect.stringContaining("content"),
     ]));
   });
-  it("maps headings, lists, quotes, pull quotes, images, callouts, dividers, and whole-block links", () => {
+  it("maps headings, lists, quotes, images, callouts, dividers, and whole-block links", () => {
     const body = mapPortableText([
       paragraph("Heading", { style: "h2" }),
       paragraph("One", { listItem: "bullet" }), paragraph("Two", { listItem: "bullet" }),
       paragraph("Quoted", { style: "blockquote" }),
-      { _type: "pullQuote", text: "A pull quote long enough to use." },
       { _type: "editorialImage", asset: { url: "https://cdn.sanity.io/images/a/b/image.jpg", metadata: { dimensions: { width: 1200, height: 800 } } }, altText: "A chart", caption: "Caption", credit: "Credit", hotspot: { x: .4, y: .6 } },
       { _type: "callout", title: "Context", body: [paragraph("Callout body")] }, { _type: "divider" },
       paragraph("Source", { children: [span("Source", ["link"])], markDefs: [{ _key: "link", href: "https://example.com" }] }),
     ]);
-    expect(body.map(({ type }) => type)).toEqual(["heading", "bulletedList", "quote", "pullQuote", "image", "callout", "divider", "link"]);
+    expect(body.map(({ type }) => type)).toEqual(["heading", "bulletedList", "quote", "image", "callout", "divider", "link"]);
     expect(body.find(({ type }) => type === "image")).toMatchObject({ width: 1200, height: 800, hotspot: { x: .4, y: .6 } });
   });
   it("groups consecutive list blocks and preserves levels, decorators, and links", () => {
@@ -119,7 +169,7 @@ describe("Sanity domain adapters", () => {
     expect(warning).toHaveBeenCalled(); warning.mockRestore();
   });
   it("maps static About staff references without provider shapes leaking", () => {
-    expect(mapStaticPage({ slug: "about", title: "About", body: [paragraph("Mission statement")], editorsInChief: [{ contributor, displayedRole: "Editor-in-Chief" }] }))
+    expect(mapStaticPage({ aboutTitle: "About", aboutBody: [paragraph("Mission statement")], editorsInChief: [{ contributor, displayedRole: "Editor-in-Chief" }] }))
       .toMatchObject({ slug: "about", staff: { editorsInChief: [{ contributorSlug: "maya-chen", displayedRole: "Editor-in-Chief" }] } });
   });
 });

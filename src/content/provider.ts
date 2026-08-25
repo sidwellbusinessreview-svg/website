@@ -4,8 +4,8 @@ import type { SearchResult } from "./search";
 export type ContentSourceName = "local" | "sanity";
 export type ArchiveFilters = { schoolYear?: string; contributor?: string };
 
-export function getSchoolYear(publishedAt: string): string {
-  const date = new Date(`${publishedAt}T12:00:00Z`);
+export function getSchoolYear(publicationMonth: string): string {
+  const date = new Date(`${publicationMonth}-01T12:00:00Z`);
   const year = date.getUTCFullYear();
   const startYear = date.getUTCMonth() >= 6 ? year : year - 1;
   return `${startYear}-${startYear + 1}`;

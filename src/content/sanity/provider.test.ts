@@ -5,7 +5,7 @@ import { createSanityContentProvider, getSanityContentProvider } from "./provide
 
 vi.mock("@/sanity/lib/client", () => ({ getPublicSanityClient: () => null }));
 
-const article = { slug: "test", title: "Published Test", summary: "A sufficiently complete published summary for testing.", publicationDate: "2026-01-01", contributors: [{ slug: "person", name: "Person" }], body: [{ _type: "block", style: "normal", children: [{ _type: "span", text: "Body content", marks: [] }] }] };
+const article = { slug: "test", title: "Published Test", summary: "A sufficiently complete published summary for testing.", publicationMonth: "2026-01", contributors: [{ slug: "person", name: "Person" }], body: [{ _type: "block", style: "normal", children: [{ _type: "span", text: "Body content", marks: [] }] }] };
 
 describe("Sanity content provider", () => {
   it("uses newest Article when no valid pinned Article exists", async () => {
@@ -53,7 +53,7 @@ describe("Sanity content provider", () => {
       { next: { revalidate: 300, tags: ["content", "articles", "contributors", "contributor-articles:person"] } },
       { next: { revalidate: 300, tags: ["content", "contributors", "contributor:person"] } },
       { next: { revalidate: 300, tags: ["content", "articles", "contributors", "search"] } },
-      { next: { revalidate: 300, tags: ["content", "pages", "page:about"] } },
+      { next: { revalidate: 300, tags: ["content", "pages", "settings"] } },
     ]));
   });
   it("fails clearly instead of falling back when Sanity configuration is missing", () => {

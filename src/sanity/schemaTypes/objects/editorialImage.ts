@@ -14,7 +14,7 @@ export const editorialImage = defineType({
       name: "altText",
       title: "Alternative text",
       type: "string",
-      description: "Describe the image's meaningful content in context. Do not repeat the caption.",
+      description: "Describe the image for someone who cannot see it. Do not repeat the caption.",
       validation: (Rule) => Rule.custom(contextualImageAlt).max(240),
     }),
     defineField({
@@ -22,14 +22,14 @@ export const editorialImage = defineType({
       title: "Caption",
       type: "text",
       rows: 2,
-      description: "Optional context shown with the image. Do not use the caption as alt text.",
+      description: "Optional text displayed below the image. Do not use the caption as alt text.",
       validation: (Rule) => Rule.max(500),
     }),
     defineField({
       name: "credit",
       title: "Photo credit",
       type: "string",
-      description: "Required whenever the license, photographer, or source calls for attribution.",
+      description: "Photographer, publication, organization, or source. Required only when rights or editorial policy call for attribution.",
       validation: (Rule) => Rule.max(300),
     }),
     defineField({

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
-import { getContributors, searchArticles } from "@/content";
+import { getArticleContributors, getContributors, searchArticles } from "@/content";
 import { createPageMetadata } from "@/lib/metadata";
 
 export async function generateMetadata({
@@ -48,7 +48,7 @@ export default async function SearchPage({
             name="q"
             type="search"
             defaultValue={query}
-            placeholder="Try “Federal Reserve” or “Maya Chen”"
+            placeholder="Search by author or title"
           />
           <button type="submit">Search</button>
         </div>
@@ -62,16 +62,7 @@ export default async function SearchPage({
       )}
 
       {!query ? (
-        <div className="empty-state">
-          <h2>Start with a person, topic, or phrase.</h2>
-          <p>
-            Search is case-insensitive and includes headlines, summaries,
-            bylines, summaries, and article text.
-          </p>
-          <Link className="text-link" href="/archive">
-            Browse the full archive <span aria-hidden="true">→</span>
-          </Link>
-        </div>
+        <p className="search-empty-link"><Link className="text-link" href="/archive">Browse the archive <span aria-hidden="true">→</span></Link></p>
       ) : results.length === 0 ? (
         <div className="empty-state">
           <h2>No results for “{query}”</h2>
@@ -93,9 +84,7 @@ export default async function SearchPage({
               <ArticleCard
                 key={article.slug}
                 article={article}
-                authors={authors.filter((author) =>
-                  article.contributorSlugs.includes(author.slug),
-                )}
+                authors={getArticleContributors(article, authors)}
                 headingLevel={3}
               />
             ))}

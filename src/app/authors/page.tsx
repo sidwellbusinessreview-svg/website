@@ -18,7 +18,7 @@ export default async function AuthorsPage() {
         {authors.map((author) => (
           <article className="author-card" key={author.slug}>
             <h2><Link href={`/authors/${author.slug}`}>{author.name}</Link></h2>
-            {(author.role || author.grade) && <p>{[author.role, author.grade].filter(Boolean).join(" · ")}</p>}
+            {author.grade && <p>{author.grade}</p>}
             <Link className="text-link" href={`/authors/${author.slug}`}>View profile <span aria-hidden="true">→</span></Link>
           </article>
         ))}

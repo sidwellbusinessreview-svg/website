@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
-import { getArticles, getContributors, selectLeadArticle } from "@/content";
+import { getArticleContributors, getArticles, getContributors, selectLeadArticle } from "@/content";
 
 export default async function HomePage() {
   const [articles, contributors] = await Promise.all([
@@ -28,7 +28,7 @@ export default async function HomePage() {
           </p>
           <span>Independent student analysis from Washington, D.C.</span>
         </div>
-        <ArticleCard article={lead} authors={contributors.filter((a) => lead.contributorSlugs.includes(a.slug))} featured headingLevel={1} />
+        <ArticleCard article={lead} authors={getArticleContributors(lead, contributors)} featured headingLevel={1} />
       </section>
       <section className="container section">
         <div className="section-title-row">
@@ -37,17 +37,17 @@ export default async function HomePage() {
         </div>
         <div className="article-grid">
           {remaining.slice(0, 3).map((article) => (
-            <ArticleCard key={article.slug} article={article} authors={contributors.filter((a) => article.contributorSlugs.includes(a.slug))} />
+            <ArticleCard key={article.slug} article={article} authors={getArticleContributors(article, contributors)} />
           ))}
         </div>
       </section>
-      <section className="ink-section">
+      <section className="purpose-section">
         <div className="container statement-grid">
           <p className="eyebrow">Our purpose</p>
           <blockquote>“Good business writing makes complicated choices legible.”</blockquote>
           <div>
             <p>We report, analyze, and debate the forces shaping business and economics—at school, in Washington, and around the world.</p>
-            <Link className="text-link text-link--light" href="/about">About the Review <span aria-hidden="true">→</span></Link>
+            <Link className="text-link" href="/about">About the Review <span aria-hidden="true">→</span></Link>
           </div>
         </div>
       </section>

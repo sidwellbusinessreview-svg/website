@@ -5,7 +5,7 @@ import type { ArchiveFilters } from "./provider";
 
 export type { Article, ArticleContentBlock, Contributor, SiteSettings } from "./types";
 export type { SearchResult } from "./search";
-export { findDuplicateSlugs, getPublicArticles, selectLeadArticle } from "./utils";
+export { findDuplicateSlugs, getArticleContributors, getPublicArticles, selectLeadArticle } from "./utils";
 export { getSchoolYear } from "./provider";
 
 export async function getArticles(): Promise<Article[]> { return (await getContentProvider()).getArticles(); }

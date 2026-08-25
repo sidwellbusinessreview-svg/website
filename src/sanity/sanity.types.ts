@@ -15,6 +15,13 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: src/sanity/schema.json
+export type ContributorReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "contributor";
+};
+
 export type SanityImageAssetReference = {
   _ref: string;
   _type: "reference";
@@ -34,6 +41,29 @@ export type SiteSettings = {
   affiliationText: string;
   tagline?: string;
   location?: string;
+  aboutTitle: string;
+  aboutEyebrow?: string;
+  aboutSummary?: string;
+  aboutBody: ArticleBody;
+  aboutUpdatedDate?: string;
+  editorsInChief?: Array<{
+    contributor: ContributorReference;
+    displayedRole?: string;
+    _type: "editorInChiefEntry";
+    _key: string;
+  }>;
+  editors?: Array<{
+    contributor: ContributorReference;
+    displayedRole?: string;
+    _type: "editorEntry";
+    _key: string;
+  }>;
+  facultyAdviser?: Array<{
+    contributor: ContributorReference;
+    displayedRole?: string;
+    _type: "facultyAdviserEntry";
+    _key: string;
+  }>;
   logoMode: "text" | "image";
   textWordmark?: string;
   logoImage?: {
@@ -53,6 +83,7 @@ export type SiteSettings = {
     _key: string;
   }>;
   defaultSeo?: Seo;
+  aboutSeo?: Seo;
   homepageTagline?: string;
 };
 
@@ -87,12 +118,17 @@ export type SanityImageHotspot = {
 
 export type ArticleBody = Array<
   | {
-      children?: Array<{
-        marks?: Array<string>;
-        text?: string;
-        _type: "span";
-        _key: string;
-      }>;
+      children?: Array<
+        | {
+            marks?: Array<string>;
+            text?: string;
+            _type: "span";
+            _key: string;
+          }
+        | ({
+            _key: string;
+          } & FootnoteReference)
+      >;
       style?: "normal" | "h2" | "h3" | "blockquote";
       listItem?: "bullet" | "number";
       markDefs?: Array<
@@ -106,21 +142,15 @@ export type ArticleBody = Array<
     }
   | ({
       _key: string;
-    } & PullQuote)
-  | ({
-      _key: string;
     } & EditorialImage)
   | ({
       _key: string;
     } & Callout)
-  | ({
-      _key: string;
-    } & Divider)
 >;
 
-export type Divider = {
-  _type: "divider";
-  style?: string;
+export type FootnoteReference = {
+  _type: "footnoteReference";
+  sourceKey: string;
 };
 
 export type Callout = {
@@ -128,12 +158,7 @@ export type Callout = {
   variant: "context" | "definition" | "data" | "note";
   title?: string;
   body: SimplePortableText;
-};
-
-export type PullQuote = {
-  _type: "pullQuote";
-  text: string;
-  sourceText?: string;
+  sourceKey?: string;
 };
 
 export type SimplePortableText = Array<{
@@ -162,66 +187,12 @@ export type ArticleReference = {
   [internalGroqTypeReferenceTo]?: "article";
 };
 
-export type ContributorReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "contributor";
-};
-
-export type StaticPageReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "staticPage";
-};
-
 export type LinkAnnotation = {
   _type: "linkAnnotation";
   linkType: "external" | "internal";
   href?: string;
-  internalReference?:
-    ArticleReference | ContributorReference | StaticPageReference;
+  internalReference?: ArticleReference | ContributorReference;
   openInNewTab?: boolean;
-};
-
-export type StaticPage = {
-  _id: string;
-  _type: "staticPage";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title: string;
-  slug: Slug;
-  eyebrow?: string;
-  summary?: string;
-  body: ArticleBody;
-  editorsInChief?: Array<{
-    contributor: ContributorReference;
-    displayedRole?: string;
-    _type: "editorInChiefEntry";
-    _key: string;
-  }>;
-  editors?: Array<{
-    contributor: ContributorReference;
-    displayedRole?: string;
-    _type: "editorEntry";
-    _key: string;
-  }>;
-  facultyAdviser?: Array<{
-    contributor: ContributorReference;
-    displayedRole?: string;
-    _type: "facultyAdviserEntry";
-    _key: string;
-  }>;
-  updatedDate?: string;
-  seo?: Seo;
-};
-
-export type Slug = {
-  _type: "slug";
-  current: string;
-  source?: string;
 };
 
 export type Contributor = {
@@ -232,9 +203,16 @@ export type Contributor = {
   _rev: string;
   name: string;
   slug: Slug;
-  role?: string;
   graduationYear?: number;
   active?: boolean;
+  migrationSourceId?: string;
+  importBatchId?: string;
+};
+
+export type Slug = {
+  _type: "slug";
+  current: string;
+  source?: string;
 };
 
 export type Article = {
@@ -252,7 +230,7 @@ export type Article = {
       _key: string;
     } & ContributorReference
   >;
-  publicationDate: string;
+  publicationMonth: string;
   featuredImage?: {
     asset?: SanityImageAssetReference;
     media?: unknown;
@@ -264,10 +242,18 @@ export type Article = {
   featuredImageCaption?: string;
   featuredImageCredit?: string;
   body: ArticleBody;
+  sources?: Array<{
+    citation: string;
+    url?: string;
+    _type: "articleSource";
+    _key: string;
+  }>;
   pinned?: boolean;
   featuredRank?: number;
   seoTitle?: string;
   seoDescription?: string;
+  migrationSourceId?: string;
+  importBatchId?: string;
 };
 
 export type EditorialImage = {
@@ -380,23 +366,20 @@ export type Geopoint = {
 };
 
 export type AllSanitySchemaTypes =
+  | ContributorReference
   | SanityImageAssetReference
   | SiteSettings
   | Seo
   | SanityImageCrop
   | SanityImageHotspot
   | ArticleBody
-  | Divider
+  | FootnoteReference
   | Callout
-  | PullQuote
   | SimplePortableText
   | ArticleReference
-  | ContributorReference
-  | StaticPageReference
   | LinkAnnotation
-  | StaticPage
-  | Slug
   | Contributor
+  | Slug
   | Article
   | EditorialImage
   | SanityImagePaletteSwatch
@@ -410,7 +393,7 @@ export type AllSanitySchemaTypes =
 
 // Source: src/content/sanity/queries.ts
 // Variable: SITE_SETTINGS_QUERY
-// Query: *[_type == "siteSettings" && _id == "siteSettings"][0]{  _id,_type,publicationName,shortName,description,affiliationText,tagline,location,logoMode,textWordmark,  "logoImage": logoImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},logoImageAlt,contactLabel,contactTarget,  socialLinks[]{label,url},defaultSeo,homepageTagline}
+// Query: *[_type == "siteSettings" && _id == "siteSettings"][0]{  _id,_type,publicationName,shortName,description,affiliationText,tagline,location,logoMode,textWordmark,  "logoImage": logoImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},logoImageAlt,contactLabel,contactTarget,  socialLinks[]{label,url},defaultSeo,homepageTagline,  aboutTitle,aboutEyebrow,aboutSummary,"aboutBody":aboutBody[]{    ...,    _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},    markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}  },aboutUpdatedDate,aboutSeo,  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}}}
 export type SITE_SETTINGS_QUERY_RESULT = {
   _id: "siteSettings";
   _type: "siteSettings";
@@ -446,57 +429,22 @@ export type SITE_SETTINGS_QUERY_RESULT = {
   }> | null;
   defaultSeo: Seo | null;
   homepageTagline: string | null;
-} | null;
-
-// Source: src/content/sanity/queries.ts
-// Variable: ALL_PUBLISHED_ARTICLES_QUERY
-// Query: *[_type == "article" && defined(slug.current)]|order(publicationDate desc, slug.current asc){  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
-export type ALL_PUBLISHED_ARTICLES_QUERY_RESULT = Array<{
-  _id: string;
-  _type: "article";
-  title: string;
-  slug: string;
-  subtitle: string | null;
-  summary: string;
-  publicationDate: string;
-  pinned: boolean | null;
-  featuredRank: number | null;
-  seoTitle: string | null;
-  seoDescription: string | null;
-  contributors: Array<{
-    _id: string;
-    name: string;
-    slug: string;
-    role: string | null;
-    graduationYear: number | null;
-    active: boolean | null;
-  }>;
-  featuredImage: {
-    asset: {
-      _id: string;
-      url: string;
-      metadata: {
-        dimensions: {
-          width: number;
-          height: number;
-          aspectRatio: number;
-        } | null;
-      } | null;
-    } | null;
-    crop: SanityImageCrop | null;
-    hotspot: SanityImageHotspot | null;
-  } | null;
-  featuredImageAltText: string | null;
-  featuredImageCaption: string | null;
-  featuredImageCredit: string | null;
-  body: Array<
+  aboutTitle: string;
+  aboutEyebrow: string | null;
+  aboutSummary: string | null;
+  aboutBody: Array<
     | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
         style?: "blockquote" | "h2" | "h3" | "normal";
         listItem?: "bullet" | "number";
         markDefs: Array<{
@@ -504,11 +452,10 @@ export type ALL_PUBLISHED_ARTICLES_QUERY_RESULT = Array<{
           _type: "linkAnnotation";
           linkType: "external" | "internal";
           href?: string;
-          internalReference?:
-            ArticleReference | ContributorReference | StaticPageReference;
+          internalReference?: ArticleReference | ContributorReference;
           openInNewTab?: boolean;
           internalSlug: string | null;
-          internalType: "article" | "contributor" | "staticPage" | null;
+          internalType: "article" | "contributor" | null;
         }> | null;
         level?: number;
         _type: "block";
@@ -520,12 +467,7 @@ export type ALL_PUBLISHED_ARTICLES_QUERY_RESULT = Array<{
         variant: "context" | "data" | "definition" | "note";
         title?: string;
         body: SimplePortableText;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "divider";
-        style?: string;
+        sourceKey?: string;
         markDefs: null;
       }
     | {
@@ -551,693 +493,14 @@ export type ALL_PUBLISHED_ARTICLES_QUERY_RESULT = Array<{
         rightsNote?: string;
         markDefs: null;
       }
-    | {
-        _key: string;
-        _type: "pullQuote";
-        text: string;
-        sourceText?: string;
-        markDefs: null;
-      }
   >;
-}>;
-
-// Source: src/content/sanity/queries.ts
-// Variable: ARTICLE_BY_SLUG_QUERY
-// Query: *[_type == "article" && defined(slug.current) && slug.current == $slug][0]{  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
-export type ARTICLE_BY_SLUG_QUERY_RESULT = {
-  _id: string;
-  _type: "article";
-  title: string;
-  slug: string;
-  subtitle: string | null;
-  summary: string;
-  publicationDate: string;
-  pinned: boolean | null;
-  featuredRank: number | null;
-  seoTitle: string | null;
-  seoDescription: string | null;
-  contributors: Array<{
-    _id: string;
-    name: string;
-    slug: string;
-    role: string | null;
-    graduationYear: number | null;
-    active: boolean | null;
-  }>;
-  featuredImage: {
-    asset: {
-      _id: string;
-      url: string;
-      metadata: {
-        dimensions: {
-          width: number;
-          height: number;
-          aspectRatio: number;
-        } | null;
-      } | null;
-    } | null;
-    crop: SanityImageCrop | null;
-    hotspot: SanityImageHotspot | null;
-  } | null;
-  featuredImageAltText: string | null;
-  featuredImageCaption: string | null;
-  featuredImageCredit: string | null;
-  body: Array<
-    | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
-        style?: "blockquote" | "h2" | "h3" | "normal";
-        listItem?: "bullet" | "number";
-        markDefs: Array<{
-          _key: string;
-          _type: "linkAnnotation";
-          linkType: "external" | "internal";
-          href?: string;
-          internalReference?:
-            ArticleReference | ContributorReference | StaticPageReference;
-          openInNewTab?: boolean;
-          internalSlug: string | null;
-          internalType: "article" | "contributor" | "staticPage" | null;
-        }> | null;
-        level?: number;
-        _type: "block";
-        _key: string;
-      }
-    | {
-        _key: string;
-        _type: "callout";
-        variant: "context" | "data" | "definition" | "note";
-        title?: string;
-        body: SimplePortableText;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "divider";
-        style?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "editorialImage";
-        asset: {
-          _id: string;
-          url: string;
-          metadata: {
-            dimensions: {
-              width: number;
-              height: number;
-              aspectRatio: number;
-            } | null;
-          } | null;
-        } | null;
-        media?: unknown;
-        hotspot: SanityImageHotspot | null;
-        crop: SanityImageCrop | null;
-        altText?: string;
-        caption?: string;
-        credit?: string;
-        rightsNote?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "pullQuote";
-        text: string;
-        sourceText?: string;
-        markDefs: null;
-      }
-  >;
-} | null;
-
-// Source: src/content/sanity/queries.ts
-// Variable: PINNED_ARTICLE_QUERY
-// Query: *[_type == "article" && defined(slug.current) && pinned == true]|order(featuredRank asc, publicationDate desc, slug.current asc)[0]{  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
-export type PINNED_ARTICLE_QUERY_RESULT = {
-  _id: string;
-  _type: "article";
-  title: string;
-  slug: string;
-  subtitle: string | null;
-  summary: string;
-  publicationDate: string;
-  pinned: true;
-  featuredRank: number | null;
-  seoTitle: string | null;
-  seoDescription: string | null;
-  contributors: Array<{
-    _id: string;
-    name: string;
-    slug: string;
-    role: string | null;
-    graduationYear: number | null;
-    active: boolean | null;
-  }>;
-  featuredImage: {
-    asset: {
-      _id: string;
-      url: string;
-      metadata: {
-        dimensions: {
-          width: number;
-          height: number;
-          aspectRatio: number;
-        } | null;
-      } | null;
-    } | null;
-    crop: SanityImageCrop | null;
-    hotspot: SanityImageHotspot | null;
-  } | null;
-  featuredImageAltText: string | null;
-  featuredImageCaption: string | null;
-  featuredImageCredit: string | null;
-  body: Array<
-    | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
-        style?: "blockquote" | "h2" | "h3" | "normal";
-        listItem?: "bullet" | "number";
-        markDefs: Array<{
-          _key: string;
-          _type: "linkAnnotation";
-          linkType: "external" | "internal";
-          href?: string;
-          internalReference?:
-            ArticleReference | ContributorReference | StaticPageReference;
-          openInNewTab?: boolean;
-          internalSlug: string | null;
-          internalType: "article" | "contributor" | "staticPage" | null;
-        }> | null;
-        level?: number;
-        _type: "block";
-        _key: string;
-      }
-    | {
-        _key: string;
-        _type: "callout";
-        variant: "context" | "data" | "definition" | "note";
-        title?: string;
-        body: SimplePortableText;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "divider";
-        style?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "editorialImage";
-        asset: {
-          _id: string;
-          url: string;
-          metadata: {
-            dimensions: {
-              width: number;
-              height: number;
-              aspectRatio: number;
-            } | null;
-          } | null;
-        } | null;
-        media?: unknown;
-        hotspot: SanityImageHotspot | null;
-        crop: SanityImageCrop | null;
-        altText?: string;
-        caption?: string;
-        credit?: string;
-        rightsNote?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "pullQuote";
-        text: string;
-        sourceText?: string;
-        markDefs: null;
-      }
-  >;
-} | null;
-
-// Source: src/content/sanity/queries.ts
-// Variable: LATEST_ARTICLES_QUERY
-// Query: *[_type == "article" && defined(slug.current)]|order(publicationDate desc, slug.current asc)[0...$limit]{  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
-export type LATEST_ARTICLES_QUERY_RESULT = Array<{
-  _id: string;
-  _type: "article";
-  title: string;
-  slug: string;
-  subtitle: string | null;
-  summary: string;
-  publicationDate: string;
-  pinned: boolean | null;
-  featuredRank: number | null;
-  seoTitle: string | null;
-  seoDescription: string | null;
-  contributors: Array<{
-    _id: string;
-    name: string;
-    slug: string;
-    role: string | null;
-    graduationYear: number | null;
-    active: boolean | null;
-  }>;
-  featuredImage: {
-    asset: {
-      _id: string;
-      url: string;
-      metadata: {
-        dimensions: {
-          width: number;
-          height: number;
-          aspectRatio: number;
-        } | null;
-      } | null;
-    } | null;
-    crop: SanityImageCrop | null;
-    hotspot: SanityImageHotspot | null;
-  } | null;
-  featuredImageAltText: string | null;
-  featuredImageCaption: string | null;
-  featuredImageCredit: string | null;
-  body: Array<
-    | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
-        style?: "blockquote" | "h2" | "h3" | "normal";
-        listItem?: "bullet" | "number";
-        markDefs: Array<{
-          _key: string;
-          _type: "linkAnnotation";
-          linkType: "external" | "internal";
-          href?: string;
-          internalReference?:
-            ArticleReference | ContributorReference | StaticPageReference;
-          openInNewTab?: boolean;
-          internalSlug: string | null;
-          internalType: "article" | "contributor" | "staticPage" | null;
-        }> | null;
-        level?: number;
-        _type: "block";
-        _key: string;
-      }
-    | {
-        _key: string;
-        _type: "callout";
-        variant: "context" | "data" | "definition" | "note";
-        title?: string;
-        body: SimplePortableText;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "divider";
-        style?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "editorialImage";
-        asset: {
-          _id: string;
-          url: string;
-          metadata: {
-            dimensions: {
-              width: number;
-              height: number;
-              aspectRatio: number;
-            } | null;
-          } | null;
-        } | null;
-        media?: unknown;
-        hotspot: SanityImageHotspot | null;
-        crop: SanityImageCrop | null;
-        altText?: string;
-        caption?: string;
-        credit?: string;
-        rightsNote?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "pullQuote";
-        text: string;
-        sourceText?: string;
-        markDefs: null;
-      }
-  >;
-}>;
-
-// Source: src/content/sanity/queries.ts
-// Variable: ARTICLES_BY_CONTRIBUTOR_QUERY
-// Query: *[_type == "article" && defined(slug.current) && $slug in contributors[]->slug.current]|order(publicationDate desc, slug.current asc){  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
-export type ARTICLES_BY_CONTRIBUTOR_QUERY_RESULT = Array<{
-  _id: string;
-  _type: "article";
-  title: string;
-  slug: string;
-  subtitle: string | null;
-  summary: string;
-  publicationDate: string;
-  pinned: boolean | null;
-  featuredRank: number | null;
-  seoTitle: string | null;
-  seoDescription: string | null;
-  contributors: Array<{
-    _id: string;
-    name: string;
-    slug: string;
-    role: string | null;
-    graduationYear: number | null;
-    active: boolean | null;
-  }>;
-  featuredImage: {
-    asset: {
-      _id: string;
-      url: string;
-      metadata: {
-        dimensions: {
-          width: number;
-          height: number;
-          aspectRatio: number;
-        } | null;
-      } | null;
-    } | null;
-    crop: SanityImageCrop | null;
-    hotspot: SanityImageHotspot | null;
-  } | null;
-  featuredImageAltText: string | null;
-  featuredImageCaption: string | null;
-  featuredImageCredit: string | null;
-  body: Array<
-    | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
-        style?: "blockquote" | "h2" | "h3" | "normal";
-        listItem?: "bullet" | "number";
-        markDefs: Array<{
-          _key: string;
-          _type: "linkAnnotation";
-          linkType: "external" | "internal";
-          href?: string;
-          internalReference?:
-            ArticleReference | ContributorReference | StaticPageReference;
-          openInNewTab?: boolean;
-          internalSlug: string | null;
-          internalType: "article" | "contributor" | "staticPage" | null;
-        }> | null;
-        level?: number;
-        _type: "block";
-        _key: string;
-      }
-    | {
-        _key: string;
-        _type: "callout";
-        variant: "context" | "data" | "definition" | "note";
-        title?: string;
-        body: SimplePortableText;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "divider";
-        style?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "editorialImage";
-        asset: {
-          _id: string;
-          url: string;
-          metadata: {
-            dimensions: {
-              width: number;
-              height: number;
-              aspectRatio: number;
-            } | null;
-          } | null;
-        } | null;
-        media?: unknown;
-        hotspot: SanityImageHotspot | null;
-        crop: SanityImageCrop | null;
-        altText?: string;
-        caption?: string;
-        credit?: string;
-        rightsNote?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "pullQuote";
-        text: string;
-        sourceText?: string;
-        markDefs: null;
-      }
-  >;
-}>;
-
-// Source: src/content/sanity/queries.ts
-// Variable: SEARCH_ARTICLES_QUERY
-// Query: *[_type == "article" && defined(slug.current) && [title,subtitle,summary,pt::text(body),contributors[]->name] match $term]|order(publicationDate desc, slug.current asc){  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
-export type SEARCH_ARTICLES_QUERY_RESULT = Array<{
-  _id: string;
-  _type: "article";
-  title: string;
-  slug: string;
-  subtitle: string | null;
-  summary: string;
-  publicationDate: string;
-  pinned: boolean | null;
-  featuredRank: number | null;
-  seoTitle: string | null;
-  seoDescription: string | null;
-  contributors: Array<{
-    _id: string;
-    name: string;
-    slug: string;
-    role: string | null;
-    graduationYear: number | null;
-    active: boolean | null;
-  }>;
-  featuredImage: {
-    asset: {
-      _id: string;
-      url: string;
-      metadata: {
-        dimensions: {
-          width: number;
-          height: number;
-          aspectRatio: number;
-        } | null;
-      } | null;
-    } | null;
-    crop: SanityImageCrop | null;
-    hotspot: SanityImageHotspot | null;
-  } | null;
-  featuredImageAltText: string | null;
-  featuredImageCaption: string | null;
-  featuredImageCredit: string | null;
-  body: Array<
-    | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
-        style?: "blockquote" | "h2" | "h3" | "normal";
-        listItem?: "bullet" | "number";
-        markDefs: Array<{
-          _key: string;
-          _type: "linkAnnotation";
-          linkType: "external" | "internal";
-          href?: string;
-          internalReference?:
-            ArticleReference | ContributorReference | StaticPageReference;
-          openInNewTab?: boolean;
-          internalSlug: string | null;
-          internalType: "article" | "contributor" | "staticPage" | null;
-        }> | null;
-        level?: number;
-        _type: "block";
-        _key: string;
-      }
-    | {
-        _key: string;
-        _type: "callout";
-        variant: "context" | "data" | "definition" | "note";
-        title?: string;
-        body: SimplePortableText;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "divider";
-        style?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "editorialImage";
-        asset: {
-          _id: string;
-          url: string;
-          metadata: {
-            dimensions: {
-              width: number;
-              height: number;
-              aspectRatio: number;
-            } | null;
-          } | null;
-        } | null;
-        media?: unknown;
-        hotspot: SanityImageHotspot | null;
-        crop: SanityImageCrop | null;
-        altText?: string;
-        caption?: string;
-        credit?: string;
-        rightsNote?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "pullQuote";
-        text: string;
-        sourceText?: string;
-        markDefs: null;
-      }
-  >;
-}>;
-
-// Source: src/content/sanity/queries.ts
-// Variable: CONTRIBUTORS_QUERY
-// Query: *[  _type == "contributor" && defined(slug.current)]|order(name asc){_id,_type,name,"slug":slug.current,role,graduationYear,active}
-export type CONTRIBUTORS_QUERY_RESULT = Array<{
-  _id: string;
-  _type: "contributor";
-  name: string;
-  slug: string;
-  role: string | null;
-  graduationYear: number | null;
-  active: boolean | null;
-}>;
-
-// Source: src/content/sanity/queries.ts
-// Variable: CONTRIBUTOR_BY_SLUG_QUERY
-// Query: *[  _type == "contributor" && slug.current == $slug][0]{_id,_type,name,"slug":slug.current,role,graduationYear,active}
-export type CONTRIBUTOR_BY_SLUG_QUERY_RESULT = {
-  _id: string;
-  _type: "contributor";
-  name: string;
-  slug: string;
-  role: string | null;
-  graduationYear: number | null;
-  active: boolean | null;
-} | null;
-
-// Source: src/content/sanity/queries.ts
-// Variable: STATIC_PAGE_BY_SLUG_QUERY
-// Query: *[  _type == "staticPage" && slug.current == $slug][0]{_id,_type,title,"slug":slug.current,eyebrow,summary,body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}},  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}},  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}},  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}}}
-export type STATIC_PAGE_BY_SLUG_QUERY_RESULT = {
-  _id: string;
-  _type: "staticPage";
-  title: string;
-  slug: string;
-  eyebrow: string | null;
-  summary: string | null;
-  body: Array<
-    | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
-        style?: "blockquote" | "h2" | "h3" | "normal";
-        listItem?: "bullet" | "number";
-        markDefs: Array<{
-          _key: string;
-          _type: "linkAnnotation";
-          linkType: "external" | "internal";
-          href?: string;
-          internalReference?:
-            ArticleReference | ContributorReference | StaticPageReference;
-          openInNewTab?: boolean;
-          internalSlug: string | null;
-          internalType: "article" | "contributor" | "staticPage" | null;
-        }> | null;
-        level?: number;
-        _type: "block";
-        _key: string;
-      }
-    | {
-        _key: string;
-        _type: "callout";
-        variant: "context" | "data" | "definition" | "note";
-        title?: string;
-        body: SimplePortableText;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "divider";
-        style?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "editorialImage";
-        asset: {
-          _id: string;
-          url: string;
-          metadata: {
-            dimensions: {
-              width: number;
-              height: number;
-              aspectRatio: number;
-            } | null;
-          } | null;
-        } | null;
-        media?: unknown;
-        hotspot: SanityImageHotspot | null;
-        crop: SanityImageCrop | null;
-        altText?: string;
-        caption?: string;
-        credit?: string;
-        rightsNote?: string;
-        markDefs: null;
-      }
-    | {
-        _key: string;
-        _type: "pullQuote";
-        text: string;
-        sourceText?: string;
-        markDefs: null;
-      }
-  >;
+  aboutUpdatedDate: string | null;
+  aboutSeo: Seo | null;
   editorsInChief: Array<{
     displayedRole: string | null;
     contributor: {
       name: string;
       slug: string;
-      role: string | null;
       graduationYear: number | null;
     };
   }> | null;
@@ -1246,7 +509,6 @@ export type STATIC_PAGE_BY_SLUG_QUERY_RESULT = {
     contributor: {
       name: string;
       slug: string;
-      role: string | null;
       graduationYear: number | null;
     };
   }> | null;
@@ -1255,25 +517,707 @@ export type STATIC_PAGE_BY_SLUG_QUERY_RESULT = {
     contributor: {
       name: string;
       slug: string;
-      role: string | null;
       graduationYear: number | null;
     };
   }> | null;
+} | null;
+
+// Source: src/content/sanity/queries.ts
+// Variable: ALL_PUBLISHED_ARTICLES_QUERY
+// Query: *[_type == "article" && defined(slug.current)]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc){  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  sources[]{"key":_key,citation,url},  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
+export type ALL_PUBLISHED_ARTICLES_QUERY_RESULT = Array<{
+  _id: string;
+  _type: "article";
+  title: string;
+  slug: string;
+  subtitle: string | null;
+  summary: string;
+  publicationMonth: string;
+  publicationDate: null;
+  pinned: boolean | null;
+  featuredRank: number | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  contributors: Array<{
+    _id: string;
+    name: string;
+    slug: string;
+    graduationYear: number | null;
+    active: boolean | null;
+  }>;
+  featuredImage: {
+    asset: {
+      _id: string;
+      url: string;
+      metadata: {
+        dimensions: {
+          width: number;
+          height: number;
+          aspectRatio: number;
+        } | null;
+      } | null;
+    } | null;
+    crop: SanityImageCrop | null;
+    hotspot: SanityImageHotspot | null;
+  } | null;
+  featuredImageAltText: string | null;
+  featuredImageCaption: string | null;
+  featuredImageCredit: string | null;
+  sources: Array<{
+    key: string;
+    citation: string;
+    url: string | null;
+  }> | null;
+  body: Array<
+    | {
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
+        style?: "blockquote" | "h2" | "h3" | "normal";
+        listItem?: "bullet" | "number";
+        markDefs: Array<{
+          _key: string;
+          _type: "linkAnnotation";
+          linkType: "external" | "internal";
+          href?: string;
+          internalReference?: ArticleReference | ContributorReference;
+          openInNewTab?: boolean;
+          internalSlug: string | null;
+          internalType: "article" | "contributor" | null;
+        }> | null;
+        level?: number;
+        _type: "block";
+        _key: string;
+      }
+    | {
+        _key: string;
+        _type: "callout";
+        variant: "context" | "data" | "definition" | "note";
+        title?: string;
+        body: SimplePortableText;
+        sourceKey?: string;
+        markDefs: null;
+      }
+    | {
+        _key: string;
+        _type: "editorialImage";
+        asset: {
+          _id: string;
+          url: string;
+          metadata: {
+            dimensions: {
+              width: number;
+              height: number;
+              aspectRatio: number;
+            } | null;
+          } | null;
+        } | null;
+        media?: unknown;
+        hotspot: SanityImageHotspot | null;
+        crop: SanityImageCrop | null;
+        altText?: string;
+        caption?: string;
+        credit?: string;
+        rightsNote?: string;
+        markDefs: null;
+      }
+  >;
+}>;
+
+// Source: src/content/sanity/queries.ts
+// Variable: ARTICLE_BY_SLUG_QUERY
+// Query: *[_type == "article" && defined(slug.current) && slug.current == $slug][0]{  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  sources[]{"key":_key,citation,url},  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
+export type ARTICLE_BY_SLUG_QUERY_RESULT = {
+  _id: string;
+  _type: "article";
+  title: string;
+  slug: string;
+  subtitle: string | null;
+  summary: string;
+  publicationMonth: string;
+  publicationDate: null;
+  pinned: boolean | null;
+  featuredRank: number | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  contributors: Array<{
+    _id: string;
+    name: string;
+    slug: string;
+    graduationYear: number | null;
+    active: boolean | null;
+  }>;
+  featuredImage: {
+    asset: {
+      _id: string;
+      url: string;
+      metadata: {
+        dimensions: {
+          width: number;
+          height: number;
+          aspectRatio: number;
+        } | null;
+      } | null;
+    } | null;
+    crop: SanityImageCrop | null;
+    hotspot: SanityImageHotspot | null;
+  } | null;
+  featuredImageAltText: string | null;
+  featuredImageCaption: string | null;
+  featuredImageCredit: string | null;
+  sources: Array<{
+    key: string;
+    citation: string;
+    url: string | null;
+  }> | null;
+  body: Array<
+    | {
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
+        style?: "blockquote" | "h2" | "h3" | "normal";
+        listItem?: "bullet" | "number";
+        markDefs: Array<{
+          _key: string;
+          _type: "linkAnnotation";
+          linkType: "external" | "internal";
+          href?: string;
+          internalReference?: ArticleReference | ContributorReference;
+          openInNewTab?: boolean;
+          internalSlug: string | null;
+          internalType: "article" | "contributor" | null;
+        }> | null;
+        level?: number;
+        _type: "block";
+        _key: string;
+      }
+    | {
+        _key: string;
+        _type: "callout";
+        variant: "context" | "data" | "definition" | "note";
+        title?: string;
+        body: SimplePortableText;
+        sourceKey?: string;
+        markDefs: null;
+      }
+    | {
+        _key: string;
+        _type: "editorialImage";
+        asset: {
+          _id: string;
+          url: string;
+          metadata: {
+            dimensions: {
+              width: number;
+              height: number;
+              aspectRatio: number;
+            } | null;
+          } | null;
+        } | null;
+        media?: unknown;
+        hotspot: SanityImageHotspot | null;
+        crop: SanityImageCrop | null;
+        altText?: string;
+        caption?: string;
+        credit?: string;
+        rightsNote?: string;
+        markDefs: null;
+      }
+  >;
+} | null;
+
+// Source: src/content/sanity/queries.ts
+// Variable: PINNED_ARTICLE_QUERY
+// Query: *[_type == "article" && defined(slug.current) && pinned == true]|order(featuredRank asc, coalesce(publicationMonth,publicationDate) desc, slug.current asc)[0]{  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  sources[]{"key":_key,citation,url},  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
+export type PINNED_ARTICLE_QUERY_RESULT = {
+  _id: string;
+  _type: "article";
+  title: string;
+  slug: string;
+  subtitle: string | null;
+  summary: string;
+  publicationMonth: string;
+  publicationDate: null;
+  pinned: true;
+  featuredRank: number | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  contributors: Array<{
+    _id: string;
+    name: string;
+    slug: string;
+    graduationYear: number | null;
+    active: boolean | null;
+  }>;
+  featuredImage: {
+    asset: {
+      _id: string;
+      url: string;
+      metadata: {
+        dimensions: {
+          width: number;
+          height: number;
+          aspectRatio: number;
+        } | null;
+      } | null;
+    } | null;
+    crop: SanityImageCrop | null;
+    hotspot: SanityImageHotspot | null;
+  } | null;
+  featuredImageAltText: string | null;
+  featuredImageCaption: string | null;
+  featuredImageCredit: string | null;
+  sources: Array<{
+    key: string;
+    citation: string;
+    url: string | null;
+  }> | null;
+  body: Array<
+    | {
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
+        style?: "blockquote" | "h2" | "h3" | "normal";
+        listItem?: "bullet" | "number";
+        markDefs: Array<{
+          _key: string;
+          _type: "linkAnnotation";
+          linkType: "external" | "internal";
+          href?: string;
+          internalReference?: ArticleReference | ContributorReference;
+          openInNewTab?: boolean;
+          internalSlug: string | null;
+          internalType: "article" | "contributor" | null;
+        }> | null;
+        level?: number;
+        _type: "block";
+        _key: string;
+      }
+    | {
+        _key: string;
+        _type: "callout";
+        variant: "context" | "data" | "definition" | "note";
+        title?: string;
+        body: SimplePortableText;
+        sourceKey?: string;
+        markDefs: null;
+      }
+    | {
+        _key: string;
+        _type: "editorialImage";
+        asset: {
+          _id: string;
+          url: string;
+          metadata: {
+            dimensions: {
+              width: number;
+              height: number;
+              aspectRatio: number;
+            } | null;
+          } | null;
+        } | null;
+        media?: unknown;
+        hotspot: SanityImageHotspot | null;
+        crop: SanityImageCrop | null;
+        altText?: string;
+        caption?: string;
+        credit?: string;
+        rightsNote?: string;
+        markDefs: null;
+      }
+  >;
+} | null;
+
+// Source: src/content/sanity/queries.ts
+// Variable: LATEST_ARTICLES_QUERY
+// Query: *[_type == "article" && defined(slug.current)]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)[0...$limit]{  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  sources[]{"key":_key,citation,url},  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
+export type LATEST_ARTICLES_QUERY_RESULT = Array<{
+  _id: string;
+  _type: "article";
+  title: string;
+  slug: string;
+  subtitle: string | null;
+  summary: string;
+  publicationMonth: string;
+  publicationDate: null;
+  pinned: boolean | null;
+  featuredRank: number | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  contributors: Array<{
+    _id: string;
+    name: string;
+    slug: string;
+    graduationYear: number | null;
+    active: boolean | null;
+  }>;
+  featuredImage: {
+    asset: {
+      _id: string;
+      url: string;
+      metadata: {
+        dimensions: {
+          width: number;
+          height: number;
+          aspectRatio: number;
+        } | null;
+      } | null;
+    } | null;
+    crop: SanityImageCrop | null;
+    hotspot: SanityImageHotspot | null;
+  } | null;
+  featuredImageAltText: string | null;
+  featuredImageCaption: string | null;
+  featuredImageCredit: string | null;
+  sources: Array<{
+    key: string;
+    citation: string;
+    url: string | null;
+  }> | null;
+  body: Array<
+    | {
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
+        style?: "blockquote" | "h2" | "h3" | "normal";
+        listItem?: "bullet" | "number";
+        markDefs: Array<{
+          _key: string;
+          _type: "linkAnnotation";
+          linkType: "external" | "internal";
+          href?: string;
+          internalReference?: ArticleReference | ContributorReference;
+          openInNewTab?: boolean;
+          internalSlug: string | null;
+          internalType: "article" | "contributor" | null;
+        }> | null;
+        level?: number;
+        _type: "block";
+        _key: string;
+      }
+    | {
+        _key: string;
+        _type: "callout";
+        variant: "context" | "data" | "definition" | "note";
+        title?: string;
+        body: SimplePortableText;
+        sourceKey?: string;
+        markDefs: null;
+      }
+    | {
+        _key: string;
+        _type: "editorialImage";
+        asset: {
+          _id: string;
+          url: string;
+          metadata: {
+            dimensions: {
+              width: number;
+              height: number;
+              aspectRatio: number;
+            } | null;
+          } | null;
+        } | null;
+        media?: unknown;
+        hotspot: SanityImageHotspot | null;
+        crop: SanityImageCrop | null;
+        altText?: string;
+        caption?: string;
+        credit?: string;
+        rightsNote?: string;
+        markDefs: null;
+      }
+  >;
+}>;
+
+// Source: src/content/sanity/queries.ts
+// Variable: ARTICLES_BY_CONTRIBUTOR_QUERY
+// Query: *[_type == "article" && defined(slug.current) && $slug in contributors[]->slug.current]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc){  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  sources[]{"key":_key,citation,url},  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
+export type ARTICLES_BY_CONTRIBUTOR_QUERY_RESULT = Array<{
+  _id: string;
+  _type: "article";
+  title: string;
+  slug: string;
+  subtitle: string | null;
+  summary: string;
+  publicationMonth: string;
+  publicationDate: null;
+  pinned: boolean | null;
+  featuredRank: number | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  contributors: Array<{
+    _id: string;
+    name: string;
+    slug: string;
+    graduationYear: number | null;
+    active: boolean | null;
+  }>;
+  featuredImage: {
+    asset: {
+      _id: string;
+      url: string;
+      metadata: {
+        dimensions: {
+          width: number;
+          height: number;
+          aspectRatio: number;
+        } | null;
+      } | null;
+    } | null;
+    crop: SanityImageCrop | null;
+    hotspot: SanityImageHotspot | null;
+  } | null;
+  featuredImageAltText: string | null;
+  featuredImageCaption: string | null;
+  featuredImageCredit: string | null;
+  sources: Array<{
+    key: string;
+    citation: string;
+    url: string | null;
+  }> | null;
+  body: Array<
+    | {
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
+        style?: "blockquote" | "h2" | "h3" | "normal";
+        listItem?: "bullet" | "number";
+        markDefs: Array<{
+          _key: string;
+          _type: "linkAnnotation";
+          linkType: "external" | "internal";
+          href?: string;
+          internalReference?: ArticleReference | ContributorReference;
+          openInNewTab?: boolean;
+          internalSlug: string | null;
+          internalType: "article" | "contributor" | null;
+        }> | null;
+        level?: number;
+        _type: "block";
+        _key: string;
+      }
+    | {
+        _key: string;
+        _type: "callout";
+        variant: "context" | "data" | "definition" | "note";
+        title?: string;
+        body: SimplePortableText;
+        sourceKey?: string;
+        markDefs: null;
+      }
+    | {
+        _key: string;
+        _type: "editorialImage";
+        asset: {
+          _id: string;
+          url: string;
+          metadata: {
+            dimensions: {
+              width: number;
+              height: number;
+              aspectRatio: number;
+            } | null;
+          } | null;
+        } | null;
+        media?: unknown;
+        hotspot: SanityImageHotspot | null;
+        crop: SanityImageCrop | null;
+        altText?: string;
+        caption?: string;
+        credit?: string;
+        rightsNote?: string;
+        markDefs: null;
+      }
+  >;
+}>;
+
+// Source: src/content/sanity/queries.ts
+// Variable: SEARCH_ARTICLES_QUERY
+// Query: *[_type == "article" && defined(slug.current)]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc){  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,  seoTitle,seoDescription,  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},  "featuredImage": featuredImage{  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  featuredImageAltText,featuredImageCaption,featuredImageCredit,  sources[]{"key":_key,citation,url},  body[]{  ...,  _type == "editorialImage" => {  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},  crop,hotspot},  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}}}
+export type SEARCH_ARTICLES_QUERY_RESULT = Array<{
+  _id: string;
+  _type: "article";
+  title: string;
+  slug: string;
+  subtitle: string | null;
+  summary: string;
+  publicationMonth: string;
+  publicationDate: null;
+  pinned: boolean | null;
+  featuredRank: number | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  contributors: Array<{
+    _id: string;
+    name: string;
+    slug: string;
+    graduationYear: number | null;
+    active: boolean | null;
+  }>;
+  featuredImage: {
+    asset: {
+      _id: string;
+      url: string;
+      metadata: {
+        dimensions: {
+          width: number;
+          height: number;
+          aspectRatio: number;
+        } | null;
+      } | null;
+    } | null;
+    crop: SanityImageCrop | null;
+    hotspot: SanityImageHotspot | null;
+  } | null;
+  featuredImageAltText: string | null;
+  featuredImageCaption: string | null;
+  featuredImageCredit: string | null;
+  sources: Array<{
+    key: string;
+    citation: string;
+    url: string | null;
+  }> | null;
+  body: Array<
+    | {
+        children?: Array<
+          | ({
+              _key: string;
+            } & FootnoteReference)
+          | {
+              marks?: Array<string>;
+              text?: string;
+              _type: "span";
+              _key: string;
+            }
+        >;
+        style?: "blockquote" | "h2" | "h3" | "normal";
+        listItem?: "bullet" | "number";
+        markDefs: Array<{
+          _key: string;
+          _type: "linkAnnotation";
+          linkType: "external" | "internal";
+          href?: string;
+          internalReference?: ArticleReference | ContributorReference;
+          openInNewTab?: boolean;
+          internalSlug: string | null;
+          internalType: "article" | "contributor" | null;
+        }> | null;
+        level?: number;
+        _type: "block";
+        _key: string;
+      }
+    | {
+        _key: string;
+        _type: "callout";
+        variant: "context" | "data" | "definition" | "note";
+        title?: string;
+        body: SimplePortableText;
+        sourceKey?: string;
+        markDefs: null;
+      }
+    | {
+        _key: string;
+        _type: "editorialImage";
+        asset: {
+          _id: string;
+          url: string;
+          metadata: {
+            dimensions: {
+              width: number;
+              height: number;
+              aspectRatio: number;
+            } | null;
+          } | null;
+        } | null;
+        media?: unknown;
+        hotspot: SanityImageHotspot | null;
+        crop: SanityImageCrop | null;
+        altText?: string;
+        caption?: string;
+        credit?: string;
+        rightsNote?: string;
+        markDefs: null;
+      }
+  >;
+}>;
+
+// Source: src/content/sanity/queries.ts
+// Variable: CONTRIBUTORS_QUERY
+// Query: *[  _type == "contributor" && defined(slug.current)]|order(name asc){_id,_type,name,"slug":slug.current,graduationYear,active}
+export type CONTRIBUTORS_QUERY_RESULT = Array<{
+  _id: string;
+  _type: "contributor";
+  name: string;
+  slug: string;
+  graduationYear: number | null;
+  active: boolean | null;
+}>;
+
+// Source: src/content/sanity/queries.ts
+// Variable: CONTRIBUTOR_BY_SLUG_QUERY
+// Query: *[  _type == "contributor" && slug.current == $slug][0]{_id,_type,name,"slug":slug.current,graduationYear,active}
+export type CONTRIBUTOR_BY_SLUG_QUERY_RESULT = {
+  _id: string;
+  _type: "contributor";
+  name: string;
+  slug: string;
+  graduationYear: number | null;
+  active: boolean | null;
 } | null;
 
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  _id,_type,publicationName,shortName,description,affiliationText,tagline,location,logoMode,textWordmark,\n  "logoImage": logoImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},logoImageAlt,contactLabel,contactTarget,\n  socialLinks[]{label,url},defaultSeo,homepageTagline\n}': SITE_SETTINGS_QUERY_RESULT;
-    '*[_type == "article" && defined(slug.current)]|order(publicationDate desc, slug.current asc){\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': ALL_PUBLISHED_ARTICLES_QUERY_RESULT;
-    '*[_type == "article" && defined(slug.current) && slug.current == $slug][0]{\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': ARTICLE_BY_SLUG_QUERY_RESULT;
-    '*[_type == "article" && defined(slug.current) && pinned == true]|order(featuredRank asc, publicationDate desc, slug.current asc)[0]{\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': PINNED_ARTICLE_QUERY_RESULT;
-    '*[_type == "article" && defined(slug.current)]|order(publicationDate desc, slug.current asc)[0...$limit]{\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': LATEST_ARTICLES_QUERY_RESULT;
-    '*[_type == "article" && defined(slug.current) && $slug in contributors[]->slug.current]|order(publicationDate desc, slug.current asc){\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': ARTICLES_BY_CONTRIBUTOR_QUERY_RESULT;
-    '*[_type == "article" && defined(slug.current) && [title,subtitle,summary,pt::text(body),contributors[]->name] match $term]|order(publicationDate desc, slug.current asc){\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,role,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': SEARCH_ARTICLES_QUERY_RESULT;
-    '*[\n  _type == "contributor" && defined(slug.current)\n]|order(name asc){_id,_type,name,"slug":slug.current,role,graduationYear,active}': CONTRIBUTORS_QUERY_RESULT;
-    '*[\n  _type == "contributor" && slug.current == $slug\n][0]{_id,_type,name,"slug":slug.current,role,graduationYear,active}': CONTRIBUTOR_BY_SLUG_QUERY_RESULT;
-    '*[\n  _type == "staticPage" && slug.current == $slug\n][0]{_id,_type,title,"slug":slug.current,eyebrow,summary,body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n},\n  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}},\n  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}},\n  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,role,graduationYear}}\n}': STATIC_PAGE_BY_SLUG_QUERY_RESULT;
+    '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  _id,_type,publicationName,shortName,description,affiliationText,tagline,location,logoMode,textWordmark,\n  "logoImage": logoImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},logoImageAlt,contactLabel,contactTarget,\n  socialLinks[]{label,url},defaultSeo,homepageTagline,\n  aboutTitle,aboutEyebrow,aboutSummary,"aboutBody":aboutBody[]{\n    ...,\n    _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n    markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n  },aboutUpdatedDate,aboutSeo,\n  editorsInChief[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},\n  editors[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}},\n  facultyAdviser[]{displayedRole,"contributor":contributor->{name,"slug":slug.current,graduationYear}}\n}': SITE_SETTINGS_QUERY_RESULT;
+    '*[_type == "article" && defined(slug.current)]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc){\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}':
+      ALL_PUBLISHED_ARTICLES_QUERY_RESULT | SEARCH_ARTICLES_QUERY_RESULT;
+    '*[_type == "article" && defined(slug.current) && slug.current == $slug][0]{\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': ARTICLE_BY_SLUG_QUERY_RESULT;
+    '*[_type == "article" && defined(slug.current) && pinned == true]|order(featuredRank asc, coalesce(publicationMonth,publicationDate) desc, slug.current asc)[0]{\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': PINNED_ARTICLE_QUERY_RESULT;
+    '*[_type == "article" && defined(slug.current)]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc)[0...$limit]{\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': LATEST_ARTICLES_QUERY_RESULT;
+    '*[_type == "article" && defined(slug.current) && $slug in contributors[]->slug.current]|order(coalesce(publicationMonth,publicationDate) desc, slug.current asc){\n  _id,_type,title,"slug":slug.current,subtitle,summary,publicationMonth,publicationDate,pinned,featuredRank,\n  seoTitle,seoDescription,\n  "contributors": contributors[]->{_id,name,"slug":slug.current,graduationYear,active},\n  "featuredImage": featuredImage{\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  featuredImageAltText,featuredImageCaption,featuredImageCredit,\n  sources[]{"key":_key,citation,url},\n  body[]{\n  ...,\n  _type == "editorialImage" => {\n  asset->{_id,url,metadata{dimensions{width,height,aspectRatio}}},\n  crop,hotspot\n},\n  markDefs[]{...,"internalSlug": internalReference->slug.current,"internalType": internalReference->_type}\n}\n}': ARTICLES_BY_CONTRIBUTOR_QUERY_RESULT;
+    '*[\n  _type == "contributor" && defined(slug.current)\n]|order(name asc){_id,_type,name,"slug":slug.current,graduationYear,active}': CONTRIBUTORS_QUERY_RESULT;
+    '*[\n  _type == "contributor" && slug.current == $slug\n][0]{_id,_type,name,"slug":slug.current,graduationYear,active}': CONTRIBUTOR_BY_SLUG_QUERY_RESULT;
   }
 }

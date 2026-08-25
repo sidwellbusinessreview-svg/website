@@ -7,7 +7,7 @@ const article = (title: string) => ({
   slug: "draft-story",
   title,
   summary: "A complete draft summary used to verify isolated preview behavior.",
-  publicationDate: "2026-07-23",
+  publicationMonth: "2026-07",
   contributors: [contributor],
   body: [{ _type: "block", style: "normal", children: [{ _type: "span", text: "Draft body", marks: [] }] }],
 });
@@ -28,21 +28,18 @@ describe("draft provider isolation", () => {
   });
 
   it("uses uncached draft results for About and Site Settings", async () => {
-    const fetch = vi.fn()
-      .mockResolvedValueOnce({
-        title: "Draft About",
-        slug: "about",
-        body: [{ _type: "block", style: "normal", children: [{ _type: "span", text: "Draft mission", marks: [] }] }],
+    const settings = {
+        aboutTitle: "Draft About",
+        aboutBody: [{ _type: "block", style: "normal", children: [{ _type: "span", text: "Draft mission", marks: [] }] }],
         editorsInChief: [], editors: [], facultyAdviser: [],
-      })
-      .mockResolvedValueOnce({
         publicationName: "Draft Publication",
         shortName: "DP",
         affiliationText: "Draft affiliation",
         tagline: "Draft tagline",
         contactLabel: "Contact",
         contactTarget: "editors@example.com",
-      });
+      };
+    const fetch = vi.fn().mockResolvedValue(settings);
     const provider = createSanityContentProvider({ fetch } as unknown as SanityClient, "drafts");
     await expect(provider.getStaticPageBySlug("about")).resolves.toMatchObject({ title: "Draft About" });
     await expect(provider.getSiteSettings()).resolves.toMatchObject({ name: "Draft Publication" });
@@ -66,5 +63,10 @@ describe("draft provider isolation", () => {
       { slug: "draft-story" },
       expect.objectContaining({ perspective: "drafts", useCdn: false, cache: "no-store" }),
     );
+  });
+
+  it("preserves month precision in Preview", async () => {
+    const provider = createSanityContentProvider({ fetch: vi.fn().mockResolvedValue({ ...article("Month Article"), publicationMonth: "2025-03" }) } as unknown as SanityClient, "drafts");
+    await expect(provider.getArticleBySlug("draft-story")).resolves.toMatchObject({ publicationMonth: "2025-03" });
   });
 });

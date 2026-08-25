@@ -27,10 +27,10 @@ import { exactCurrentPageVersions } from "../pageExistence";
 import { SingletonPane } from "./SingletonPane";
 
 const options = {
-  documentId: "about",
-  schemaType: "staticPage",
-  title: "About",
-  initialValue: { title: "About", slug: { _type: "slug", current: "about" } },
+  documentId: "siteSettings",
+  schemaType: "siteSettings",
+  title: "Publication Settings",
+  initialValue: {},
 };
 
 function renderPane() {
@@ -47,49 +47,46 @@ describe("singleton recovery pane", () => {
 
   it("accepts only exact current IDs and the expected schema type", () => {
     expect(exactCurrentPageVersions([
-      { _id: "about", _type: "staticPage" },
-      { _id: "drafts.about", _type: "staticPage" },
       { _id: "siteSettings", _type: "siteSettings" },
-      { _id: "about", _type: "siteSettings" },
-      { _id: "versions.about", _type: "staticPage" },
-      {}, null,
-    ], "about", "staticPage")).toEqual([
+      { _id: "drafts.siteSettings", _type: "siteSettings" },
       { _id: "about", _type: "staticPage" },
-      { _id: "drafts.about", _type: "staticPage" },
+      { _id: "versions.siteSettings", _type: "siteSettings" },
+      {}, null,
+    ], "siteSettings", "siteSettings")).toEqual([
+      { _id: "siteSettings", _type: "siteSettings" },
+      { _id: "drafts.siteSettings", _type: "siteSettings" },
     ]);
-    expect(exactCurrentPageVersions({}, "about", "staticPage")).toEqual([]);
+    expect(exactCurrentPageVersions({}, "siteSettings", "siteSettings")).toEqual([]);
   });
 
   it("opens an existing singleton without offering initialization", async () => {
-    fetch.mockResolvedValue([{ _id: "about", _type: "staticPage" }]);
+    fetch.mockResolvedValue([{ _id: "siteSettings", _type: "siteSettings" }]);
     renderPane();
-    expect(await screen.findByRole("link", { name: "Open About" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Create clean About draft" })).not.toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Open Publication Settings" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Create clean Publication Settings draft" })).not.toBeInTheDocument();
   });
 
   it("does not mutate a no-current-version state until clean initialization is confirmed", async () => {
     const user = userEvent.setup();
-    fetch.mockResolvedValueOnce([]).mockResolvedValueOnce([{ _id: "drafts.about", _type: "staticPage" }]);
+    fetch.mockResolvedValueOnce([]).mockResolvedValueOnce([{ _id: "drafts.siteSettings", _type: "siteSettings" }]);
     action.mockResolvedValue({ transactionId: "test-transaction" });
     renderPane();
     expect(await screen.findByText("No current draft or published version exists.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Open revision history" })).toBeInTheDocument();
     expect(action).not.toHaveBeenCalled();
-    await user.click(screen.getByRole("button", { name: "Create clean About draft" }));
+    await user.click(screen.getByRole("button", { name: "Create clean Publication Settings draft" }));
     expect(action).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Create clean draft" }));
     await waitFor(() => expect(action).toHaveBeenCalledWith({
       actionType: "sanity.action.document.create",
-      publishedId: "about",
+      publishedId: "siteSettings",
       attributes: {
-        _id: "drafts.about",
-        _type: "staticPage",
-        title: "About",
-        slug: { _type: "slug", current: "about" },
+        _id: "drafts.siteSettings",
+        _type: "siteSettings",
       },
       ifExists: "fail",
     }, { tag: "singleton-initialize" }));
-    expect(navigateIntent).toHaveBeenCalledWith("edit", { id: "about", type: "staticPage" });
+    expect(navigateIntent).toHaveBeenCalledWith("edit", { id: "siteSettings", type: "siteSettings" });
   });
 
   it("does not claim success when the action result is absent from the authoritative raw query", async () => {
@@ -98,23 +95,10 @@ describe("singleton recovery pane", () => {
     action.mockResolvedValue({ transactionId: "test-transaction" });
     renderPane();
     await screen.findByText("No current draft or published version exists.");
-    await user.click(screen.getByRole("button", { name: "Create clean About draft" }));
+    await user.click(screen.getByRole("button", { name: "Create clean Publication Settings draft" }));
     await user.click(screen.getByRole("button", { name: "Create clean draft" }));
     expect(await screen.findByText(/document-create action failed/i)).toBeInTheDocument();
     expect(navigateIntent).not.toHaveBeenCalled();
   });
 
-  it("does not reuse another singleton's loaded state while the About query is pending", async () => {
-    let resolveAbout: (value: Array<{ _id: string; _type: string }>) => void = () => undefined;
-    fetch
-      .mockResolvedValueOnce([{ _id: "siteSettings", _type: "siteSettings" }])
-      .mockImplementationOnce(() => new Promise((resolve) => { resolveAbout = resolve; }));
-    const view = render(<ThemeProvider theme={studioTheme}><SingletonPane options={{ ...options, documentId: "siteSettings", schemaType: "siteSettings", title: "Site Settings" }} /></ThemeProvider>);
-    expect(await screen.findByRole("link", { name: "Open Site Settings" })).toBeInTheDocument();
-    view.rerender(<ThemeProvider theme={studioTheme}><SingletonPane options={options} /></ThemeProvider>);
-    expect(screen.queryByRole("link", { name: "Open About" })).not.toBeInTheDocument();
-    expect(screen.getByText("Checking About…")).toBeInTheDocument();
-    resolveAbout([]);
-    expect(await screen.findByText("No current draft or published version exists.")).toBeInTheDocument();
-  });
 });

@@ -1,5 +1,9 @@
 # Content provider
 
+## Phase 14N Publication Settings projection
+
+Sanity stores global settings, About content, and leadership in fixed document `siteSettings`. `SITE_SETTINGS_QUERY` projects both site-wide and About fields; there is no standalone About GROQ query. `getStaticPageBySlug("about")` adapts that projection into the existing public About domain contract, preserving the provider boundary and `/about` route while removing the obsolete CMS document. Preview selects the draft overlay of the same record; public reads remain published, token-free, and cached.
+
 ## Architecture
 
 Public pages call asynchronous functions in `src/content/index.ts`. That module selects one implementation of the stable `ContentProvider` interface in `src/content/provider.ts`:
@@ -30,7 +34,7 @@ The same domain adapter and queries serve both modes. Visibility comes from the 
 - Public: `published`, token-free, CDN enabled, tagged 300-second cache.
 - Draft Mode: `drafts`, server-only Viewer token, CDN disabled, `no-store`.
 
-The draft client enables Content Source Maps/stega with the embedded `/studio` URL. During Draft Mode, the root layout delegates preview chrome to a pathname-aware client boundary that mounts the banner and `VisualEditing` only on public frontend pages. It renders nothing on `/studio`, nested Studio tools, API routes, feed, sitemap, or robots, and the root no longer performs a draft Site Settings query merely to label the banner. This provides Presentation’s communication and document-location bridge without adding Sanity Live subscriptions. Feed and sitemap explicitly request the published provider even when the requesting browser has a Draft Mode cookie. Preview never writes content and never falls back to drafts when credentials are missing.
+The draft client enables Content Source Maps/stega with the standalone Studio origin from `NEXT_PUBLIC_SANITY_STUDIO_URL`. Local development defaults to `http://localhost:3333`; public hosting must use the chosen `*.sanity.studio` URL after deployment. During Draft Mode, the root layout mounts the preview banner and `VisualEditing` only on public frontend pages and never on API routes, feed, sitemap, or robots. This provides Presentation’s communication and document-location bridge without adding Sanity Live subscriptions. Feed and sitemap explicitly request the published provider even when the requesting browser has a Draft Mode cookie. Preview never writes content and never falls back to drafts when credentials are missing.
 
 Sanity stega metadata is retained on visible editorial strings so Presentation can locate content. Before runtime validation and routing comparisons, adapters clean that metadata from semantic values. Slugs, publication dates, URLs, references, search inputs, and other control values remain clean. This prevents valid published documents from being rejected solely because invisible source-map metadata changes JavaScript string length.
 
@@ -63,7 +67,7 @@ The endpoint code is complete, but hosted webhook configuration and end-to-end h
 
 A query failure becomes a generic `ContentProviderError`; upstream details are logged only outside production. App Router error boundaries prevent raw stacks reaching visitors. Rollback is an intentional deployment change to `CONTENT_SOURCE=local`, not an automatic response to an outage.
 
-About and Site Settings are optional from the public provider's perspective during recovery. A missing published About document uses the controlled local About copy and roster empty states; missing optional Site Settings use validated application configuration. Draft singleton content is never read publicly.
+Publication Settings is optional from the public provider's perspective during recovery. Missing published settings use validated application identity defaults and the controlled local About copy/roster empty states. Draft Publication Settings content is never read publicly.
 
 ## Images and search
 

@@ -8,6 +8,9 @@ const contributorSlug = fixtureValue("CMS_TEST_CONTRIBUTOR_SLUG", "cms-integrati
 const localOnlyTitle = "The New Economics of School Lunch";
 const localOnlySlug = "the-new-economics-of-school-lunch";
 const draftOnlySlug = fixtureValue("CMS_TEST_DRAFT_ONLY_ARTICLE_SLUG", "preview-draft-article");
+const multiAuthorTitle = fixtureValue("CMS_MULTI_AUTHOR_ARTICLE_TITLE", "The Economic Implications of Trump’s Mass Deportations");
+const multiAuthorSlugs = fixtureValue("CMS_MULTI_AUTHOR_SLUGS", "evan-tan,felix-pacheco-lynch,steven-huang").split(",");
+const multiAuthorNames = fixtureValue("CMS_MULTI_AUTHOR_NAMES", "Evan Tan,Felix Pacheco Lynch,Steven Huang").split(",");
 
 test.describe("Sanity-backed public routes", () => {
   test.skip(process.env.CONTENT_SOURCE !== "sanity", "Run with npm run test:e2e:sanity.");
@@ -16,6 +19,7 @@ test.describe("Sanity-backed public routes", () => {
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
 
     await page.goto("/");
+    test.skip(await page.getByRole("heading", { name: articleTitle }).count() === 0, "The configurable published CMS Article fixture is not currently published; Article content must not be created or changed by this suite.");
     await expect(page.getByRole("heading", { name: articleTitle })).toBeVisible();
     await expect(page.getByText(localOnlyTitle)).toHaveCount(0);
     await expect(page.locator(`a[href="/articles/${draftOnlySlug}"]`)).toHaveCount(0);
@@ -24,6 +28,7 @@ test.describe("Sanity-backed public routes", () => {
     await expect(page).toHaveURL(`/articles/${articleSlug}`);
     await expect(page.getByRole("heading", { level: 1, name: articleTitle })).toBeVisible();
     await expect(page.getByRole("link", { name: contributorName })).toBeVisible();
+    await expect(page.locator(".feature-figure")).toHaveCount(0);
     const bulletList = page.locator(".article-body ul").first();
     await expect(bulletList).toBeVisible();
     expect(await bulletList.locator(":scope > li").count()).toBeGreaterThan(0);
@@ -63,10 +68,31 @@ test.describe("Sanity-backed public routes", () => {
     expect(errors).toEqual([]);
   });
 
+  test("Publication Settings supplies the public About page", async ({ page }) => {
+    await page.goto("/about");
+    await expect(page.getByRole("heading", { level: 1, name: "About" })).toBeVisible();
+    await expect(page.getByRole("main").getByText(/student-run publication examining business/i)).toBeVisible();
+  });
+
   test("local-only stories and drafts are not exposed by the CMS provider", async ({ page }) => {
     await page.goto(`/articles/${localOnlySlug}`);
     await expect(page.getByRole("heading", { name: "This story is not in our archive." })).toBeVisible({ timeout: 20_000 });
     await page.goto(`/articles/${draftOnlySlug}`);
     await expect(page.getByRole("heading", { name: "This story is not in our archive." })).toBeVisible({ timeout: 20_000 });
+  });
+
+  test("real Contributor search and profile cards retain canonical multi-author bylines", async ({ page }) => {
+    for (let index = 0; index < multiAuthorSlugs.length; index += 1) {
+      const slug = multiAuthorSlugs[index];
+      const name = multiAuthorNames[index];
+      await page.goto(`/search?q=${encodeURIComponent(name.split(" ")[0])}`);
+      await expect(page.getByRole("link", { name: multiAuthorTitle, exact: true })).toBeVisible();
+      await page.goto(`/authors/${slug}`);
+      const card = page.locator(".article-card").filter({ has: page.getByRole("link", { name: multiAuthorTitle, exact: true }) });
+      for (const contributorName of multiAuthorNames) await expect(card.getByRole("link", { name: contributorName })).toBeVisible();
+    }
+    await page.goto("/search?q=areg");
+    await expect(page.getByRole("link", { name: "$Trump: The Memecoin From the Guy Who Lives Down the Street", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: multiAuthorTitle, exact: true })).toHaveCount(0);
   });
 });

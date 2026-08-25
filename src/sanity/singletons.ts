@@ -1,9 +1,7 @@
 import type { DocumentActionComponent, DocumentActionProps, InitialValueTemplateItem, TemplateItem } from "sanity";
 export const SITE_SETTINGS_ID = "siteSettings";
-export const ABOUT_ID = "about";
 export const singletonDefinitions = [
-  { schemaType: "staticPage", documentId: ABOUT_ID, title: "About" },
-  { schemaType: "siteSettings", documentId: SITE_SETTINGS_ID, title: "Site Settings" },
+  { schemaType: "siteSettings", documentId: SITE_SETTINGS_ID, title: "Publication Settings" },
 ] as const;
 export type SingletonSchemaType = typeof singletonDefinitions[number]["schemaType"];
 export const singletonTypes: ReadonlySet<string> = new Set(singletonDefinitions.map(({ schemaType }) => schemaType));
@@ -27,4 +25,4 @@ export function filterSingletonActions(actions: DocumentActionComponent[], schem
     return [];
   });
 }
-export function filterSingletonNewDocumentOptions(options: Array<InitialValueTemplateItem | TemplateItem>) { return options.filter((option) => !["siteSettings", "staticPage"].includes(option.templateId)); }
+export function filterSingletonNewDocumentOptions(options: Array<InitialValueTemplateItem | TemplateItem>) { return options.filter((option) => option.templateId !== "siteSettings"); }

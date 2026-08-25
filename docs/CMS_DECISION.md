@@ -56,7 +56,7 @@ No blocker was identified, so ADR-006's default becomes the final selection.
 
 ### Studio, content, and public reads
 
-- Keep Studio configuration and schemas in this repository and embed Studio at `/studio` in the existing Next.js application. The route is omitted from public navigation, marked `noindex`, and editing remains protected by Sanity authentication. ADR-012 supersedes the earlier separate-deployment detail so the project has one build and deployment in this phase.
+- Keep Studio configuration and schemas in this repository, but build and deploy Studio separately through Sanity-managed hosting. The public Next.js application has no `/studio` route. Editing remains protected by Sanity authentication, and ADR-012 records the separate-hosting decision.
 - Store editorial records and assets in Sanity Content Lake. The repository retains schemas, validation, adapters, and migration scripts—not CMS content exports or secrets.
 - Add a Sanity provider behind `src/content/index.ts`. It queries published content and maps provider-native records to the provider-independent domain contract before pages receive them. Routes and general components never import Sanity records or clients.
 - During migration, select the provider explicitly with a server-side `CONTENT_SOURCE=local|sanity` setting. Local remains the default until acceptance. After production acceptance, CMS failure must surface through the existing safe error boundary; it must not silently serve stale sample content.
@@ -260,7 +260,7 @@ Do not copy student personal details or images until approval and permissions ar
 
 ### Phase 10 — Sanity foundation
 
-Confirm policy/account/plan gates; add pinned compatible dependencies; embed the authenticated Studio foundation at `/studio`; add environment validation, a token-free public client, connectivity tooling, CORS/origin guidance, and setup docs. Schema documents and the public provider remain for Phase 11.
+Confirm policy/account/plan gates; add pinned compatible dependencies; establish the authenticated standalone Studio foundation; add environment validation, a token-free public client, connectivity tooling, CORS/origin guidance, and setup docs. Schema documents and the public provider remain for Phase 11.
 
 ### Phase 11 — Provider and published-content integration
 

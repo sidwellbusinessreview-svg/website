@@ -11,7 +11,7 @@ import {
   ALL_PUBLISHED_ARTICLES_QUERY, ARTICLE_BY_SLUG_QUERY, ARTICLES_BY_CONTRIBUTOR_QUERY,
   CONTRIBUTOR_BY_SLUG_QUERY, CONTRIBUTORS_QUERY,
   LATEST_ARTICLES_QUERY, PINNED_ARTICLE_QUERY, SEARCH_ARTICLES_QUERY,
-  SITE_SETTINGS_QUERY, STATIC_PAGE_BY_SLUG_QUERY,
+  SITE_SETTINGS_QUERY,
 } from "./queries";
 
 type QueryOptions = { tag: string; relatedTags?: string[]; params?: Record<string, unknown> };
@@ -32,9 +32,9 @@ async function fetchContent<T>(client: SanityClient, mode: ProviderMode, query: 
   }
 }
 
-function articles(values: unknown): Article[] {
+function articles(values: unknown, allowBrokenFootnotes = false): Article[] {
   if (!Array.isArray(values)) return [];
-  const mapped = values.map(mapArticle);
+  const mapped = values.map((value) => mapArticle(value, { allowBrokenFootnotes }));
   if (process.env.NODE_ENV !== "production" && mapped.some((article) => !article)) console.warn("One or more Sanity articles were excluded because required fields or references were invalid.");
   return mapped.filter((article): article is Article => Boolean(article));
 }
@@ -51,23 +51,23 @@ export function createSanityContentProvider(client: SanityClient, mode: Provider
       const mapped = mapSiteSettings(await fetch(SITE_SETTINGS_QUERY, { tag: "settings" }));
       return mapped ?? siteSettingsSchema.parse(siteConfig);
     },
-    async getArticles() { return articles(await fetch(ALL_PUBLISHED_ARTICLES_QUERY, { tag: "articles" })); },
-    async getArticleBySlug(slug) { return mapArticle(await fetch(ARTICLE_BY_SLUG_QUERY, { tag: `article:${slug}`, relatedTags: [PUBLIC_CACHE_TAGS.articles], params: { slug } })); },
+    async getArticles() { return articles(await fetch(ALL_PUBLISHED_ARTICLES_QUERY, { tag: "articles" }), mode === "drafts"); },
+    async getArticleBySlug(slug) { return mapArticle(await fetch(ARTICLE_BY_SLUG_QUERY, { tag: `article:${slug}`, relatedTags: [PUBLIC_CACHE_TAGS.articles], params: { slug } }), { allowBrokenFootnotes: mode === "drafts" }); },
     async getPinnedArticle() {
-      const pinned = mapArticle(await fetch(PINNED_ARTICLE_QUERY, { tag: "lead", relatedTags: [PUBLIC_CACHE_TAGS.articles] }));
+      const pinned = mapArticle(await fetch(PINNED_ARTICLE_QUERY, { tag: "lead", relatedTags: [PUBLIC_CACHE_TAGS.articles] }), { allowBrokenFootnotes: mode === "drafts" });
       return pinned ?? (await this.getLatestArticles(1))[0];
     },
-    async getLatestArticles(limit = 10) { return articles(await fetch(LATEST_ARTICLES_QUERY, { tag: "latest", relatedTags: [PUBLIC_CACHE_TAGS.articles], params: { limit: Math.max(1, Math.floor(limit)) } })); },
-    async getArchiveArticles(filters = {}) { return (await this.getArticles()).filter((article) => (!filters.schoolYear || getSchoolYear(article.publishedAt) === filters.schoolYear) && (!filters.contributor || article.contributorSlugs.includes(filters.contributor))); },
-    async getArticlesByContributor(slug) { return articles(await fetch(ARTICLES_BY_CONTRIBUTOR_QUERY, { tag: `contributor-articles:${slug}`, relatedTags: [PUBLIC_CACHE_TAGS.articles, PUBLIC_CACHE_TAGS.contributors], params: { slug } })); },
+    async getLatestArticles(limit = 10) { return articles(await fetch(LATEST_ARTICLES_QUERY, { tag: "latest", relatedTags: [PUBLIC_CACHE_TAGS.articles], params: { limit: Math.max(1, Math.floor(limit)) } }), mode === "drafts"); },
+    async getArchiveArticles(filters = {}) { return (await this.getArticles()).filter((article) => (!filters.schoolYear || getSchoolYear(article.publicationMonth) === filters.schoolYear) && (!filters.contributor || article.contributorSlugs.includes(filters.contributor))); },
+    async getArticlesByContributor(slug) { return articles(await fetch(ARTICLES_BY_CONTRIBUTOR_QUERY, { tag: `contributor-articles:${slug}`, relatedTags: [PUBLIC_CACHE_TAGS.articles, PUBLIC_CACHE_TAGS.contributors], params: { slug } }), mode === "drafts"); },
     async getContributors() { return contributors(await fetch(CONTRIBUTORS_QUERY, { tag: "contributors" })); },
     async getContributorBySlug(slug) { return mapContributor(await fetch(CONTRIBUTOR_BY_SLUG_QUERY, { tag: `contributor:${slug}`, relatedTags: [PUBLIC_CACHE_TAGS.contributors], params: { slug } })); },
     async searchArticles(query) {
       const normalized = query.trim(); if (!normalized) return [];
-      const matches = articles(await fetch(SEARCH_ARTICLES_QUERY, { tag: "search", relatedTags: [PUBLIC_CACHE_TAGS.articles, PUBLIC_CACHE_TAGS.contributors], params: { term: `*${normalized}*` } }));
+      const matches = articles(await fetch(SEARCH_ARTICLES_QUERY, { tag: "search", relatedTags: [PUBLIC_CACHE_TAGS.articles, PUBLIC_CACHE_TAGS.contributors] }), mode === "drafts");
       return searchPublicArticles(matches, await this.getContributors(), normalized);
     },
-    async getStaticPageBySlug(slug) { return mapStaticPage(await fetch(STATIC_PAGE_BY_SLUG_QUERY, { tag: `page:${slug}`, relatedTags: [PUBLIC_CACHE_TAGS.pages], params: { slug } })); },
+    async getStaticPageBySlug(slug) { return slug === "about" ? mapStaticPage(await fetch(SITE_SETTINGS_QUERY, { tag: "settings", relatedTags: [PUBLIC_CACHE_TAGS.pages] })) : undefined; },
   };
 }
 

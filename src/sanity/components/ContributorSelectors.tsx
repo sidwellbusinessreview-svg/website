@@ -9,7 +9,6 @@ export type ContributorReference = { _key: string; _type: "reference"; _ref: str
 export type ContributorCandidate = {
   _id: string;
   name: string;
-  role?: string;
   graduationYear?: number;
   active?: boolean;
 };
@@ -78,8 +77,8 @@ export function reorderContributorReferences<T>(values: T[], fromIndex: number, 
   return reordered;
 }
 
-export function contributorSecondaryLine(candidate: Pick<ContributorCandidate, "role" | "graduationYear">) {
-  return [candidate.role, candidate.graduationYear ? `Class of ${candidate.graduationYear}` : ""].filter(Boolean).join(" · ");
+export function contributorSecondaryLine(candidate: Pick<ContributorCandidate, "graduationYear">) {
+  return candidate.graduationYear ? `Class of ${candidate.graduationYear}` : "";
 }
 
 function useContributorCandidates(open: boolean, excludedId?: string) {
@@ -88,7 +87,7 @@ function useContributorCandidates(open: boolean, excludedId?: string) {
   useEffect(() => {
     if (!open) return;
     let current = true;
-    client.fetch<ContributorCandidate[]>('*[_type == "contributor" && !(_id in path("drafts.**")) && !(_id in path("versions.**")) && active != false && _id != $excluded]|order(name asc){_id,name,role,graduationYear,active}', { excluded: excludedId ?? "" })
+    client.fetch<ContributorCandidate[]>('*[_type == "contributor" && !(_id in path("drafts.**")) && !(_id in path("versions.**")) && active != false && _id != $excluded]|order(name asc){_id,name,graduationYear,active}', { excluded: excludedId ?? "" })
       .then((records) => { if (current) setCandidates(records); })
       .catch(() => { if (current) setCandidates([]); });
     return () => { current = false; };
@@ -103,7 +102,7 @@ function useContributorMetadata(ids: string[]) {
   useEffect(() => {
     if (!ids.length) return;
     let current = true;
-    client.fetch<ContributorCandidate[]>('*[_type == "contributor" && !(_id in path("drafts.**")) && _id in $ids]{_id,name,role,graduationYear,active}', { ids })
+    client.fetch<ContributorCandidate[]>('*[_type == "contributor" && !(_id in path("drafts.**")) && _id in $ids]{_id,name,graduationYear,active}', { ids })
       .then((items) => { if (current) setRecords(items); })
       .catch(() => { if (current) setRecords([]); });
     return () => { current = false; };
@@ -132,7 +131,7 @@ export function ContributorPickerDialog({
   const candidates = useContributorCandidates(open, excludedId);
   const [query, setQuery] = useState("");
   const [pending, setPending] = useState<Set<string>>(new Set());
-  const matches = candidates.filter((candidate) => `${candidate.name} ${candidate.role ?? ""}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const matches = candidates.filter((candidate) => candidate.name.toLowerCase().includes(query.trim().toLowerCase()));
   if (!open) return null;
   const toggle = (id: string) => setPending((current) => {
     const next = multiple ? new Set(current) : new Set<string>();
@@ -144,7 +143,7 @@ export function ContributorPickerDialog({
   const confirm = () => { onConfirm(chosen); setQuery(""); setPending(new Set()); };
   return <Dialog header="Add contributors" id="contributor-selector" onClose={cancel} width={1}>
     <Box padding={4}><Stack space={4}>
-      <Stack space={2}><Label>Search by name or role</Label><TextInput aria-label="Search by name or role" autoFocus id="contributor-search" onChange={(event) => setQuery(event.currentTarget.value)} placeholder="Search contributors" value={query} /></Stack>
+      <Stack space={2}><Label>Search by name</Label><TextInput aria-label="Search by name" autoFocus id="contributor-search" onChange={(event) => setQuery(event.currentTarget.value)} placeholder="Search contributors" value={query} /></Stack>
       <Text muted size={1} aria-live="polite">{pending.size} selected</Text>
       <Stack space={2}>
         {matches.map((candidate) => {
@@ -213,7 +212,7 @@ export function AboutStaffArrayInput(props: InputProps) {
     </Stack></Card>)}
     {!normalized.entries.length && !normalized.invalid.length && <Card border padding={3}><Text muted>No staff selected.</Text></Card>}
     {!!normalized.invalid.length && <Card padding={3} tone="caution"><Stack space={3}><Text>Malformed or duplicate legacy staff entries were ignored.</Text><Button mode="ghost" text="Repair invalid entries" onClick={() => change(normalized.entries)} /></Stack></Card>}
-    <Flex><Button disabled={single && normalized.entries.length >= 1} text={single ? "Add faculty adviser" : "Add contributors"} onClick={() => setOpen(true)} /></Flex>
+    <Flex><Button disabled={single && normalized.entries.length >= 1} text={field === "facultyAdviser" ? "Add faculty adviser" : field === "editorsInChief" ? "Add Editor-in-Chief" : "Add contributors"} onClick={() => setOpen(true)} /></Flex>
     <ContributorPickerDialog alreadySelected={selected} multiple={!single} open={open} onCancel={() => setOpen(false)} onConfirm={(chosen) => { const additions = chosen.flatMap((candidate) => selected.has(candidate._id) ? [] : [{ _key: crypto.randomUUID().replaceAll("-", ""), _type: entryType, contributor: { _key: crypto.randomUUID().replaceAll("-", ""), _type: "reference" as const, _ref: candidate._id } }]); if (additions.length) change(single ? additions.slice(0, 1) : [...normalized.entries, ...additions]); setOpen(false); }} />
   </Stack>;
 }

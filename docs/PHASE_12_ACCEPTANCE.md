@@ -49,7 +49,7 @@ Earlier audits identified **feawfweaf** (`fwaefw`) as invalid. Phase 12H no long
 
 After confirming it is disposable:
 
-1. Open `/studio`, then **Articles → Published → feawfweaf**.
+1. Open standalone Studio (`npm run studio:dev`, normally `http://localhost:3333`), then **Articles → Published → feawfweaf**.
 2. Choose **Unpublish article**, review the title, and confirm.
 3. Open the resulting draft-only Article, choose the guarded permanent-delete action, and confirm the exact record.
 4. Run `npm run sanity:audit-content` and `npm run sanity:check-provider` again. Both must report zero invalid published Articles.

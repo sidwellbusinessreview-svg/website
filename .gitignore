@@ -18,6 +18,8 @@
 /.playwright/
 /junit.xml
 /.sanity-reports/
+/.sanity/
+/dist/
 
 # next.js
 /.next/
@@ -53,3 +55,6 @@ Desktop.ini
 ._*
 .idea/
 .vscode/
+migration-input/
+migration-staging/
+/migration-backups/

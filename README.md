@@ -30,9 +30,20 @@ The environment file may remain blank to use the temporary local-content rollbac
 
 Draft preview also requires server-only `SANITY_API_READ_TOKEN` and `SANITY_PREVIEW_SECRET` values. Editors enter through Studio’s **Preview** tool; see `docs/PREVIEW_WORKFLOW.md`. Neither secret may use a `NEXT_PUBLIC_` prefix.
 
-## Sanity Studio foundation
+## Sanity Studio
 
-The optional editorial Studio is mounted at [http://localhost:3000/studio](http://localhost:3000/studio) and is intentionally absent from public navigation. Without Sanity environment values it shows safe setup guidance; public pages continue using local content. With an approved project configured, Sanity authentication restricts editing to invited project members.
+The editorial Studio is a standalone Sanity application whose source remains in this repository. It is not bundled into the public Next.js application and `/studio` is not a public route. Sanity authentication restricts editing to invited project members.
+
+Run the public site and Studio in separate terminals:
+
+```bash
+npm run dev
+npm run studio:dev
+```
+
+The public site normally uses port 3000 and standalone Studio normally uses port 3333. Build Studio with `npm run studio:build`; after the publication chooses a `*.sanity.studio` hostname, deploy it with `npm run studio:deploy`.
+
+Standalone Studio always targets the approved `bumxf5q6` project and `production` dataset. `SANITY_STUDIO_PREVIEW_ORIGIN` may point Presentation at a different public frontend origin; it is public configuration and must never contain credentials.
 
 Run the token-free connectivity check after configuring `.env.local`:
 
@@ -40,7 +51,7 @@ Run the token-free connectivity check after configuring `.env.local`:
 npm run sanity:check
 ```
 
-Studio configuration lives in `sanity.config.ts`, CLI configuration in `sanity.cli.ts`, and integration code in `src/sanity/`. Check the public provider without a token with `npm run sanity:check-provider`. Exact local/Sanity acceptance and rollback commands are in `docs/PHASE_12_ACCEPTANCE.md`.
+Studio configuration lives in `sanity.config.ts`, CLI configuration in `sanity.cli.ts`, and integration code in `src/sanity/`. Check the public provider without a token with `npm run sanity:check-provider`. Setup and separate-hosting guidance is in `docs/SANITY_SETUP.md`.
 
 ## Validation
 
@@ -63,7 +74,7 @@ Never assume that saving a file updates GitHub or production. Those are separate
 
 ## Important folders
 
-- `src/app/` contains public pages, the root layout, global styles, and the custom not-found page.
+- `src/app/` contains public pages, the root layout, global styles, and the custom not-found page. It does not contain Sanity Studio.
 - `src/components/` contains reusable publication components such as the header, footer, logo, article cards, metadata, contributor information, captions, and article-body renderer.
 - `src/content/` contains the domain contract, local and Sanity providers, adapters, queries, and provider-independent access layer.
 - `src/sanity/` contains environment validation, the token-free public client, health check, Studio setup state, and the future schema registration point.

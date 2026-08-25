@@ -25,19 +25,9 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
               {item.label}
             </Link>
           ))}
+          <Link className="main-nav__mobile-search" href="/search">Search</Link>
         </div>
       </nav>
-      <details className="mobile-nav">
-        <summary>Menu</summary>
-        <nav aria-label="Mobile navigation">
-          {settings.navigation.map((item) => (
-            <Link key={item.href} href={item.href}>
-              {item.label}
-            </Link>
-          ))}
-          <Link href="/search">Search</Link>
-        </nav>
-      </details>
     </header>
   );
 }

@@ -6,15 +6,12 @@ const validEnvironment = {
   NEXT_PUBLIC_SANITY_PROJECT_ID: "abc123xy",
   NEXT_PUBLIC_SANITY_DATASET: "development",
   NEXT_PUBLIC_SANITY_API_VERSION: "2026-07-17",
-  NEXT_PUBLIC_SANITY_STUDIO_BASE_PATH: "/studio",
+  NEXT_PUBLIC_SANITY_STUDIO_URL: "https://example.sanity.studio",
 };
 
 describe("Sanity environment", () => {
   it("keeps local-content mode safe when public values are absent", () => {
-    expect(getSanityEnvironment({})).toEqual({
-      configured: false,
-      studioBasePath: "/studio",
-    });
+    expect(getSanityEnvironment({})).toEqual({ configured: false });
   });
 
   it("accepts a complete public Studio configuration", () => {
@@ -23,7 +20,7 @@ describe("Sanity environment", () => {
       projectId: "abc123xy",
       dataset: "development",
       apiVersion: "2026-07-17",
-      studioBasePath: "/studio",
+      studioUrl: "https://example.sanity.studio",
     });
   });
 
@@ -32,7 +29,7 @@ describe("Sanity environment", () => {
       projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
       dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
       apiVersion: process.env.NEXT_PUBLIC_SANITY_API_VERSION,
-      basePath: process.env.NEXT_PUBLIC_SANITY_STUDIO_BASE_PATH,
+      studioUrl: process.env.NEXT_PUBLIC_SANITY_STUDIO_URL,
     };
 
     try {
@@ -42,14 +39,14 @@ describe("Sanity environment", () => {
         projectId: "abc123xy",
         dataset: "development",
         apiVersion: "2026-07-17",
-        studioBasePath: "/studio",
+        studioUrl: "https://example.sanity.studio",
       });
     } finally {
       for (const [key, value] of Object.entries({
         NEXT_PUBLIC_SANITY_PROJECT_ID: previous.projectId,
         NEXT_PUBLIC_SANITY_DATASET: previous.dataset,
         NEXT_PUBLIC_SANITY_API_VERSION: previous.apiVersion,
-        NEXT_PUBLIC_SANITY_STUDIO_BASE_PATH: previous.basePath,
+        NEXT_PUBLIC_SANITY_STUDIO_URL: previous.studioUrl,
       })) {
         if (value === undefined) delete process.env[key];
         else process.env[key] = value;
@@ -57,7 +54,7 @@ describe("Sanity environment", () => {
     }
   });
 
-  it("rejects partial, malformed, or mismatched route configuration", () => {
+  it("rejects partial, malformed, or invalid Studio URL configuration", () => {
     expect(() =>
       getSanityEnvironment({ NEXT_PUBLIC_SANITY_PROJECT_ID: "abc123xy" }),
     ).toThrow(/incomplete/i);
@@ -72,9 +69,9 @@ describe("Sanity environment", () => {
     expect(() =>
       getSanityEnvironment({
         ...validEnvironment,
-        NEXT_PUBLIC_SANITY_STUDIO_BASE_PATH: "/admin",
+        NEXT_PUBLIC_SANITY_STUDIO_URL: "/studio",
       }),
-    ).toThrow(/studioBasePath/i);
+    ).toThrow(/studioUrl/i);
   });
 
   it("creates a published, CDN-backed client without a token", () => {
@@ -96,6 +93,6 @@ describe("Sanity environment", () => {
     expect(config.perspective).toBe("drafts");
     expect(config.useCdn).toBe(false);
     expect(config.token).toBe("server-only-test-token");
-    expect(config.stega).toMatchObject({ enabled: true, studioUrl: "/studio" });
+    expect(config.stega).toMatchObject({ enabled: true, studioUrl: "https://example.sanity.studio" });
   });
 });

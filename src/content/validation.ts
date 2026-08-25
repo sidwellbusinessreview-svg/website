@@ -63,7 +63,7 @@ export function validateContentSource(source: ContentSource, now = new Date()): 
   const contributorSlugs = new Set(sourceSlugs(source.contributors));
   for (const article of parsedArticles) {
     for (const slug of article.contributorSlugs) if (!contributorSlugs.has(slug)) problems.push(`article "${article.slug}" references missing contributor "${slug}"`);
-    if (article.status === "published" && new Date(`${article.publishedAt}T23:59:59Z`).getTime() > now.getTime()) problems.push(`published article "${article.slug}" has a future publication date`);
+    if (article.status === "published" && new Date(`${article.publicationMonth}-01T23:59:59Z`).getTime() > now.getTime()) problems.push(`published article "${article.slug}" has a future publication month`);
   }
   const pinned = parsedArticles.filter((article) => article.status === "published" && article.pinned);
   if (pinned.length > 1) problems.push(`multiple published lead articles are pinned: ${pinned.map(({ slug }) => slug).join(", ")}`);

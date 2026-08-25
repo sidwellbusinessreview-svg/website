@@ -1,15 +1,13 @@
 import { defineCliConfig } from "sanity/cli";
-import { getSanityEnvironment } from "./src/sanity/env";
-
-const environment = getSanityEnvironment();
-
+import { SANITY_STUDIO_DATASET, SANITY_STUDIO_PROJECT_ID } from "./src/sanity/studio-target";
 export default defineCliConfig({
-  api: environment.configured
-    ? {
-        projectId: environment.projectId,
-        dataset: environment.dataset,
-      }
-    : undefined,
+  api: {
+    projectId: SANITY_STUDIO_PROJECT_ID,
+    dataset: SANITY_STUDIO_DATASET,
+  },
+  deployment: {
+    appId: "fmycvx6k6sss6ltq7ut0remd",
+  },
   schemaExtraction: {
     enabled: true,
     enforceRequiredFields: true,
