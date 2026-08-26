@@ -1,5 +1,13 @@
 # Project status
 
+## Production Sanity content-source correction
+
+- **Conflict-resolved implementation; redeployment pending:** August 25, 2026.
+- Cloudflare supplied `CONTENT_SOURCE=sanity` while building, so static Article parameters discovered the seven migrated routes, but the OpenNext Worker did not retain that build variable as a runtime binding. An ISR Homepage request therefore saw no source and selected the intentional local-development default.
+- `next.config.ts` now compiles the non-secret provider choice into the server bundle so build-time generation and Worker runtime rendering use the same explicit source. `CONTENT_SOURCE=local` remains supported for intentional local builds and tests; explicit Sanity mode does not fall back to fixtures.
+- Current `main` already owns the canonical `publicationMonth` domain model, Month Year presentation, deterministic month ordering, transitional legacy-date read fallback, structured Sources/Footnotes, and current search behavior. Conflict resolution preserved those newer implementations instead of restoring the stash's obsolete `publishedAt`, `readTime`, Contributor-role, retired static-page, or old search code.
+- Sanity-mode acceptance must confirm all seven published migrated Articles, absence of local fixture Article data, real content on Homepage/discovery surfaces, and no public `/studio` route. No Sanity content, schema, Studio behavior, Preview security, or editor workflow was changed.
+
 ## Separate Sanity Studio hosting
 
 - On August 24, 2026, the embedded `src/app/studio/[[...tool]]` route was removed so the public Next.js/OpenNext bundle no longer imports `NextStudio`, `next-sanity/studio`, or the full Studio configuration and custom editor graph. `/studio` and nested paths now use the normal public 404 behavior.
