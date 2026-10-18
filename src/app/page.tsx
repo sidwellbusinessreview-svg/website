@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
-import { getArticleContributors, getArticles, getContributors, selectLeadArticle } from "@/content";
+import { getArticleContributors, getArticles, getContributors, getSiteSettings, selectLeadArticle } from "@/content";
 
 export default async function HomePage() {
-  const [articles, contributors] = await Promise.all([
+  const [articles, contributors, settings] = await Promise.all([
     getArticles(),
     getContributors(),
+    getSiteSettings(),
   ]);
   const lead = selectLeadArticle(articles);
   if (!lead) {
@@ -44,9 +45,9 @@ export default async function HomePage() {
       <section className="purpose-section">
         <div className="container statement-grid">
           <p className="eyebrow">Our purpose</p>
-          <blockquote>“Good business writing makes complicated choices legible.”</blockquote>
+          <blockquote>{settings.homepagePurposeQuote ?? "“Good business writing makes complicated choices legible.”"}</blockquote>
           <div>
-            <p>We report, analyze, and debate the forces shaping business and economics—at school, in Washington, and around the world.</p>
+            <p>{settings.homepagePurposeText ?? "We report, analyze, and debate the forces shaping business and economics—at school, in Washington, and around the world."}</p>
             <Link className="text-link" href="/about">About the Review <span aria-hidden="true">→</span></Link>
           </div>
         </div>

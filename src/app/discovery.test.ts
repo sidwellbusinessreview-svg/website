@@ -4,8 +4,22 @@ import { escapeXml } from "@/lib/xml";
 import sitemap from "./sitemap";
 import { getArticles } from "@/content";
 import { createPageMetadata } from "@/lib/metadata";
+import HomePage from "./page";
+import { isValidElement } from "react";
 
 describe("metadata and discovery", () => {
+  it("renders the homepage purpose statement from provider settings with a readable default", async () => {
+    const view = await HomePage();
+    const children = view.props.children as unknown[];
+    const section = children.find((child) => isValidElement(child) && child.type === "section" && (child.props as { className?: string }).className === "purpose-section");
+    if (!isValidElement(section)) throw new Error("Purpose section missing");
+    const sectionProps = section.props as { children: React.ReactElement };
+    const container = sectionProps.children;
+    const statement = (container.props as { children: React.ReactElement[] }).children;
+    expect((statement[1].props as { children: string }).children).toContain("Good business writing makes complicated choices legible.");
+    const supporting = (statement[2].props as { children: React.ReactElement[] }).children;
+    expect((supporting[0].props as { children: string }).children).toContain("We report, analyze, and debate the forces shaping business and economics");
+  });
   it("creates canonical and social page metadata", () => {
     const metadata = createPageMetadata({
       title: "Archive",

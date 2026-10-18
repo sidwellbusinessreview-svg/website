@@ -29,7 +29,7 @@ const articleFilter = `_type == "article" && defined(slug.current)`;
 export const SITE_SETTINGS_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "siteSettings"][0]{
   _id,_type,publicationName,shortName,description,affiliationText,tagline,location,logoMode,textWordmark,
   "logoImage": logoImage${imageProjection},logoImageAlt,contactLabel,contactTarget,
-  socialLinks[]{label,url},defaultSeo,homepageTagline,
+  socialLinks[]{label,url},defaultSeo,homepageTagline,homepagePurposeQuote,homepagePurposeText,
   aboutTitle,aboutEyebrow,aboutSummary,"aboutBody":aboutBody[]{
     ...,
     _type == "editorialImage" => ${imageProjection},

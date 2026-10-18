@@ -192,6 +192,8 @@ export const siteSettingsSchema = z.object({
       }),
     )
     .min(1),
+  homepagePurposeQuote: z.string().trim().min(1).max(240).optional(),
+  homepagePurposeText: z.string().trim().min(1).max(500).optional(),
 });
 
 export type ArticleContentBlock = z.infer<typeof articleContentBlockSchema>;

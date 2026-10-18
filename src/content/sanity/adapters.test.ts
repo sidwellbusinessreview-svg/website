@@ -105,12 +105,16 @@ describe("Sanity domain adapters", () => {
       contactLabel: stega("Contact"),
       contactTarget: stega("editors@example.com"),
       socialLinks: [{ label: stega("Social"), url: stega("https://example.com") }],
+      homepagePurposeQuote: stega("Good business writing clarifies choices."),
+      homepagePurposeText: stega("We examine decisions shaping business and economics."),
     });
     expect(settings).toMatchObject({
       name: "Preview Publication",
       tagline: expect.stringContaining("\u200b"),
       contact: { email: "editors@example.com" },
       socialLinks: [{ href: "https://example.com" }],
+      homepagePurposeQuote: expect.stringContaining("\u200b"),
+      homepagePurposeText: expect.stringContaining("\u200b"),
       logo: { mode: "text" },
     });
   });

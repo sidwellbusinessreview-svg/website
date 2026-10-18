@@ -231,6 +231,8 @@ export function mapSiteSettings(value: unknown): SiteSettings | undefined {
     logo: { mode: cleanText(raw.logoMode) === "image" && logoImageSrc ? "image" : "text", textWordmark: cleanText(raw.textWordmark) ?? cleanText(raw.publicationName), imageSrc: logoImageSrc ?? siteConfig.logo.imageSrc, imageAlt: cleanText(raw.logoImageAlt) ?? cleanText(raw.publicationName), imageWidth: number(logoImage?.asset?.metadata?.dimensions?.width) ?? siteConfig.logo.imageWidth, imageHeight: number(logoImage?.asset?.metadata?.dimensions?.height) ?? siteConfig.logo.imageHeight },
     school: siteConfig.school, location: cleanText(raw.location) ?? siteConfig.location, siteUrl: siteConfig.siteUrl,
     navigation: siteConfig.navigation.map((item) => ({ ...item })),
+    homepagePurposeQuote: text(raw.homepagePurposeQuote),
+    homepagePurposeText: text(raw.homepagePurposeText),
   };
   const parsed = siteSettingsSchema.safeParse(stegaClean(candidate));
   return parsed.success ? candidate as SiteSettings : undefined;

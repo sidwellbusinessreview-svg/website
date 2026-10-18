@@ -71,6 +71,8 @@ export const siteSettings = defineType({
     defineField({ name: "defaultSeo", title: "Default SEO", type: "seo", group: "seo" }),
     defineField({ name: "aboutSeo", title: "About page SEO overrides", type: "seo", group: "seo" }),
     defineField({ name: "homepageTagline", title: "Homepage tagline", type: "text", rows: 2, group: "homepage", description: "Optional short line displayed near the homepage introduction." }),
+    defineField({ name: "homepagePurposeQuote", title: "Purpose statement headline", type: "string", group: "homepage", description: "Optional quoted statement in the Homepage Our purpose section.", validation: (Rule) => Rule.max(240) }),
+    defineField({ name: "homepagePurposeText", title: "Purpose statement", type: "text", rows: 3, group: "homepage", description: "Optional supporting text in the Homepage Our purpose section.", validation: (Rule) => Rule.max(500) }),
   ],
   preview: { prepare: () => ({ title: "Publication Settings", subtitle: "Site identity, About page, and leadership" }) },
 });
