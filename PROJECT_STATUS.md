@@ -1,5 +1,12 @@
 # Project status
 
+## Homepage purpose editing and handover audit
+
+- **Implemented locally; deployment and CMS acceptance pending:** October 18, 2026. Homepage purpose quote and supporting statement now read optional values from the selected provider's Publication Settings, with the existing editorial copy retained as fallback. Sanity's existing Homepage group exposes both fields; no CMS data was changed.
+- Repository audit found no literal HTML entity references in tracked app/content code and no entity decoder or custom HTML rendering path for editorial text. Text fields render through React text nodes. The reported live symptom is therefore unconfirmed and needs an affected live URL or the exact Sanity field/document value to trace.
+- About prose and leadership are already maintained in the fixed Publication Settings document and exposed through the content provider; local content supplies the documented fallback. Article bodies, image alt text/captions/credits, public and preview provider paths remain unchanged.
+- Updated the editor/maintainer handbook with purpose/About/roster editing, image/caption steps, local development and account-access guidance. Sanity TypeGen should be run by a maintainer after schema/query changes; no production schema or content migration was performed.
+
 ## Production Sanity content-source correction
 
 - **Conflict-resolved implementation; redeployment pending:** August 25, 2026.
