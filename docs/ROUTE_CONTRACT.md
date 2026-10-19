@@ -4,7 +4,7 @@ All pages use `src/content/index.ts` and therefore the selected local or Sanity 
 
 | Route | Access | Empty/not-found behavior | Metadata |
 |---|---|---|---|
-| `/` | `getArticles`, `getContributors`, `selectLeadArticle` | Publication purpose and recovery links if empty | Site defaults; pinned/newest lead |
+| `/` | `getArticles`, `getContributors`, `selectLeadArticle` | Featured Article and latest analysis; About/recovery link if empty | Site defaults; pinned/newest lead |
 | `/latest` | `getArticles`, `getContributors` | Clear no-articles state | Latest title/description |
 | `/archive` | `getArchiveArticles`, `getArticles`, `getContributors`, `getSchoolYear` | No-match state and clear filters | Canonical `/archive`; query variants not separately canonicalized |
 | `/articles/[slug]` | `getArticleBySlug`, `getArticles`, `getContributors` | Missing/unpublished slug is 404 | Automatic title, summary, featured image, slug canonical; optional overrides later |
