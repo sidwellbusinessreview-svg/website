@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 import {
+  BUNDLE_ROOT,
   CONFIRMATION_PHRASE,
   approvalFor,
   applyPilot,
@@ -16,25 +17,62 @@ import {
   selectRollbackRecords,
   verifyBackup,
 } from "./sbr-archive";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
 
 describe("SBR archive migration intake", () => {
-  const plan = buildMigrationPlan();
-  const article = (slug: string) => plan.articles.find((item) => item.slug === slug)!;
+  const fixtureRoot = mkdtempSync(join(tmpdir(), "sbr-migration-fixture-"));
+  const bundleRoot = join(fixtureRoot, "bundle");
+  const stagingRoot = join(fixtureRoot, "staging");
+  const fixtureSlugs = ["fixture-article-01", "fixture-article-02", "fixture-article-03", "fixture-article-04"];
+  const readinessBySlug = Object.fromEntries(fixtureSlugs.map((slug, index) => [slug, index < 2 ? "pilotCandidate" : index === 2 ? "sourceRecoveryHold" : "unfinishedDraft"])) as Record<string, "pilotCandidate" | "sourceRecoveryHold" | "unfinishedDraft">;
+  const summaries = Object.fromEntries(fixtureSlugs.map((slug) => [slug, `Synthetic summary for ${slug}, prepared solely for automated checks.`]));
+  const authorsBySlug = [
+    ["Writer One ’28", "Writer Two '27"],
+    ["Writer One ’28", "Writer Three ’27"],
+    [],
+    ["Writer Four ’26"],
+  ];
 
-  it("validates eight unique supplied Articles with consistent bundle metadata", () => {
-    expect(plan.articles).toHaveLength(8);
-    expect(new Set(plan.articles.map(({ slug }) => slug)).size).toBe(8);
+  mkdirSync(join(bundleRoot, "articles"), { recursive: true });
+  const fixtureArticles = fixtureSlugs.map((slug, index) => ({
+    slug,
+    title: `Fixture Article ${String(index + 1).padStart(2, "0")}`,
+    authors: authorsBySlug[index],
+    date: index < 2 ? (index === 0 ? "2025-03" : "2025-06") : null,
+    status: "published",
+    source_key: `fixture-source-${index + 1}`,
+    issue_pages: [index + 1],
+    notes: ["Synthetic test record."],
+  }));
+  writeFileSync(join(bundleRoot, "migration_manifest.json"), JSON.stringify({ uniqueArticleCount: fixtureArticles.length, articles: fixtureArticles, sourcePriorityRules: [] }));
+  writeFileSync(join(bundleRoot, "article_inventory.csv"), [
+    "title,authors,date,status,source_pdf,issue_pages",
+    ...fixtureArticles.map((article, index) => [article.title, article.authors.join(";"), article.date ?? "UNKNOWN", article.status, `source-${index + 1}.pdf`, String(index + 1)].join(",")),
+  ].join("\n"));
+  fixtureArticles.forEach((article, index) => {
+    const authors = JSON.stringify(article.authors);
+    const date = article.date ?? "null";
+    const source = `---\ntitle: ${article.title}\nslug: ${article.slug}\nauthors: ${authors}\ndate: ${date}\nsection: Test\nmigrationStatus: ${article.status}\nsourcePdf: source-${index + 1}.pdf\nissuePages: [${index + 1}]\n---\n## Source-derived text\nA synthetic article supports this claim.1\n\n1\nTest Author, “A Synthetic Source Citation for the Fixture.”\n## Migration notes\n- Synthetic test record only.\n`;
+    writeFileSync(join(bundleRoot, "articles", `${String(index + 1).padStart(2, "0")}-${article.slug}.md`), source);
+  });
+
+  const plan = buildMigrationPlan({ bundleRoot, stagingRoot, articleSlugs: fixtureSlugs, readinessBySlug, summaries });
+  const article = (slug: string) => plan.articles.find((item) => item.slug === slug)!;
+  afterAll(() => rmSync(fixtureRoot, { recursive: true, force: true }));
+
+  it("validates a synthetic source bundle with consistent manifest, inventory, and Markdown", () => {
+    expect(plan.articles).toHaveLength(4);
+    expect(new Set(plan.articles.map(({ slug }) => slug)).size).toBe(4);
     expect(plan.inconsistencies).toEqual([]);
   });
 
   it("uses stable contributor identity and deduplicates repeat appearances", () => {
-    const stephen = plan.contributors.find(({ slug }) => slug === "stephen-koopersmith")!;
-    expect(stephen.sourceId).toBe("sbr-contributor-stephen-koopersmith");
-    expect(stephen.sourceArticleIds).toHaveLength(2);
+    const writer = plan.contributors.find(({ slug }) => slug === "writer-one")!;
+    expect(writer.sourceId).toBe("sbr-contributor-writer-one");
+    expect(writer.sourceArticleIds).toHaveLength(2);
   });
 
   it("parses typographic and straight graduation years", () => {
@@ -43,12 +81,11 @@ describe("SBR archive migration intake", () => {
   });
 
   it("rejects missing author metadata from import readiness", () => {
-    expect(getArticleBlockers(article("effects-russo-ukraine-war"))).toContain("contributors: author decision required");
-    expect(getArticleBlockers(article("business-of-nil-deals"))).toContain("contributors: author decision required");
+    expect(getArticleBlockers(article("fixture-article-03"))).toContain("contributors: author decision required");
   });
 
   it("warns rather than inventing exact dates for month-only sources", () => {
-    const item = article("economic-implications-trumps-mass-deportations");
+    const item = article("fixture-article-01");
     expect(item.sourcePublicationDate).toBe("2025-03");
     expect(item.publicationMonth).toBe("2025-03");
     expect(item.publicationMonthDisplay).toBe("March 2025");
@@ -72,10 +109,9 @@ describe("SBR archive migration intake", () => {
   });
 
   it("preserves ordered multi-contributor bylines", () => {
-    expect(article("economic-implications-trumps-mass-deportations").contributorSourceIds).toEqual([
-      "sbr-contributor-evan-tan",
-      "sbr-contributor-steven-huang",
-      "sbr-contributor-felix-pacheco-lynch",
+    expect(article("fixture-article-01").contributorSourceIds).toEqual([
+      "sbr-contributor-writer-one",
+      "sbr-contributor-writer-two",
     ]);
   });
 
@@ -112,9 +148,9 @@ describe("SBR archive migration intake", () => {
     expect(JSON.stringify(block)).not.toContain('"number"');
   });
 
-  it("keeps housing on source-recovery hold and NFL as an unfinished draft", () => {
-    expect(article("opinion-wall-street-single-family-homes").readiness).toBe("sourceRecoveryHold");
-    expect(article("nfl-salary-cap-inflation-free-agency").readiness).toBe("unfinishedDraft");
+  it("keeps configured source-recovery and unfinished items held", () => {
+    expect(article("fixture-article-03").readiness).toBe("sourceRecoveryHold");
+    expect(article("fixture-article-04").readiness).toBe("unfinishedDraft");
   });
 
   it("supports image-free staged Articles", () => {
@@ -144,8 +180,8 @@ describe("SBR archive migration intake", () => {
 
   it("the dry-run model has no mutation operation", () => {
     expect(plan.pilotBlocked).toBe(true);
-    expect(plan.pilotSourceIds).toHaveLength(4);
-    expect(Object.values(plan.pilotBlockers).flat()).toHaveLength(4);
+    expect(plan.pilotSourceIds).toHaveLength(2);
+    expect(Object.values(plan.pilotBlockers).flat()).toHaveLength(2);
   });
 
   it("creates contributors before draft Articles only after complete preflight", async () => {
@@ -167,7 +203,7 @@ describe("SBR archive migration intake", () => {
     expect(payloads.slice(0, firstArticle).every(({ attributes }) => attributes._type === "contributor")).toBe(true);
     expect(payloads.slice(firstArticle).every(({ attributes }) => attributes._type === "article")).toBe(true);
     expect(payloads[firstArticle].attributes.publicationMonth).toBe("2025-03");
-    expect(payloads[firstArticle].attributes.contributors?.map(({ _ref }) => _ref)).toEqual(approvedArticles.find(({ slug }) => slug === "economic-implications-trumps-mass-deportations")?.contributorSourceIds);
+    expect(payloads[firstArticle].attributes.contributors?.map(({ _ref }) => _ref)).toEqual(approvedArticles.find(({ slug }) => slug === "fixture-article-01")?.contributorSourceIds);
     expect(payloads.every(({ attributes }) => !("featuredImage" in attributes))).toBe(true);
   });
 
@@ -185,5 +221,11 @@ describe("SBR archive migration intake", () => {
     writeFileSync(backup, "export");
     writeFileSync(`${backup}.manifest.json`, JSON.stringify({ projectId: "wrong", dataset: "production", checksum: createHash("sha256").update("export").digest("hex") }));
     expect(() => verifyBackup(backup, "project", "production")).toThrow("target");
+  });
+
+  it.skipIf(!existsSync(join(BUNDLE_ROOT, "migration_manifest.json")))("validates the supplied local archive when it is available", () => {
+    const localPlan = buildMigrationPlan();
+    expect(localPlan.articles).toHaveLength(8);
+    expect(localPlan.inconsistencies).toEqual([]);
   });
 });
