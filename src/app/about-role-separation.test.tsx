@@ -15,6 +15,13 @@ vi.mock("@/content", () => ({
 }));
 
 describe("About leadership separation", () => {
+  it("renders the Publication Settings mission as ordinary body prose", async () => {
+    const about = render(await AboutPage());
+    const body = about.container.querySelector(".article-body");
+    expect(body?.querySelector("p")).toHaveTextContent("Mission.");
+    expect(body?.querySelector("blockquote")).toBeNull();
+  });
+
   it("renders Editor-in-Chief as About context without adding it to the Contributor directory", async () => {
     const about = render(await AboutPage());
     expect(screen.getByRole("heading", { name: "Editor-in-Chief" })).toBeInTheDocument();

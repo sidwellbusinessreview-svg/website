@@ -1,5 +1,11 @@
 # Project status
 
+## Homepage focus on editorial content
+
+- Homepage now presents the featured Article and latest analysis without the large purpose section. Publication purpose prose remains available on the About page through the existing Publication Settings body and fallback; no CMS content or settings were changed.
+- Added unit and browser regression assertions for the new Homepage structure and retained About body prose. No publishing, migration, or deployment configuration changed.
+- Verification: focused Homepage/About unit tests passed (8 tests); lint and typecheck passed; Playwright passed 45 tests with 4 Sanity-provider tests skipped as configured.
+
 ## Migration CI source-bundle isolation
 
 - **Implemented locally; not committed:** October 18, 2026. `migration-input/` is ignored by Git and contains supplied source evidence; it is not a generated CI artifact. The archive bundle README documents its mixed source-document, extracted-text, image, and working-file structure. The failing migration test constructed a plan at test-suite definition time using the default ignored local path, causing clean GitHub Actions checkouts to fail at file read before assertions.

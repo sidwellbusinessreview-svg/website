@@ -151,9 +151,8 @@ test("launch surfaces stay restrained and usable at desktop and mobile widths", 
     await page.goto("/");
     await expect(page.getByText("Menu", { exact: true })).toHaveCount(0);
     await expect(page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible();
-    const purpose = page.locator(".purpose-section");
-    await expect(purpose).toBeVisible();
-    expect(await purpose.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe("rgb(247, 245, 239)");
+    await expect(page.locator(".purpose-section")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Latest analysis" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
   }
   await page.goto("/search");
