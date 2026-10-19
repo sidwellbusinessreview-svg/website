@@ -19,6 +19,38 @@ describe("Sanity domain adapters", () => {
     expect(mapArticle(rawArticle())).toMatchObject({ publicationMonth: "2026-05" });
     expect(mapArticle(rawArticle({ publicationMonth: undefined, publicationDate: "2024-11-19" }))).toMatchObject({ publicationMonth: "2024-11" });
   });
+  it("keeps featured images when alt text is omitted and preserves their separate metadata", () => {
+    const raw = rawArticle({
+      featuredImage: {
+        asset: { url: "https://cdn.sanity.io/images/example/image/test.jpg", metadata: { dimensions: { width: 1600, height: 900 } } },
+        hotspot: { x: 0.4, y: 0.6 },
+        crop: { top: 0.1, right: 0.2, bottom: 0.1, left: 0.05 },
+      },
+      featuredImageCaption: "A caption for readers.",
+      featuredImageCredit: "Photo by the Review.",
+    });
+    expect(getArticleValidationFailures(raw)).toEqual([]);
+    expect(mapArticle(raw)?.featuredImage).toMatchObject({
+      src: "https://cdn.sanity.io/images/example/image/test.jpg",
+      alt: "",
+      width: 1600,
+      height: 900,
+      hotspot: { x: 0.4, y: 0.6 },
+      crop: { top: 0.1, right: 0.2, bottom: 0.1, left: 0.05 },
+      caption: "A caption for readers.",
+      credit: "Photo by the Review.",
+    });
+    const imageWithoutCaption = mapArticle(rawArticle({ featuredImage: { asset: { url: "https://cdn.sanity.io/images/example/image/no-caption.jpg" } } }))?.featuredImage;
+    expect(imageWithoutCaption).toMatchObject({ alt: "" });
+    expect(imageWithoutCaption).not.toHaveProperty("caption");
+    expect(imageWithoutCaption).not.toHaveProperty("credit");
+  });
+  it("does not weaken required alt text for inline editorial images", () => {
+    expect(mapPortableText([{
+      _type: "editorialImage",
+      asset: { url: "https://cdn.sanity.io/images/example/image/body.jpg" },
+    }])).toEqual([]);
+  });
   it("maps cursor-inserted inline footnotes without storing a visible number", () => {
     const mapped = mapArticle(rawArticle({
       sources: [{ key: "report", citation: "Researcher, “Report.”", url: "https://example.com/report" }],

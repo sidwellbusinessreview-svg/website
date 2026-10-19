@@ -12,7 +12,7 @@ Contributor identity is text-only. Do not upload or store Contributor portraits,
 
 ## Required article metadata
 
-Every article needs a unique slug, clear title, summary of no more than 300 characters, at least one contributor, valid `YYYY-MM` publication month, and non-empty structured body. Estimated reading time and word count are not reader metadata. A featured image is optional; when one is present it needs meaningful alt text. Publish the contributor record before publishing an article that references it. Preserve contributor byline order and never select the same person twice.
+Every article needs a unique slug, clear title, summary of no more than 300 characters, at least one contributor, valid `YYYY-MM` publication month, and non-empty structured body. Estimated reading time and word count are not reader metadata. A featured image is optional; its alt text is optional, but meaningful alt text should be supplied when available. If omitted, the website treats the image as decorative. Publish the contributor record before publishing an article that references it. Preserve contributor byline order and never select the same person twice.
 
 Version 1 has no categories, tags, or issues. Do not encode these concepts in titles or recreate them as ad hoc reference documents.
 

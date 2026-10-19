@@ -104,16 +104,16 @@ function listItemText(item: RichListItem): string {
   return typeof item === "string" ? item : item.content.map(({ text: itemText }) => itemText).join("");
 }
 
-function imageBlock(block: RawBlock): ArticleContentBlock | undefined {
+function imageBlock(block: RawBlock, allowEmptyAlt = false): ArticleContentBlock | undefined {
   const image = block as RawBlock & RawImage;
   const src = image.asset && cleanText(image.asset.url);
   const alt = text(block.altText);
-  if (!src || !alt) return undefined;
+  if (!src || (!alt && !allowEmptyAlt)) return undefined;
   const dimensions = image.asset?.metadata?.dimensions;
   return {
     type: "image",
     src,
-    alt,
+    alt: alt ?? "",
     ...(text(block.caption) ? { caption: text(block.caption) } : {}),
     ...(text(block.credit) ? { credit: text(block.credit) } : {}),
     ...(number(dimensions?.width) ? { width: number(dimensions?.width) } : {}),
@@ -184,8 +184,8 @@ function articleCandidate(value: unknown): { candidate?: Record<string, unknown>
   if (!rawContributors.length) failures.push("contributors: at least one published Contributor is required");
   if (contributors.some((contributor) => !contributor)) failures.push("contributors: one or more references are missing or invalid");
   const body = mapPortableText(raw.body);
-  const featured = raw.featuredImage ? imageBlock({ ...raw.featuredImage, altText: raw.featuredImageAltText, caption: raw.featuredImageCaption, credit: raw.featuredImageCredit }) : undefined;
-  if (raw.featuredImage && !featured) failures.push("featuredImage: asset URL and alternative text are required when an image is present");
+  const featured = raw.featuredImage ? imageBlock({ ...raw.featuredImage, altText: raw.featuredImageAltText, caption: raw.featuredImageCaption, credit: raw.featuredImageCredit }, true) : undefined;
+  if (raw.featuredImage && !featured) failures.push("featuredImage: asset URL is required when an image is present");
   const sources = Array.isArray(raw.sources) ? raw.sources.flatMap((item) => {
     if (!item || typeof item !== "object") return [];
     const source = item as Record<string, unknown>; const key = cleanText(source.key); const citation = text(source.citation); const url = cleanText(source.url);

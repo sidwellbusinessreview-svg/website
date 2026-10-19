@@ -1,5 +1,12 @@
 # Project status
 
+## Featured image reliability and homepage layout
+
+- The Sanity Article adapter previously required featured-image alt text when mapping an image. If alt text was absent, the image was dropped and the published Article was rejected by runtime validation. Featured-image alt text is now optional; omitted alt text maps to an empty string so assistive technology treats the image as decorative, while supplied alt text remains intact. Inline editorial-image alt validation remains required.
+- The homepage lead layout now uses a balanced desktop split, a controlled 3:2 image ratio, deliberate stacking below 900px, and a smaller headline without arbitrary mid-word wrapping. The article image continues to use the same mapped source and hotspot position; its caption and credit remain separate.
+- Added adapter, schema, validation, and Playwright regression coverage for shared homepage/article image source, optional featured alt text, metadata separation, and responsive layout. No live site or Studio deployment has been performed.
+- Remaining check: verify the optional featured-image alt field in the hosted Studio after merge and redeployment through the existing workflow. The live host could not be reached from this environment, so the reported live mismatch was traced from repository code and safe fixtures rather than reproduced against production.
+
 ## Homepage focus on editorial content
 
 - Homepage now presents the featured Article and latest analysis without the large purpose section. Publication purpose prose remains available on the About page through the existing Publication Settings body and fallback; no CMS content or settings were changed.

@@ -58,7 +58,7 @@ Article state is determined from the actual raw document pair, not from a perspe
 
 ## Media rules
 
-Editorial image fields accept JPEG, PNG, and WebP assets only. PDF, SVG, GIF, and other formats fail document validation using both MIME type and original filename extension. Article featured/inline images and the publication logo remain optional; these are editorial or publication assets, never Contributor identity images. Alternative text is required when an editorial image is present. Caption and credit remain optional but should follow the authoring rules.
+Editorial image fields accept JPEG, PNG, and WebP assets only. PDF, SVG, GIF, and other formats fail document validation using both MIME type and original filename extension. Article featured/inline images and the publication logo remain optional; these are editorial or publication assets, never Contributor identity images. Inline editorial images require alternative text. Featured-image alt text is optional and omitted values map to an empty, decorative alt; when supplied, the text is used as the image alt. Caption and credit remain separate and optional, subject to the authoring rules.
 
 ## Safe deletion and cleanup
 
@@ -95,7 +95,7 @@ Public **Notes** are a collapsed disclosure by default and show their occurrence
 
 Article typography is centrally controlled by the frontend: editors do not choose fonts, sizes, colors, alignment, or spacing. Structure is for editing; Preview is for checking the resulting hierarchy and rhythm.
 
-Duplicate citation/URL and unused-Source findings are warnings. A missing referenced Source, unsafe URL, missing required metadata, duplicate Contributor, invalid Month/Year, missing image alt text, or conflicting slug blocks publication. Image, Subtitle, Sources, footnotes, Callout, Source URL, image caption, and image credit remain optional.
+Duplicate citation/URL and unused-Source findings are warnings. A missing referenced Source, unsafe URL, missing required metadata, duplicate Contributor, invalid Month/Year, missing inline-image alt text, or conflicting slug blocks publication. Featured-image alt text, Image, Subtitle, Sources, footnotes, Callout, Source URL, image caption, and image credit remain optional.
 
 > Screenshot placeholder: Article Sources showing generated-number selectors.
 

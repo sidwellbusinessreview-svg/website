@@ -55,6 +55,48 @@ test("article route loads", async ({ page }) => {
   await expect(page.locator("body")).not.toContainText(/min read|minute read/i);
 });
 
+test("featured image is shared between homepage and article with a balanced responsive layout", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/");
+  const featured = page.locator(".article-card--featured");
+  const homeImage = featured.locator(".article-card__image img");
+  await expect(homeImage).toBeVisible();
+  const imageSource = await homeImage.getAttribute("src");
+  const articleHref = await featured.locator(".article-card__body h1 a").getAttribute("href");
+  expect(articleHref).toBeTruthy();
+  const layout = await featured.evaluate((element) => {
+    const style = getComputedStyle(element);
+    const image = element.querySelector(".article-card__image")!;
+    const title = element.querySelector("h1")!;
+    return {
+      columns: style.gridTemplateColumns.trim().split(/\s+/).length,
+      imageRatio: Number((image.getBoundingClientRect().width / image.getBoundingClientRect().height).toFixed(2)),
+      titleFontSize: Number.parseFloat(getComputedStyle(title).fontSize),
+      overflowWrap: getComputedStyle(title).overflowWrap,
+    };
+  });
+  expect(layout.columns).toBe(2);
+  expect(layout.imageRatio).toBeGreaterThan(1.4);
+  expect(layout.imageRatio).toBeLessThan(1.7);
+  expect(layout.titleFontSize).toBeLessThan(61);
+  expect(layout.overflowWrap).toBe("normal");
+
+  await page.goto(articleHref!);
+  const articleImage = page.locator(".feature-figure__image img");
+  await expect(articleImage).toBeVisible();
+  const articleImageSource = await articleImage.getAttribute("src");
+  expect(new URL(articleImageSource!, page.url()).searchParams.get("url")).toBe(new URL(imageSource!, page.url()).searchParams.get("url"));
+  await expect(page.locator(".feature-figure figcaption")).toBeVisible();
+
+  for (const width of [768, 375]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const mobileLayout = await page.locator(".article-card--featured").evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length);
+    expect(mobileLayout).toBe(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+  }
+});
+
 test("Article typography stays readable and restrained across desktop and mobile", async ({ page }) => {
   for (const width of [375, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
