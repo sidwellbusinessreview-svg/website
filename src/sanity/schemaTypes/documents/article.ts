@@ -4,7 +4,7 @@ import { ContributorArrayInput } from "../../components/ContributorSelectors";
 import { PublicationMonthInput } from "../../components/PublicationMonthInput";
 import { SourceUrlInput } from "../../components/SourceUrlInput";
 import { ArticleSourcesInput } from "../../components/ArticleSourcesInput";
-import { IMAGE_FORMAT_DESCRIPTION, requireAltWhenImagePresent, validateSupportedImage } from "../shared/mediaValidation";
+import { IMAGE_FORMAT_DESCRIPTION, validateSupportedImage } from "../shared/mediaValidation";
 
 type SourceRecord = { _key?: unknown; citation?: unknown; url?: unknown };
 
@@ -105,7 +105,7 @@ export const article = defineType({
     defineField({ name: "contributors", title: "Contributors", type: "array", group: "article", description: "Add active published contributors in byline order. Archived contributors remain on existing articles.", components: { input: ContributorArrayInput }, of: [defineArrayMember({ type: "reference", to: [{ type: "contributor" }], options: { filter: "active != false" } })], validation: (Rule) => Rule.required().min(1).unique().custom(validatePublishedContributors) }),
     defineField({ name: "publicationMonth", title: "Publication month", type: "string", group: "article", description: "Choose a month and year. The website displays Month Year; no publication day is stored.", components: { input: PublicationMonthInput }, validation: (Rule) => Rule.required().custom(validatePublicationMonth) }),
     defineField({ name: "featuredImage", title: "Featured image", type: "image", group: "article", options: { hotspot: true }, description: `Optional. ${IMAGE_FORMAT_DESCRIPTION}`, validation: (Rule) => Rule.custom(validateSupportedImage) }),
-    defineField({ name: "featuredImageAltText", title: "Featured-image alt text", type: "string", group: "article", hidden: ({ document }) => !document?.featuredImage, description: "Required when a featured image is added. Describe the image for someone who cannot see it; do not repeat the caption.", validation: (Rule) => Rule.custom((value, context) => requireAltWhenImagePresent(value, context, "featuredImage")).max(300) }),
+    defineField({ name: "featuredImageAltText", title: "Featured-image alt text", type: "string", group: "article", hidden: ({ document }) => !document?.featuredImage, description: "Optional. Describe the image for someone who cannot see it; when omitted, the website treats it as decorative. Do not repeat the caption.", validation: (Rule) => Rule.max(300) }),
     defineField({ name: "featuredImageCaption", title: "Caption", type: "string", group: "article", description: "Optional. Explain what the image shows or why it matters; do not repeat the alt text.", validation: (Rule) => Rule.max(500) }),
     defineField({ name: "featuredImageCredit", title: "Photo credit", type: "string", group: "article", description: "Optional unless rights or editorial policy require a credit. Use the approved photographer or source wording.", validation: (Rule) => Rule.max(300) }),
     defineField({ name: "body", title: "Article body", type: "articleBody", group: "article", description: "Write or paste the Article below. Use the toolbar for formatting and citations.", validation: (Rule) => [Rule.required().min(1).error("Add Article text before publishing."), Rule.custom(articleBodyMigrationMarkerWarning).warning()] }),

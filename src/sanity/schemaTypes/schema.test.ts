@@ -11,7 +11,7 @@ import { validateUniqueStaff } from "./documents/siteSettings";
 import { isSupportedImageAsset } from "./shared/mediaValidation";
 import { pairContributorVersions } from "../components/ContributorStateList";
 
-type RawField = { name: string; type: string; readOnly?: boolean; initialValue?: unknown; description?: string; components?: { input?: unknown }; fields?: RawField[]; of?: Array<{ type: string; to?: Array<{ type: string }>; fields?: RawField[] }>; options?: { dateFormat?: string } };
+type RawField = { name: string; type: string; readOnly?: boolean; initialValue?: unknown; description?: string; validation?: (rule: { max: (limit: number) => unknown; custom: (...args: never[]) => unknown }) => unknown; components?: { input?: unknown }; fields?: RawField[]; of?: Array<{ type: string; to?: Array<{ type: string }>; fields?: RawField[] }>; options?: { dateFormat?: string } };
 const fieldsFor = (name: string) => ((schemaTypes.find((type) => type.name === name) as { fields?: RawField[] } | undefined)?.fields ?? []);
 const action = (name: string, label = name): DocumentActionComponent => Object.assign(() => ({ label, onHandle: () => undefined }), { action: name }) as DocumentActionComponent;
 const props = (draft: object | null, published: object | null) => ({ id: "test", type: "article", draft, published, liveEdit: false, onComplete: () => undefined } as never);
@@ -92,6 +92,15 @@ describe("simplified Sanity editor model", () => {
 });
 
 describe("editorial image formats", () => {
+  it("keeps featured-image alt text optional while documenting the decorative fallback", () => {
+    const field = fieldsFor("article").find(({ name }) => name === "featuredImageAltText");
+    expect(field?.description).toMatch(/optional/i);
+    const max = vi.fn().mockReturnValue("max-rule");
+    const custom = vi.fn().mockReturnValue("required-rule");
+    expect(field?.validation?.({ max, custom })).toBe("max-rule");
+    expect(max).toHaveBeenCalledWith(300);
+    expect(custom).not.toHaveBeenCalled();
+  });
   it.each([
     ["image/jpeg", "editorial.jpg"],
     ["image/jpeg", "editorial.jpeg"],

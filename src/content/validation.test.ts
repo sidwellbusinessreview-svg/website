@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { siteConfig } from "@/config/site";
 import { articles, contributors } from "./data";
-import { articleContentBlockSchema } from "./schemas";
+import { articleContentBlockSchema, articleSchema } from "./schemas";
 import { type ContentSource, validateContentSource } from "./validation";
 const validSource = (): ContentSource => structuredClone({ articles, contributors, siteSettings: siteConfig });
 const expectProblem = (change: (source: ContentSource) => void, expected: RegExp) => { const source = validSource(); change(source); expect(() => validateContentSource(source, new Date("2026-07-16T12:00:00Z"))).toThrow(expected); };
@@ -34,6 +34,11 @@ describe("runtime content validation", () => {
     expectProblem((source) => { (source.articles[0] as Record<string, unknown>).sources = [{ key: "blank", citation: "" }]; }, /citation/);
     expectProblem((source) => { (source.articles[0] as Record<string, unknown>).sources = [{ key: "unsafe", citation: "Citation", url: "javascript:alert(1)" }]; }, /must use http or https/);
   });
-  it("detects missing required values and image alt text", () => { expectProblem((source) => { delete (source.articles[0] as { title?: string }).title; }, /articles\[0\]\.title/); expectProblem((source) => { (source.articles[0] as { featuredImage: { alt: string } }).featuredImage.alt = ""; }, /alt text is required/); });
+  it("allows a featured image with an empty decorative fallback while keeping inline alt text required", () => {
+    const article = structuredClone(validSource().articles[0]) as { featuredImage: { alt: string } };
+    article.featuredImage!.alt = "";
+    expect(articleSchema.safeParse(article).success).toBe(true);
+    expect(articleContentBlockSchema.safeParse({ type: "image", src: "https://example.com/a.jpg", alt: "" }).success).toBe(false);
+  });
   it("detects multiple pinned articles", () => expectProblem((source) => { (source.articles[1] as { pinned: boolean }).pinned = true; }, /multiple published lead/));
 });

@@ -127,7 +127,11 @@ export const articleSchema = z
     status: z.enum(["draft", "published"]).default("published"),
     pinned: z.boolean().default(false),
     featuredRank: z.number().int().positive().optional(),
-    featuredImage: imageFieldsSchema.optional(),
+    featuredImage: imageFieldsSchema.extend({
+      // Featured images may omit alt text. An empty value is a deliberate
+      // decorative-image fallback; inline editorial images still require it.
+      alt: z.string().trim().max(300).default(""),
+    }).optional(),
     content: z.array(articleContentBlockSchema).min(1),
     sources: z.array(articleSourceSchema).default([]),
   })

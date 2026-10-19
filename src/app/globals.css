@@ -100,12 +100,12 @@ a:hover { color: var(--color-accent); }
 .article-card__image img { transition: transform .2s ease; }
 .article-card__image:hover img { transform: scale(1.015); }
 .article-card__body { padding-top: 1rem; }
-.article-card :is(h1, h2, h3) { margin: .45rem 0 .7rem; font-family: var(--font-display); font-size: clamp(1.35rem, 2vw, 2rem); letter-spacing: -.025em; line-height: var(--line-height-tight); overflow-wrap: anywhere; }
+.article-card :is(h1, h2, h3) { margin: .45rem 0 .7rem; font-family: var(--font-display); font-size: clamp(1.35rem, 2vw, 2rem); letter-spacing: -.025em; line-height: var(--line-height-tight); overflow-wrap: break-word; }
 .article-card :is(h1, h2, h3) a { text-decoration: none; }
 .article-card__dek { margin: 0 0 1rem; color: var(--color-muted); font-family: var(--font-display); font-size: 1.05rem; line-height: 1.45; }
-.article-card--featured { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(18rem, .8fr); gap: var(--space-4); border-top: 0; padding-top: 0; }
-.article-card--featured .article-card__image { aspect-ratio: 4/3; }
-.article-card--featured :is(h1, h2, h3) { font-size: clamp(2.5rem, 5vw, 5rem); }
+.article-card--featured { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(1.5rem, 3vw, var(--space-5)); border-top: 0; padding-top: 0; }
+.article-card--featured .article-card__image { aspect-ratio: 3/2; }
+.article-card--featured :is(h1, h2, h3) { margin-top: 0; font-size: clamp(2.1rem, 3.5vw, 3.75rem); letter-spacing: -.035em; line-height: 1.03; overflow-wrap: normal; text-wrap: balance; }
 .article-card--featured .article-card__body { align-self: center; }
 .article-meta { display: flex; flex-wrap: wrap; gap: .3rem .55rem; color: var(--color-muted); font-size: .7rem; line-height: 1.35; text-transform: uppercase; }
 .article-meta a { color: var(--color-ink); font-weight: 700; text-decoration: none; }
@@ -282,7 +282,7 @@ a:hover { color: var(--color-accent); }
   .wordmark-header .search-link { display: none; }
   .section-heading { display: block; }
   .section-heading span { display: none; }
-  .article-card--featured :is(h1, h2, h3) { font-size: 2.55rem; }
+  .article-card--featured :is(h1, h2, h3) { font-size: clamp(2rem, 8vw, 2.55rem); }
   .article-grid { grid-template-columns: 1fr; }
   .article-grid .article-card:last-child { grid-column: auto; }
   .section-title-row { align-items: flex-end; }
