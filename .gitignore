@@ -57,6 +57,8 @@ Desktop.ini
 ._*
 .idea/
 .vscode/
+# Supplied source evidence is maintained outside Git; CI tests use synthetic temporary fixtures.
 migration-input/
+# Generated migration staging, review reports, and approvals are maintained outside Git.
 migration-staging/
 /migration-backups/

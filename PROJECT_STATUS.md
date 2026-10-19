@@ -1,5 +1,12 @@
 # Project status
 
+## Migration CI source-bundle isolation
+
+- **Implemented locally; not committed:** October 18, 2026. `migration-input/` is ignored by Git and contains supplied source evidence; it is not a generated CI artifact. The archive bundle README documents its mixed source-document, extracted-text, image, and working-file structure. The failing migration test constructed a plan at test-suite definition time using the default ignored local path, causing clean GitHub Actions checkouts to fail at file read before assertions.
+- `buildMigrationPlan` now accepts explicit bundle/staging paths and article-policy inputs for verification. The CI test constructs an ephemeral synthetic source tree with generated fixture records, so it can still exercise consistency checks, normalization, contributor relationships, readiness blockers, summary checksums, draft ordering, and apply guards without actual archive content.
+- A local-only test continues validating the actual supplied bundle when available. Production migration commands still require the real bundle; there is no fallback or fabricated production manifest. No Sanity data or migration input was modified.
+- Verification: lint, typecheck, content validation, and all 377 unit/component tests passed. `CONTENT_SOURCE=local npm run build` passed. The default build attempted the configured Sanity source and could not resolve Sanity from this network-restricted environment; no production data was fetched or changed.
+
 ## Homepage purpose editing and handover audit
 
 - **Implemented locally; deployment and CMS acceptance pending:** October 18, 2026. Homepage purpose quote and supporting statement now read optional values from the selected provider's Publication Settings, with the existing editorial copy retained as fallback. Sanity's existing Homepage group exposes both fields; no CMS data was changed.

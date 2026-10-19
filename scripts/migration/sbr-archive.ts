@@ -60,7 +60,13 @@ export function getArticleBlockers(article: StagedArticle): string[] {
   return blockers;
 }
 
-const readinessBySlug: Record<string, Readiness> = {
+const productionArticleSlugs = [
+  "economic-implications-trumps-mass-deportations", "opinion-wall-street-single-family-homes", "trump-memecoin-guy-down-the-street",
+  "environmental-economic-perspective-ai", "nfl-salary-cap-inflation-free-agency", "effects-russo-ukraine-war",
+  "business-of-nil-deals", "archive-shohei-ohtani-contract-prediction",
+];
+
+const productionReadinessBySlug: Record<string, Readiness> = {
   "economic-implications-trumps-mass-deportations": "pilotCandidate",
   "trump-memecoin-guy-down-the-street": "pilotCandidate",
   "environmental-economic-perspective-ai": "pilotCandidate",
@@ -71,7 +77,7 @@ const readinessBySlug: Record<string, Readiness> = {
   "nfl-salary-cap-inflation-free-agency": "unfinishedDraft",
 };
 
-const summaries: Record<string, string> = {
+const productionSummaries: Record<string, string> = {
   "economic-implications-trumps-mass-deportations": "An analysis of how mass deportation proposals could affect labor markets, consumer demand, agriculture, construction, prices, and economic growth.",
   "opinion-wall-street-single-family-homes": "An argument against large financial firms purchasing single-family homes and the effects that ownership may have on housing access.",
   "trump-memecoin-guy-down-the-street": "An examination of the launch, market activity, and ethical questions surrounding Donald Trump’s memecoin.",
@@ -84,8 +90,8 @@ const summaries: Record<string, string> = {
 
 export function summaryChecksum(value: string): string { return checksum(value); }
 
-function existingApprovals(): ApprovalFile {
-  const path = join(STAGING_ROOT, "editor-approvals.json");
+function existingApprovals(stagingRoot = STAGING_ROOT): ApprovalFile {
+  const path = join(stagingRoot, "editor-approvals.json");
   if (!existsSync(path)) return { version: 1, articles: {} };
   try { return JSON.parse(readFileSync(path, "utf8")) as ApprovalFile; }
   catch { return { version: 1, articles: {} }; }
@@ -253,17 +259,23 @@ function parseCsv(source: string): InventoryRow[] {
 function checksum(source: string | Buffer): string { return createHash("sha256").update(source).digest("hex"); }
 function sourceId(type: "article" | "contributor", slug: string): string { return `sbr-${type}-${slug}`; }
 
-export function buildMigrationPlan(): MigrationPlan {
-  const approvals = existingApprovals();
-  const manifest = JSON.parse(readFileSync(join(BUNDLE_ROOT, "migration_manifest.json"), "utf8")) as Manifest;
-  const inventory = parseCsv(readFileSync(join(BUNDLE_ROOT, "article_inventory.csv"), "utf8"));
-  const files = manifest.articles.map((_, index) => join(BUNDLE_ROOT, "articles", `${String(index + 1).padStart(2, "0")}-${[
-    "economic-implications-trumps-mass-deportations", "opinion-wall-street-single-family-homes", "trump-memecoin-guy-down-the-street",
-    "environmental-economic-perspective-ai", "nfl-salary-cap-inflation-free-agency", "effects-russo-ukraine-war",
-    "business-of-nil-deals", "archive-shohei-ohtani-contract-prediction",
-  ][index]}.md`));
+export function buildMigrationPlan(options: {
+  bundleRoot?: string;
+  stagingRoot?: string;
+  articleSlugs?: string[];
+  readinessBySlug?: Record<string, Readiness>;
+  summaries?: Record<string, string>;
+} = {}): MigrationPlan {
+  const bundleRoot = options.bundleRoot ?? BUNDLE_ROOT;
+  const articleSlugs = options.articleSlugs ?? productionArticleSlugs;
+  const readinessBySlug = options.readinessBySlug ?? productionReadinessBySlug;
+  const summaries = options.summaries ?? productionSummaries;
+  const approvals = existingApprovals(options.stagingRoot);
+  const manifest = JSON.parse(readFileSync(join(bundleRoot, "migration_manifest.json"), "utf8")) as Manifest;
+  const inventory = parseCsv(readFileSync(join(bundleRoot, "article_inventory.csv"), "utf8"));
+  const files = manifest.articles.map((_, index) => join(bundleRoot, "articles", `${String(index + 1).padStart(2, "0")}-${articleSlugs[index]}.md`));
   const inconsistencies: string[] = [];
-  if (manifest.uniqueArticleCount !== 8 || files.length !== 8 || inventory.length !== 8) inconsistencies.push("Bundle sources do not all report eight Articles.");
+  if (manifest.uniqueArticleCount !== articleSlugs.length || files.length !== articleSlugs.length || inventory.length !== articleSlugs.length) inconsistencies.push(`Bundle sources do not all report ${articleSlugs.length} Articles.`);
   const contributorMap = new Map<string, StagedContributor>();
   const articles = files.map((file, index): StagedArticle => {
     const source = readFileSync(file, "utf8");
@@ -307,6 +319,7 @@ export function buildMigrationPlan(): MigrationPlan {
     const sourcePublicationDate = meta.date;
     const publicationMonth = sourcePublicationDate;
     const proposedText = summaries[meta.slug];
+    if (!proposedText) throw new Error(`No proposed summary configured for source Article ${meta.slug}.`);
     const approval = approvalFor(articleSourceId, proposedText, approvals);
     return {
       sourceId: articleSourceId, title: meta.title, slug: meta.slug,

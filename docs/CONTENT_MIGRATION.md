@@ -1,6 +1,8 @@
 # Content migration intake
 
-Phase 14 uses a source-evidence-first workflow. The supplied archive remains unchanged in `migration-input/SBR_All_Articles_Migration_Bundle/`. Generated normalized records, review reports, the pilot manifest, checksums, and rollback IDs live in `migration-staging/sbr-archive-2026-08/`.
+Phase 14 uses a source-evidence-first workflow. The supplied archive remains unchanged in `migration-input/SBR_All_Articles_Migration_Bundle/`. That directory is intentionally excluded from Git because it contains supplied source documents and extracted working material; it is not generated during CI. Maintainers must obtain the bundle separately before running the migration commands. Generated normalized records, review reports, the pilot manifest, checksums, and rollback IDs live in `migration-staging/sbr-archive-2026-08/`.
+
+CI does not need the source bundle. The migration unit tests create a temporary synthetic bundle to exercise metadata consistency, normalization, contributor mapping, readiness blockers, draft ordering, and apply/rollback safeguards. A separate local-only test validates the supplied archive when it is present. The production migration commands always read the supplied bundle and never substitute the test fixture.
 
 No Issues, Categories, or Tags are inferred from source sections. No Article image is assigned until a human confirms its mapping, reuse permission, alt text, caption, and credit.
 
