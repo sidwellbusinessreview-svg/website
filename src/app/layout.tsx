@@ -12,6 +12,9 @@ function metadataFor(settings: SiteSettings): Metadata {
     metadataBase: new URL(settings.siteUrl),
     title: { default: settings.name, template: `%s | ${settings.name}` },
     description: settings.description,
+    verification: {
+      google: "kUNPyOTbMzBqXNCmA7UbIaEzdKmWrSWGaDM-ASwmnYM",
+    },
     alternates: {
       canonical: "/",
       types: { "application/rss+xml": absoluteUrl("/feed.xml") },
