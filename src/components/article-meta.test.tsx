@@ -60,6 +60,23 @@ describe("article presentation", () => {
     ).toBeInTheDocument();
   });
 
+  it("names linked featured images even when image alt text is empty", () => {
+    render(
+      <ArticleCard
+        article={{
+          ...article,
+          featuredImage: { ...article.featuredImage!, alt: "" },
+        }}
+        authors={authors}
+      />,
+    );
+
+    const imageLink = screen.getByRole("link", { name: "Read A Test Article" });
+    expect(imageLink).toHaveAttribute("href", "/articles/test-article");
+    expect(imageLink).toHaveAttribute("tabindex", "-1");
+    expect(screen.getByRole("link", { name: "A Test Article" })).toBeInTheDocument();
+  });
+
   it("renders an article card safely without a featured image", () => {
     render(<ArticleCard article={{ ...article, featuredImage: undefined }} authors={authors} />);
     expect(screen.getByRole("heading", { name: "A Test Article" })).toBeInTheDocument();

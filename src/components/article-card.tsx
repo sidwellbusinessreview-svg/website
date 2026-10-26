@@ -17,7 +17,7 @@ export function ArticleCard({
   const Heading = headingLevel === 1 ? "h1" : headingLevel === 3 ? "h3" : "h2";
   return (
     <article className={["article-card", featured ? "article-card--featured" : "", !article.featuredImage ? "article-card--no-image" : ""].filter(Boolean).join(" ")}>
-      {article.featuredImage && <Link className="article-card__image" href={`/articles/${article.slug}`} tabIndex={-1}>
+      {article.featuredImage && <Link className="article-card__image" href={`/articles/${article.slug}`} aria-label={`Read ${article.title}`} tabIndex={-1}>
         <Image
           src={article.featuredImage.src}
           alt={article.featuredImage.alt}
