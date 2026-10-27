@@ -223,7 +223,7 @@ a:hover { color: var(--color-accent); }
 .search-form button, .archive-filters button { min-height: var(--touch-target); border: 0; background: var(--color-ink); color: var(--color-white); padding-inline: 1.5rem; font-weight: 700; }
 .empty-state { max-width: 48rem; border-top: var(--border-ink-strong); padding-block: var(--space-4); }
 .empty-state h2 { margin-top: 0; font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 3rem); line-height: var(--line-height-tight); }
-.loading-state { min-height: 45vh; }
+.loading-state { min-height: 100svh; }
 .archive-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); align-items: end; margin-bottom: var(--space-5); border-block: var(--border-thin); padding-block: var(--space-3); }
 .archive-filter-disclosure { margin-bottom: var(--space-4); border-block: var(--border-thin); }
 .archive-filter-disclosure > summary { min-height: var(--touch-target); cursor: pointer; padding-block: .75rem; font-size: var(--font-size-sm); font-weight: 750; letter-spacing: .035em; text-transform: uppercase; }
