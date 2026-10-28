@@ -1,5 +1,13 @@
 # Architecture decision log
 
+### ADR-020: Apply targeted compatible dependency remediations and defer the Sanity toolchain transition
+
+- **Status:** Accepted
+- **Date:** 2026-10-27
+- **Context:** After the Nano ID update in PR #15, npm reported 22 findings: 8 high and 14 moderate. Compatible fixes were available for the public styling dependency and the development/test toolchain, while the remaining advisory paths were concentrated in Sanity CLI/build dependencies. npm's automatic breaking recommendation was a prohibited Sanity 5 downgrade. A trial upgrade within Sanity 6 reduced severity but did not reduce the total below 15, changed hundreds of transitive packages, and introduced a Portable Text editor peer transition beyond the pinned React version.
+- **Decision:** Keep Next.js 16, React 19, Sanity 6.5, next-sanity 13.1, and the existing OpenNext/Cloudflare architecture unchanged. Update `styled-components`, Vitest, and Vitest coverage to their minimum compatible patched releases, then refresh only compatible transitive copies of `brace-expansion`, `postcss`, Vite, `undici`, `adm-zip`, `js-yaml`, and `smol-toml`. Do not add npm overrides, use a forced audit repair, or accept the Sanity downgrade. Defer the larger Sanity toolchain transition until upstream dependency lines improve or the change can receive dedicated hosted-editorial and Presentation Preview testing.
+- **Consequences:** The complete audit falls from 22 findings (8 high, 14 moderate) to 15 findings (5 high, 10 moderate) without changing application architecture or editorial behavior. The residual advisories remain in Studio/build and development tooling rather than an identified public Next.js runtime path, although npm reports them through the production `sanity` dependency. Future Sanity upgrades must re-evaluate the Module Federation, Vercel framework detection, TypeID/UUID, Portable Text editor, and React peer dependency chains and must repeat authenticated Studio, publishing, sources, footnotes, and Presentation Preview verification.
+
 ### ADR-019: Consolidate publication administration in Publication Settings
 
 - **Date:** August 18, 2026
