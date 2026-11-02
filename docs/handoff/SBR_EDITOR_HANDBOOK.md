@@ -19,7 +19,7 @@ You should not need Cloudflare, GitHub, Terminal, or local development for ordin
 7. Preview the Article before publishing.
 8. Publish.
 
-After publishing, Sanity sends a webhook to the production site so cached content can refresh automatically.
+After publishing, Sanity sends a webhook to the production site to invalidate the shared content cache. Public reads also have a 300-second fallback. A successful webhook attempt is not proof that the exact page already shows the change, so complete the live checks in section 7.
 
 ### Edit a published Article
 
@@ -38,7 +38,7 @@ Contributor records are intentionally simple. Do not add role fields to Contribu
 
 Use **Publication Settings** in Sanity Studio.
 
-In the **Homepage** group, edit **Purpose statement headline** and **Purpose statement**. Blank values use the site's built-in fallback text. In the **About** group, edit the About page title and body. In **Leadership**, add, remove, or reorder the Editor-in-Chief, Editors, and Faculty Adviser entries. Each entry references a Contributor; create and publish that Contributor first. Publication Settings is the single source of truth for the managed About page and roster. If the fixed page has no published content, the public site uses the local fallback until settings are initialized and published.
+In the **Homepage** group, edit **Purpose statement headline** and **Purpose statement**. Blank values use the site's built-in fallback text. In the **About** group, edit the About page title and body. In **Leadership**, add, remove, or reorder the Editor-in-Chief, Editors, and Faculty Adviser entries. Each entry references a Contributor; create and publish that Contributor first. Publication Settings is the single source of truth for the managed About page and roster. If it has no published content, the public provider uses the controlled application fallback until settings are initialized and published.
 
 Leadership is stored there rather than inside Contributor records.
 
@@ -107,10 +107,12 @@ After publishing:
 - Open the live Article.
 - Confirm the Article appears where expected.
 - Confirm author links work.
-- If the live site appears stale, wait briefly and refresh once before changing infrastructure.
+- Use a clean browser that is not in Draft Mode.
+- If the live site appears stale, record the URL, expected change, and publish time; refresh once, then ask a maintainer to inspect the matching webhook attempt.
+- Do not republish, rotate secrets, or edit infrastructure merely because the first reload is stale. The maintainer should wait through the 300-second fallback and follow `SBR_LAUNCH_AND_MAINTENANCE_CHECKLIST.md`.
 
 ## 8. Current migrated archive
 
-The production dataset contains seven migrated published Articles and ten published Contributors from the initial archive migration.
+As verified from the production sitemap on November 1, 2026, the public site exposes seven migrated Article routes and ten Contributor routes from the initial archive migration.
 
 Do not restore the dropped NFL salary-cap draft unless the editorial team later decides to publish it.

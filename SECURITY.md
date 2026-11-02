@@ -10,7 +10,9 @@ Include a concise description, the affected page or service, steps to reproduce 
 
 Secrets must never be committed to this repository. This includes passwords, API tokens, private keys, webhook secrets, service-account files, recovery codes, and populated environment files. Store local values in ignored `.env` files and keep hosted values in the deployment provider’s protected environment settings.
 
-Draft preview credentials are server-only. `SANITY_API_READ_TOKEN` and `SANITY_PREVIEW_SECRET` must never enter client components, browser JavaScript, public environment variables, logs, screenshots, or issue reports. Preview validates an expiring Studio-generated secret or a long administrator fallback secret, restricts redirects to this site, disables draft caching, and discourages indexing. Rate-limit repeated invalid preview requests at the hosting edge when deployed.
+Draft preview credentials are server-only. `SANITY_API_READ_TOKEN` and `SANITY_PREVIEW_SECRET` must never enter client components, browser JavaScript, public environment variables, logs, screenshots, or issue reports. Preview validates an expiring Studio-generated secret or a long administrator fallback secret, restricts redirects to this site, disables draft caching, and discourages indexing. Review hosting-edge rate limiting if repeated invalid Preview requests become an observed problem.
+
+`SANITY_REVALIDATE_SECRET` is also server-only and must match the configured Sanity webhook and current Cloudflare Worker. Rotate it rather than revealing an old value; update both consumers and promote the resulting Worker version when required. `SANITY_API_WRITE_TOKEN` is for separately authorized migration operations and must never be installed in the public website deployment.
 
 If a secret is exposed:
 
@@ -27,4 +29,4 @@ Collect and publish the minimum student personal information necessary for the R
 
 ## Supported code
 
-Security reports should focus on the current default branch and the live production site once one exists. Dependency advisories are reviewed deliberately; do not run destructive or forced automated fixes without understanding their architecture impact.
+Security reports should focus on the current default branch and the live production site. Dependency advisories are reviewed deliberately; do not run destructive or forced automated fixes without understanding their architecture impact.

@@ -1,86 +1,99 @@
 # Content provider
 
-## Phase 14N Publication Settings projection
+## Current production state
 
-Sanity stores global settings, About content, and leadership in fixed document `siteSettings`. `SITE_SETTINGS_QUERY` projects both site-wide and About fields; there is no standalone About GROQ query. `getStaticPageBySlug("about")` adapts that projection into the existing public About domain contract, preserving the provider boundary and `/about` route while removing the obsolete CMS document. Preview selects the draft overlay of the same record; public reads remain published, token-free, and cached.
+Production uses the Sanity provider against project `bumxf5q6`, dataset `production`. `CONTENT_SOURCE=local` remains an explicit fixture-backed recovery and development mode; it is not the production default and is never selected automatically after `sanity` has been configured.
+
+Sanity stores global identity, Homepage copy, About content, and leadership in fixed document `siteSettings` (**Publication Settings** in Studio). `getStaticPageBySlug("about")` adapts that record into the public About contract. There is no separate About CMS document.
 
 ## Architecture
 
-Public pages call asynchronous functions in `src/content/index.ts`. That module selects one implementation of the stable `ContentProvider` interface in `src/content/provider.ts`:
+Public pages call asynchronous functions in `src/content/index.ts`. That module selects an implementation of the stable `ContentProvider` interface in `src/content/provider.ts`:
 
-- `local` validates and reads the temporary sample records.
-- `sanity` runs token-free, published-only GROQ queries and maps results into the same domain types.
+- `local` validates and reads sample records for local development or an explicitly approved rollback;
+- `sanity` runs token-free, published-only GROQ queries and maps records into the same domain types.
 
-Routes and renderers never receive raw Sanity documents. Portable Text is converted by `src/content/sanity/adapters.ts` into the existing structured body model. Unknown blocks are warned about in development and omitted safely; raw HTML is never rendered.
+Routes and renderers never receive raw Sanity documents. Portable Text is converted by `src/content/sanity/adapters.ts` into the shared structured body model. Unknown blocks are omitted safely, and raw HTML is never rendered.
 
 ## Selecting a source
 
-Copy `.env.example` to `.env.local`. During migration, `CONTENT_SOURCE=local` is the documented rollback mode. To test published CMS data, configure the public Sanity project, dataset, and API date values, then set `CONTENT_SOURCE=sanity`.
+For ordinary fixture-backed development, no provider variables are required. To test published CMS data, copy `.env.example` to `.env.local`, retain the documented public project/dataset/API values, and set:
 
-Run `npm run sanity:check-provider`. It prints public document counts and titles, never environment values or tokens. Explicit Sanity selection fails clearly if public configuration is absent and does not silently fall back. After migration acceptance, hosting must set `CONTENT_SOURCE=sanity`; local mode can be removed in a later reviewed phase.
+```text
+CONTENT_SOURCE=sanity
+```
+
+Run `npm run sanity:check-provider`. It reports public document counts and titles, never tokens. Explicit Sanity selection fails clearly if its public configuration is absent; it does not silently fall back to fixtures. Production must keep `CONTENT_SOURCE=sanity` in the Cloudflare build environment.
 
 ## Queries and visibility
 
-Focused projections cover settings, articles, lead/latest articles, contributor relations, contributors, search, and managed About. Every public document query excludes `drafts.*`; the public client uses published perspective without a token. Required references are resolved, and an invalid published article is excluded rather than partially rendered. Ordering is publication date descending with slug as tie-breaker.
+Focused projections cover Publication Settings, Articles, lead/latest Articles, Contributor relations, Contributors, search, and managed About. Every public query excludes `drafts.*`; the public client uses the published perspective without a token. Required references are resolved, and invalid published Articles are excluded instead of partially rendered. Ordering uses publication month descending with slug as the stable tie-breaker.
 
-Contributor reference arrays are projected in their editorial order. Neither Article projections nor Contributor queries filter on `active`, so archived Contributors remain visible on historical bylines while Studio controls whether they may be selected for new work. Missing optional CMS Site Settings use the validated application configuration rather than crashing public pages.
+Contributor reference arrays retain editorial order. Archived Contributors remain visible on historical bylines while Studio prevents their selection for new work. Missing optional published Publication Settings use validated application fallbacks rather than crashing public pages.
 
-ADR-014 removed Issue, Category, and Tag schemas and routes from the accepted launch model. The provider contains no methods or queries for those models.
+The accepted launch model has no Issue, Category, Tag, Masthead, biography, or Contributor-image provider methods or queries.
 
-## Draft preview
+## Draft Preview
 
-The same domain adapter and queries serve both modes. Visibility comes from the client perspective:
+The same domain adapter and queries serve both modes:
 
 - Public: `published`, token-free, CDN enabled, tagged 300-second cache.
 - Draft Mode: `drafts`, server-only Viewer token, CDN disabled, `no-store`.
 
-The draft client enables Content Source Maps/stega with the standalone Studio origin from `NEXT_PUBLIC_SANITY_STUDIO_URL`. Local development defaults to `http://localhost:3333`; public hosting must use the chosen `*.sanity.studio` URL after deployment. During Draft Mode, the root layout mounts the preview banner and `VisualEditing` only on public frontend pages and never on API routes, feed, sitemap, or robots. This provides Presentation’s communication and document-location bridge without adding Sanity Live subscriptions. Feed and sitemap explicitly request the published provider even when the requesting browser has a Draft Mode cookie. Preview never writes content and never falls back to drafts when credentials are missing.
+The draft client enables Content Source Maps/stega with the standalone Studio origin from `NEXT_PUBLIC_SANITY_STUDIO_URL`. During Draft Mode, the public layout mounts the preview banner and `VisualEditing` only on public frontend page paths—not API routes, feed, sitemap, or robots. Feed and sitemap force the published provider even when the browser has a Draft Mode cookie. No Sanity Live subscription or browser token is installed.
 
-Sanity stega metadata is retained on visible editorial strings so Presentation can locate content. Before runtime validation and routing comparisons, adapters clean that metadata from semantic values. Slugs, publication dates, URLs, references, search inputs, and other control values remain clean. This prevents valid published documents from being rejected solely because invisible source-map metadata changes JavaScript string length.
+Adapters retain stega on visible editorial strings for Presentation but clean it from slugs, dates, URLs, references, comparisons, validation, and route construction. The required Article `summary` supplies the public card description; optional `subtitle` does not replace it.
 
-Site-wide frontend chrome receives Site Settings from the same selected provider as page content. Published mode supplies the published Site Settings page; Draft Mode supplies its draft overlay with `drafts`, a server-only Viewer token, CDN disabled, and `no-store`. Publication name, URLs, metadata values, logo structure, and contact targets are cleaned before use; the visible Homepage tagline may retain stega for Presentation.
-
-Image-logo mode is honored only when the selected Site Settings variant resolves an actual CMS image asset. If it does not, the header safely uses the configured text wordmark rather than requesting a nonexistent fallback image.
-
-The required Article `summary` is the domain card description. Optional `subtitle` does not override it. This permits a valid draft-only Article with a brief subtitle and complete summary to pass the same adapter and route contract as published work.
-
-Run `npm run sanity:diagnose-preview` for a safe development comparison of published and draft-perspective provider behavior. It prints only query names, counts, IDs/types, mode, adapter/validation results, and exclusion reasons—never content bodies, stega payloads, tokens, or preview secrets.
+Run `npm run sanity:diagnose-preview` for a safe comparison of published and draft provider behavior. It prints modes, counts, IDs/types, adapter results, and exclusion reasons—not bodies, stega payloads, tokens, or preview secrets.
 
 ## Caching and publishing
 
-Reads use Next/Sanity fetch integration with an exact 300-second backstop. Every fetch receives the shared `content` tag plus explicit dependency tags for Articles, Contributors, pages, settings, and relationship queries. The shared tag is the deliberately safe invalidation boundary: a publish can affect Homepage, Latest, Archive, Search, an Article, its Contributor, feed, sitemap, About, or Site Settings, so invalidating the whole public-content set prevents partially stale relationships.
+Public reads use an exact 300-second revalidation backstop. Every fetch receives the shared `content` tag plus descriptive dependency tags. The shared tag is the safe invalidation boundary because one publish can affect several relationship-dependent surfaces.
 
-| Surface | Data dependency | Normal refresh | Invalidation coverage |
+| Surface | Data dependency | Backstop | Invalidation coverage |
 | --- | --- | --- | --- |
 | Homepage, Latest, Archive | Article collection and lead ordering | 300 seconds | `content`, `articles` |
 | Search | Article text and Contributor names | 300 seconds | `content`, `articles`, `contributors`, `search` |
-| Article | Article plus Contributor references | 300 seconds | `content`, `articles`, `article:{slug}` |
-| Contributor | Contributor plus related Articles | 300 seconds | `content`, `contributors`, `contributor:{slug}`, `contributor-articles:{slug}` |
-| About | Managed page content | 300 seconds | `content`, `pages`, `page:about` |
-| Site Settings | Publication identity and defaults | 300 seconds | `content`, `settings` |
-| Sitemap | Article and Contributor collections | 300-second underlying reads | shared collection tags |
-| Feed | Article collection | 300-second underlying read and shared-cache header | `content`, `articles` |
+| Article | Article and Contributor references | 300 seconds | `content`, `articles`, `article:{slug}` |
+| Contributor | Contributor and related Articles | 300 seconds | `content`, `contributors`, `contributor:{slug}`, `contributor-articles:{slug}` |
+| About | Publication Settings projection | 300 seconds | `content`, `pages`, `page:about`, `settings` |
+| Sitemap and feed | Article/Contributor collections | 300-second underlying reads | shared collection tags |
 
-Configure a Sanity webhook to POST to `/api/revalidate/sanity` with an `Authorization: Bearer` value matching the server-only `SANITY_REVALIDATE_SECRET`. The endpoint accepts no caller-selected path or tag and invalidates only the fixed shared `content` tag. It returns only `{ revalidated: boolean }` and never returns the secret. Missing or incorrect secrets receive HTTP 401.
+Sanity's production webhook posts to `/api/revalidate/sanity` with an `Authorization: Bearer` value matching the server-only `SANITY_REVALIDATE_SECRET`. The endpoint accepts no caller-selected path or tag, invalidates only `content`, and returns only `{ "revalidated": true }` on success. Missing or incorrect authorization returns HTTP 401.
 
-The endpoint code is complete, but hosted webhook configuration and end-to-end hosted delivery are deferred to Phase 15. Until then, published changes use the 300-second fallback. Local development can also retain a stale App Router/dev-session entry; use `npm run sanity:check-cache` to compare origin, CDN, and provider reads without waiting five minutes. That diagnostic is read-only and cannot inspect a browser's in-memory or Next development cache.
+On October 19, 2026, the supplied Sanity delivery log contained 16 production attempts; all 16 returned HTTP 200 and `{ "revalidated": true }`, with no supplied failures. This confirms that those requests reached the endpoint and that it accepted the invalidation request. It does **not** prove that a particular public page fetched and displayed changed content afterward. No evidence establishes whether content was published after October 19.
 
-A query failure becomes a generic `ContentProviderError`; upstream details are logged only outside production. App Router error boundaries prevent raw stacks reaching visitors. Rollback is an intentional deployment change to `CONTENT_SOURCE=local`, not an automatic response to an outage.
+### Verify propagation during a future approved edit
 
-Publication Settings is optional from the public provider's perspective during recovery. Missing published settings use validated application identity defaults and the controlled local About copy/roster empty states. Draft Publication Settings content is never read publicly.
+Use a real, already-approved editorial update; do not create or alter production content solely to test infrastructure.
+
+1. Before publishing, record the affected public URL, the expected visible change, and the current visible value. Use a clean non-Preview browser.
+2. Publish once in Studio and record the time without copying content or credentials into logs.
+3. In Sanity's webhook attempt log, confirm the matching attempt returned HTTP 200 and `{ "revalidated": true }`.
+4. Reload the exact public URL in a clean browser and record when the approved change first appears. Also check any relationship-dependent surface affected by the edit, such as Homepage or the Contributor page.
+5. If it remains stale, wait through the 300-second fallback without republishing. Run `npm run sanity:check-cache` to compare origin, CDN, and provider reads; this command is read-only and cannot inspect browser memory or a Next.js development cache.
+6. After five minutes, compare the provider result, webhook log, public response, and Cloudflare deployment/runtime configuration. Escalate with those timestamps rather than rotating secrets or publishing repeatedly.
+
+The remaining operational gap is one recorded end-to-end observation tying an approved publish to the first visible public response. Successful delivery history alone cannot close that gap.
+
+## Failure and recovery behavior
+
+A query failure becomes a generic `ContentProviderError`; upstream details are not exposed to visitors. App Router error boundaries prevent raw stacks reaching the public site. Missing published Publication Settings uses controlled fallback identity/About content.
+
+Rollback is an intentional deployment change. Selecting `CONTENT_SOURCE=local` requires a reviewed rebuild and can expose fixture content, so use it only when leadership explicitly accepts that consequence. It is not a substitute for restoring Sanity content. See `docs/handoff/SBR_TECH_STACK_AND_RECOVERY.md`.
 
 ## Images and search
 
-Image projections retain public URL, dimensions, crop, hotspot, alt text, caption, and credit. Internal rights notes are not projected. Next Image allows `cdn.sanity.io`, uses responsive sizes, and maps hotspot positioning. Search stays behind `searchArticles`, queries published CMS text and references, then applies existing deterministic ranking.
+Image projections retain the public URL, dimensions, crop, hotspot, alt text, caption, and credit; internal rights notes are not projected. Search stays behind `searchArticles`, reads published CMS text and references, and applies deterministic application ranking.
 
-## Verification
+## Verification commands
 
 ```bash
-npm run sanity:typegen
 npm run sanity:check-provider
+npm run sanity:check-cache
 npm run verify
 npm run test:e2e
 npm run test:e2e:sanity
 ```
 
-The ordinary suite proves local rollback. The Sanity suite proves a published CMS article reaches Homepage, Article, Contributor, Latest, Archive, Search, About, sitemap, and feed while a local-only slug remains unavailable. See `PHASE_12_ACCEPTANCE.md` for the manual draft and cache tests.
+Choose checks in proportion to the change. Documentation-only maintenance does not require the application suites; provider, route, or cache code changes do.

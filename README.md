@@ -1,101 +1,67 @@
 # Sidwell Business Review
 
-Phase 1 prototype for the official website of the Sidwell Business Review, a student-run business publication at Sidwell Friends School.
+The production website for the Sidwell Business Review, a student-run business publication at Sidwell Friends School.
 
-## Repository location
+- Public site: <https://website.sidwellbusinessreview.workers.dev/>
+- Editorial Studio: <https://sidwell-business-review.sanity.studio/>
+- Repository: `sidwellbusinessreview-svg/website`
+- Production branch: `main`
 
-The expected local repository path is:
+The public application uses Next.js 16, React 19, TypeScript, Tailwind CSS v4, Sanity Content Lake, and Cloudflare Workers/OpenNext. Sanity Studio is hosted separately and is not exposed at `/studio` on the public site.
 
-```text
-/Users/Evan/Documents/GitHub/website
-```
+## Local development
 
-Before running commands, confirm your terminal is inside that folder. The GitHub repository is the shared source of truth; do not create a second Next.js project inside this repository.
-
-## Getting started
-
-The project pins Node.js major version 24 in `.nvmrc`. Next.js 16.2.10 requires Node.js 20.9 or newer, and Node 24 is also the version that successfully completed the project baseline checks.
+Use Node.js 24 from `.nvmrc`:
 
 ```bash
 nvm install
 nvm use
 npm ci
-cp .env.example .env.local
 npm run dev
 ```
 
-Then open [http://localhost:3000](http://localhost:3000). The development server automatically refreshes when files change.
+Open <http://localhost:3000>. With no explicit provider setting, local development uses the validated local fixture provider. To test published production content, copy `.env.example` to `.env.local`, configure the documented public Sanity values, and set `CONTENT_SOURCE=sanity`. Never commit `.env.local` or any secret.
 
-The environment file may remain blank to use the temporary local-content rollback mode. Set `CONTENT_SOURCE=sanity` only after adding approved public Sanity values; follow `docs/CONTENT_PROVIDER.md`. Never commit `.env.local` or real secrets.
-
-Draft preview also requires server-only `SANITY_API_READ_TOKEN` and `SANITY_PREVIEW_SECRET` values. Editors enter through Studio’s **Preview** tool; see `docs/PREVIEW_WORKFLOW.md`. Neither secret may use a `NEXT_PUBLIC_` prefix.
-
-## Sanity Studio
-
-The editorial Studio is a standalone Sanity application whose source remains in this repository. It is not bundled into the public Next.js application and `/studio` is not a public route. Sanity authentication restricts editing to invited project members.
-
-Run the public site and Studio in separate terminals:
+Run standalone Studio in a second terminal:
 
 ```bash
-npm run dev
 npm run studio:dev
 ```
 
-The public site normally uses port 3000 and standalone Studio normally uses port 3333. Build Studio with `npm run studio:build`; after the publication chooses a `*.sanity.studio` hostname, deploy it with `npm run studio:deploy`.
+Studio normally opens at <http://localhost:3333>. Draft Preview additionally requires the documented server-only Viewer token and preview secret. See [Sanity setup](docs/SANITY_SETUP.md), [content providers](docs/CONTENT_PROVIDER.md), and [Preview workflow](docs/PREVIEW_WORKFLOW.md).
 
-Standalone Studio always targets the approved `bumxf5q6` project and `production` dataset. `SANITY_STUDIO_PREVIEW_ORIGIN` may point Presentation at a different public frontend origin; it is public configuration and must never contain credentials.
+## Publishing and deployment
 
-Run the token-free connectivity check after configuring `.env.local`:
+Editors publish routine content in the hosted Sanity Studio. Publishing does not require a website deployment. A secret-authenticated Sanity webhook asks the public application to invalidate its shared content cache; public reads also have a 300-second revalidation backstop. A successful webhook response proves delivery and invalidation-request acceptance, not that a particular page already displays the new content. The [Editor handbook](docs/handoff/SBR_EDITOR_HANDBOOK.md) and [maintenance checklist](docs/handoff/SBR_LAUNCH_AND_MAINTENANCE_CHECKLIST.md) contain the operational procedure.
 
-```bash
-npm run sanity:check
-```
+Code and Studio-schema changes go through a reviewed branch and pull request. Cloudflare builds production from `main`; do not deploy or promote changes without the publication's approval. The hosted Studio is deployed separately with `npm run studio:deploy` when its source changes.
 
-Studio configuration lives in `sanity.config.ts`, CLI configuration in `sanity.cli.ts`, and integration code in `src/sanity/`. Check the public provider without a token with `npm run sanity:check-provider`. Setup and separate-hosting guidance is in `docs/SANITY_SETUP.md`.
-
-## Validation
+## Useful commands
 
 ```bash
-npm run lint
-npm run typecheck
-npm run build
+npm run verify                 # lint, types, content validation, unit tests, build
+npm run test:e2e               # local-provider browser coverage
+npm run studio:build           # standalone Studio production build
+npm run sanity:check           # token-free Sanity connectivity
+npm run sanity:check-provider  # published provider diagnostic
+npm run sanity:check-cache     # read-only origin/CDN/provider comparison
 ```
 
-`npm run lint` checks the code for common errors. `npm run typecheck` validates TypeScript without creating files. `npm run build` creates and validates the production version. To run that production build locally, use `npm start` after a successful build.
+Use `npm run test:e2e:sanity` only with the documented public Sanity configuration and current fixture expectations. Authenticated audit and migration commands have stricter prerequisites; read their documentation before running them.
 
-## Understanding the different copies
+## Architecture map
 
-- **Local copy:** The files on your computer and the site served by `npm run dev`. Local work is private until it is committed and pushed.
-- **GitHub copy:** The committed repository shared with collaborators. A commit records changes locally; a push sends those commits to GitHub.
-- **Preview copy:** A temporary hosted version created from a branch or pull request once preview hosting is configured. It lets reviewers test changes without affecting the public site.
-- **Production copy:** The official public website built from the approved production branch and production environment settings. Production should change only through the reviewed deployment process.
+- `src/app/`: public routes, metadata, sitemap, robots, feed, and API endpoints.
+- `src/components/`: reusable publication UI and Article rendering.
+- `src/content/`: provider-independent contract, local fixtures, and Sanity provider/adapters.
+- `src/sanity/`: schemas, Studio controls, diagnostics, and target validation.
+- `src/config/site.ts`: validated fallback identity and structural defaults.
+- `src/app/globals.css`: centralized design tokens and Article typography.
+- `sanity.config.ts`: standalone Studio configuration.
+- `docs/handoff/`: editor, administrator, maintenance, and recovery guidance.
 
-Never assume that saving a file updates GitHub or production. Those are separate steps.
+Public pages and general components must use the access functions from `src/content/index.ts`; they must not import raw fixture arrays or Sanity records. Production uses `CONTENT_SOURCE=sanity`. `CONTENT_SOURCE=local` remains an explicit, temporary recovery mode and is never an automatic fallback after Sanity has been selected.
 
-## Important folders
+## Security and recovery
 
-- `src/app/` contains public pages, the root layout, global styles, and the custom not-found page. It does not contain Sanity Studio.
-- `src/components/` contains reusable publication components such as the header, footer, logo, article cards, metadata, contributor information, captions, and article-body renderer.
-- `src/content/` contains the domain contract, local and Sanity providers, adapters, queries, and provider-independent access layer.
-- `src/sanity/` contains environment validation, the token-free public client, health check, Studio setup state, and the future schema registration point.
-- `src/config/site.ts` contains the publication name, description, tagline, navigation, and contact information.
-- `public/` is for static files such as a future image logo, local photography, and publication assets.
-- `docs/` contains baseline records, architecture decisions, account-ownership guidance, and the phased development plan.
-
-## Changing content
-
-- Sample articles and contributors: `src/content/data.ts`
-- Content types and supported article blocks: `src/content/types.ts`
-- Content-access functions: `src/content/index.ts`
-- Publication name and site settings: `src/config/site.ts`
-- Colors, typography, spacing, and layout tokens: the `:root` section of `src/app/globals.css`
-- Fonts loaded for the whole site: `src/app/layout.tsx`
-- Text logo behavior: `src/components/site-logo.tsx`
-
-Pages call functions such as `getArticles`, `getArticleBySlug`, `getContributors`, and `searchArticles`; they do not import sample arrays or raw Sanity records. This boundary keeps provider changes out of routes.
-
-## Current scope
-
-Phase 12 supplies an opt-in Sanity public-content provider while retaining `CONTENT_SOURCE=local` as a temporary rollback mode until migration acceptance. Sanity mode uses published content only and a token-free public client. Production should change to `CONTENT_SOURCE=sanity` after real-content migration and editorial acceptance.
-
-Project security and contribution expectations are documented in `SECURITY.md` and `CONTRIBUTING.md`.
+Never commit or print tokens, passwords, recovery codes, or populated environment files. Store service ownership and recovery details in the publication's approved private register, not in this public repository. Start with the [handoff package](docs/handoff/README_FIRST.md), [technical recovery notes](docs/handoff/SBR_TECH_STACK_AND_RECOVERY.md), [account-ownership template](docs/ACCOUNT_OWNERSHIP_TEMPLATE.md), and [security policy](SECURITY.md).

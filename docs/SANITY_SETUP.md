@@ -1,133 +1,135 @@
-# Sanity setup
+# Sanity setup and administration
 
-Sanity Studio is hosted separately from the public Next.js application. Its source, schemas, custom editor controls, Structure, and Presentation configuration remain in this repository, while the public deployment contains no `/studio` route.
+Sanity Studio is hosted separately from the public Next.js application. Its source, schemas, custom controls, Structure, and Presentation configuration remain in this repository; the public deployment has no `/studio` route.
 
-## Before creating anything
+## Current target
 
-Confirm that the school has approved Sanity for published student bylines, approved profile details, images, and articles. Use the publication Gmail as the durable administrator or recovery account, and record ownership details in the private operations register—not in Git.
+- Project ID: `bumxf5q6` (public identifier)
+- Dataset: `production`
+- API version: `2026-03-01`
+- Hosted Studio: <https://sidwell-business-review.sanity.studio/>
+- Preview frontend: <https://website.sidwellbusinessreview.workers.dev/>
 
-Do not paste tokens into source code, issues, chat, screenshots, or this documentation. Phase 10 needs no API token. Sanity Studio authenticates invited users through Sanity, while the health check reads only published data from the public dataset.
+The standalone Studio target is fixed in source. Public application reads validate the matching `NEXT_PUBLIC_SANITY_*` values. Do not create another project or dataset to work around a configuration problem.
 
-## 1. Create or select the Sanity project
+## Policy and ownership
 
-1. Sign in at [sanity.io/manage](https://www.sanity.io/manage) with the approved publication administrative identity.
-2. Create a project for Sidwell Business Review, or select the project already approved for the publication.
-3. In project settings, find the project ID. A project ID is public configuration, not a password.
-4. Confirm the existing `production` dataset. This project intentionally uses the same production dataset for local Studio, hosted Studio, preview, and public reads.
-5. Do not put private student information in a public dataset. Published documents in a public dataset can be read without authentication.
+Confirm school approval before adding new kinds of student information. Published documents in the public dataset are anonymously readable, so private student information does not belong there.
 
-The current code does not create projects or datasets automatically because doing so changes an external account and requires the human owner to confirm policy, organization, region, and billing choices.
+Use a publication-controlled administrative/recovery identity where school policy permits, invite maintainers and editors through individual accounts, and keep the real ownership/recovery register outside Git. Do not put tokens, recovery codes, passwords, or private contact details in source, issues, chat, screenshots, or documentation.
 
-## 2. Create `.env.local`
+## Local configuration
 
-From the repository root:
+Copy the example file:
 
 ```bash
 cp .env.example .env.local
 ```
 
-Set these public values in `.env.local`:
+The example includes the public project, dataset, and API date. For published CMS reads, select `CONTENT_SOURCE=sanity`. Local fixture-backed development may keep `CONTENT_SOURCE=local`.
+
+Use these local origins unless a task explicitly tests hosted services:
 
 ```text
-NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id
-NEXT_PUBLIC_SANITY_DATASET=production
-NEXT_PUBLIC_SANITY_API_VERSION=YYYY-MM-DD
 NEXT_PUBLIC_SANITY_STUDIO_URL=http://localhost:3333
 SANITY_STUDIO_PREVIEW_ORIGIN=http://localhost:3000
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-Choose and retain one documented API date rather than changing it on every build. Leave `SANITY_API_READ_TOKEN`, `SANITY_PREVIEW_SECRET`, and `SANITY_REVALIDATE_SECRET` blank in Phase 10. They are reserved for later server-only preview and webhook work.
+Draft Preview requires a server-only Viewer token and preview secret. Webhook handling requires a separate server-only revalidation secret. Migration apply/rollback commands use a write token only when explicitly authorized; the public website must never receive it. No secret name may be prefixed with `NEXT_PUBLIC_`.
 
-The standalone workspace target itself is fixed in source to project `bumxf5q6` and dataset `production`; it never depends on `NEXT_PUBLIC_*` variables to exist. `SANITY_STUDIO_PREVIEW_ORIGIN` is optional public configuration for Presentation and must contain the frontend origin, not a token or secret.
-
-`.env.local` is ignored by Git. Confirm before proceeding:
+`.env.local` is ignored. Confirm before proceeding:
 
 ```bash
 git check-ignore .env.local
 git status --short
 ```
 
-Never add `NEXT_PUBLIC_` to a secret. Values with that prefix can be included in browser code.
+## CORS and trusted origins
 
-## 3. Add trusted CORS origins
+In Sanity Manage, open **Settings → API settings → CORS Origins**. Exact trusted origins that need authenticated browser access may include:
 
-Because Studio runs in the browser and makes authenticated requests to Sanity, each trusted Studio origin must be in the project's CORS list with credentials enabled.
+- `http://localhost:3333` for local Studio;
+- `https://sidwell-business-review.sanity.studio` for hosted Studio;
+- `https://website.sidwellbusinessreview.workers.dev` for production Presentation/Preview;
+- a specific approved temporary review origin only while it is needed.
 
-In Sanity Manage, select the project, open **Settings → API settings → CORS Origins**, and add:
+Enable credentials where authenticated Studio/Presentation requires them. Never add a platform-wide wildcard with credentials. Remove temporary origins after review. Server-side token-free public reads do not require a CORS entry.
 
-- `http://localhost:3333` with credentials for local standalone Studio access.
-- The chosen `https://<hostname>.sanity.studio` origin with credentials after the first Studio deployment.
-- The exact public site origin when Presentation/Preview is configured.
-- Only exact, trusted preview origins that need Studio access.
-
-Do not add a platform-wide wildcard such as all Vercel or Netlify sites with credentials. A public repository's fork previews make broad credentialed wildcards especially dangerous. Remove temporary preview origins after review. Server-side public reads do not require a CORS entry.
-
-Administrators may inspect configured origins with:
+Administrators may inspect configured origins without exposing credentials:
 
 ```bash
 npx sanity cors list
 ```
 
-## 4. Verify connectivity and open Studio
+## Connectivity and Studio development
 
-Run the public, token-free connectivity check:
+Run the token-free connectivity check:
 
 ```bash
 npm run sanity:check
 ```
 
-Then start the public application and Studio in separate terminals:
+Then start the public site and Studio in separate terminals:
 
 ```bash
 npm run dev
 npm run studio:dev
 ```
 
-Open [http://localhost:3333](http://localhost:3333). Sanity should present its sign-in flow to a signed-out visitor. Signing in does not grant access by itself: the identity must be a member of the selected project. A visitor without membership cannot edit publication content.
+Open <http://localhost:3333>. Signing in does not grant access by itself; the identity must be an invited project member. The public site remains on port 3000 and has no Studio route.
 
-The public site remains at [http://localhost:3000](http://localhost:3000) and has no Studio route. If public Sanity values are incomplete or malformed, validation stops with a configuration-focused error.
-
-Build standalone Studio without deploying it:
+Build Studio without deploying it:
 
 ```bash
 npm run studio:build
 ```
 
-When the publication is ready to choose its Sanity-hosted hostname, run `npm run studio:deploy`. After deployment, set `NEXT_PUBLIC_SANITY_STUDIO_URL` to that exact HTTPS origin in the public hosting environment and rebuild the public site. Do not commit a hostname merely to complete a local build.
+Deploy source changes to the existing hosted Studio only through the reviewed workflow, with the production Preview origin set explicitly:
 
-## 5. Invite and revoke editors
+```bash
+SANITY_STUDIO_PREVIEW_ORIGIN=https://website.sidwellbusinessreview.workers.dev npm run studio:deploy
+```
 
-In Sanity Manage, open the project's member/access settings:
+Do not omit `SANITY_STUDIO_PREVIEW_ORIGIN` for a hosted deployment. If neither it nor a suitable Studio-build `NEXT_PUBLIC_SITE_URL` is present, the Studio configuration falls back to `http://localhost:3000`, causing hosted Preview to target localhost. The hosted Studio is a separate deployment from the Cloudflare Worker. A public application rebuild is required when `NEXT_PUBLIC_SANITY_STUDIO_URL` or other build variables change.
+
+## Invite, review, and revoke access
 
 1. Invite each approved editor through an individual identity.
 2. Grant the minimum role supported by the approved plan and workflow.
 3. Do not create shared student credentials.
-4. Writers do not need Studio accounts merely to submit drafts through the publication's existing process.
-5. Review membership each semester and before leadership handoff.
-6. Remove an editor's project access promptly when their role ends; confirm they no longer appear in the member list.
+4. Review members each semester and before leadership handoff.
+5. Remove access promptly when a person's role ends.
+6. Confirm at least two authorized maintainers can administer the service where policy and plan allow.
+7. Record who verified membership and when in the private ownership register—never record credentials.
 
-The publication Gmail remains the durable administrator or recovery identity. A faculty adviser may be added with the minimum useful role when school policy calls for it. Sanity plan limitations and role choices must be reviewed before inviting a larger editorial team.
+Sanity's plan and available role granularity must be reviewed before expanding the editorial team.
 
-## Security boundaries
+## Security boundaries and secret rotation
 
-- `src/sanity/lib/client.ts` is the public published-content client. It deliberately has no token or write capability.
-- Sanity Studio handles its own authenticated editing session for invited project members.
-- Future draft-preview tokens belong only in server-side code and deployment secret storage.
-- Never print, inspect, or troubleshoot secrets through browser logs or commands that could enter shared transcripts.
-- If a token is exposed, revoke it in Sanity Manage immediately, create a replacement only if still needed, update the approved secret store, and review repository and deployment history.
+- `src/sanity/lib/client.ts` is public, published-only, token-free, and has no write capability.
+- Draft reads use a server-only Viewer token with `drafts`, no CDN, and no store.
+- Studio uses each invited member's authenticated Sanity session.
+- Revalidation uses a dedicated bearer secret shared only by Sanity's webhook and the Cloudflare Worker.
+- Write tokens are limited to separately authorized migration operations and never belong in public deployment variables.
 
-## Common problems
+If a secret is missing or exposed, revoke/rotate it in the owning service, replace it in every legitimate secret store, promote/redeploy the resulting Worker version when required, and retest only the affected workflow. A revalidation-secret rotation must update both Cloudflare and the Sanity webhook. Never try to reveal an old hidden value.
 
-- **Studio does not start:** confirm the three public Sanity variables are present, then restart `npm run studio:dev`.
-- **Configuration error during build:** one value is missing, the API version is not `YYYY-MM-DD`, or `NEXT_PUBLIC_SANITY_STUDIO_URL` is not an absolute HTTP(S) origin.
-- **CORS or credentials error:** add the exact current origin with credentials enabled. Do not solve this using a broad wildcard.
-- **Sign-in succeeds but editing is unavailable:** confirm the signed-in identity was invited to this project and has an appropriate role.
-- **Health check fails while Studio signs in:** confirm the dataset exists and is public; Phase 10's health client intentionally sends no token.
+## Troubleshooting
 
-## Phase boundary
+- **Public provider configuration error:** confirm the three public identifiers and `CONTENT_SOURCE=sanity`; do not add a read token to public reads.
+- **Studio cannot edit after sign-in:** confirm project membership and the member's role.
+- **CORS/credentials error:** add the exact current origin with credentials; never use a broad wildcard.
+- **Hosted Preview points to localhost:** confirm `SANITY_STUDIO_PREVIEW_ORIGIN` for the Studio deployment and redeploy Studio.
+- **Presentation cannot connect:** verify the production frontend origin, Draft Mode endpoint, Viewer token, exact CORS origins, and Preview banner/Visual Editing bridge. Reopen Preview to obtain a fresh expiring URL secret.
+- **Publish returns 200 in webhook logs but content looks stale:** follow the propagation procedure in `docs/CONTENT_PROVIDER.md`; a delivery response is not page-level proof.
+- **Webhook returns 401:** align the revalidation secret in the webhook and current promoted Worker without exposing it.
+- **Token-free health check fails while Studio works:** confirm the target and that the production dataset remains public.
 
-Phase 11C provides the simplified Contributor, Article, About-with-staff, and Site Settings schemas. Public routes still use local content; queries, provider adapters, caching, and cutover belong to later phases.
+## Schema and dataset safety
 
-Before schema removal or a dataset reset, follow `DATASET_AUDIT_AND_RESET.md`. Schema changes alone never remove old Content Lake documents. Always inspect both published and draft records and export before an approved destructive cleanup.
+Schema code does not remove or rename existing Content Lake documents. Before schema removal or dataset cleanup, follow `DATASET_AUDIT_AND_RESET.md`: inspect published and draft records, export first, dry-run a repeatable migration, and apply only with explicit authorization.
 
-Official references: [Studio deployment](https://www.sanity.io/docs/studio/deployment), [CORS configuration](https://www.sanity.io/docs/content-lake/cors), and [token safety](https://www.sanity.io/docs/content-lake/keeping-your-data-safe).
+Use `npm run sanity:audit-pages` after fixed Publication Settings lifecycle changes. It uses the authenticated CLI user and must not be replaced with a public-only check when draft state matters.
+
+See the [Preview workflow](PREVIEW_WORKFLOW.md), [content provider](CONTENT_PROVIDER.md), [editor handbook](handoff/SBR_EDITOR_HANDBOOK.md), and [recovery notes](handoff/SBR_TECH_STACK_AND_RECOVERY.md) for current operations.

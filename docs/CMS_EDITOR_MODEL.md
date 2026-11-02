@@ -1,6 +1,6 @@
 # Simplified Sanity editor model
 
-Phase 11B keeps the Studio deliberately small. Phase 12 can serve published public content through the Sanity provider while retaining explicit local rollback mode.
+The current Studio deliberately keeps the accepted launch model small. Production serves published Sanity content through the provider boundary; explicit local mode remains a temporary fixture-backed recovery/development option.
 
 ## Navigation
 
@@ -14,9 +14,9 @@ Each Article pane shows a count, search field, sort control, New article button,
 
 ## Contributor
 
-Only **Name** and **Slug** are required. Role and graduation year are optional. Contributor identity is text-only; records have no photo, portrait, avatar, initials artwork, biography, email, or social field. Publish a contributor once before referencing that person from an article; the contributor then supplies the linked byline and profile identity.
+Only **Name** and **Slug** are required; graduation year is optional. Contributor records have no publication role. Contributor identity is text-only; records have no photo, portrait, avatar, initials artwork, biography, email, or social field. Publish a contributor once before referencing that person from an article; the contributor then supplies the linked byline and profile identity.
 
-Contributors default to active. Use **Archive contributor** for ordinary offboarding; archived people remain on old bylines and can be restored. The Contributor form shows live incoming references. Context-aware deletion allows unreferenced deletion, offers About removal for About-only references, and blocks Article-linked deletion until the bylines are reassigned.
+Contributors default to active. Use **Archive contributor** for ordinary offboarding; archived people remain on old bylines and can be restored. The Contributor form shows live incoming references. Context-aware deletion allows unreferenced deletion, offers Publication Settings leadership removal for leadership-only references, and blocks Article-linked deletion until the bylines are reassigned.
 
 ## Publication Settings and About
 
@@ -74,7 +74,7 @@ Follow [SIMPLIFIED_PUBLISHING_WORKFLOW.md](./SIMPLIFIED_PUBLISHING_WORKFLOW.md) 
 - Convert prior article `authors` references to `contributors`.
 - Convert legacy publication values to reviewed `YYYY-MM` months. The compatibility adapter may read old values temporarily, but Studio does not expose an exact-day or precision control.
 - Remove obsolete issue/category/tag fields only after exporting and reviewing affected drafts.
-- Fold any legacy Masthead data into About staff entries after export and review; do not delete an unseen draft automatically.
+- Fold any legacy Masthead data into Publication Settings leadership after export and review; do not delete an unseen draft automatically.
 - The one observed published dataset asset is retained; no dataset content was deleted.
 
 Run `npm run sanity:typegen` after schema changes. Generated artifacts are `src/sanity/schema.json` and `src/sanity/sanity.types.ts`; never edit them directly.

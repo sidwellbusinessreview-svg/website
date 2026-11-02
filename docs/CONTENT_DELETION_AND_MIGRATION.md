@@ -4,10 +4,10 @@ Removing a schema from source code does not remove matching documents from Conte
 
 ## Editorial deletion behavior
 
-- About (`about`) and Site Settings (`siteSettings`) are durable fixed-ID singletons. They must never be deleted, duplicated, copied, or unpublished through Studio. Draft-only singleton discard is also prohibited because it would destroy the only editable version.
+- Publication Settings (`siteSettings`) is the durable fixed-ID singleton for global settings, About, and leadership. It must never be deleted, duplicated, copied, or unpublished through Studio. Draft-only singleton discard is also prohibited because it would destroy the only editable version. Legacy `about` records, if found, are migration evidence and not an active singleton.
 - Contributors normally leave the staff through **Archive contributor**. Existing bylines and history remain intact.
 - An unreferenced Contributor can be permanently deleted after confirmation.
-- A Contributor used only by About can be removed from About and deleted in one guarded transaction.
+- A Contributor used only by Publication Settings leadership can be removed there and deleted through the guarded workflow.
 - A Contributor used by Articles cannot be deleted immediately. Editors must archive them or reassign every draft and published byline first. Articles are never cascade-deleted.
 - Draft-only Articles use **Delete draft permanently**.
 - Published Articles should normally use **Unpublish article**. **Delete article permanently** is destructive and removes both variants after confirmation.
@@ -18,7 +18,7 @@ Removing a schema from source code does not remove matching documents from Conte
 | Relationship | Strength and reason | Deletion behavior | Editor resolution |
 |---|---|---|---|
 | Article → Contributor | Strong; a byline must never silently break | Blocks Contributor deletion | Archive or reassign in byline order |
-| About → Contributor | Strong; staff entries must remain intentional | Blocks ordinary deletion | Remove from About and delete transaction |
+| Publication Settings → Contributor | Strong; leadership entries must remain intentional | Blocks ordinary deletion | Remove from Publication Settings and use the guarded delete workflow |
 | Article → featured image | Strong asset reference; published media must remain | Asset deletion is blocked/reported | Replace image before asset cleanup |
 | Site Settings → logo | Strong brand dependency | Asset remains while referenced | Switch logo or replace asset |
 | Article body → inline image | Strong asset reference | Asset remains while referenced | Replace/remove the block |
@@ -26,4 +26,4 @@ Removing a schema from source code does not remove matching documents from Conte
 
 Compatibility schemas are not an acceptable substitute for migration. Any temporary compatibility layer needs an ADR, owner, and removal date.
 
-Run `npm run sanity:audit-singletons` before singleton lifecycle or migration work. It is read-only and reports both fixed IDs, draft/published state, retained-history evidence available to the CLI, wrong-ID records, duplicates, legacy singleton IDs, and references to obsolete IDs. A partial history probe is reported as `historyIndeterminate`; it is not proof that a singleton was never created. Confirm deleted/discarded history in authenticated Studio before choosing restoration or clean initialization.
+Run `npm run sanity:audit-singletons` before Publication Settings lifecycle or migration work. It is read-only and reports the current `siteSettings` fixed ID, draft/published state, retained-history evidence available to the CLI, wrong-ID records, duplicates, legacy singleton IDs (including obsolete About records), and references to obsolete IDs. A partial history probe is reported as `historyIndeterminate`; it is not proof that a singleton was never created. Confirm deleted/discarded history in authenticated Studio before choosing restoration or clean initialization.

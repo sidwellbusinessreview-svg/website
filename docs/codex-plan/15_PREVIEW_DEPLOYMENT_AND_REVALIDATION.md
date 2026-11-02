@@ -1,5 +1,7 @@
 # Phase 15: Preview Deployment and Hosted Revalidation
 
+> **Historical plan — not current operating instructions (November 1, 2026).** The site is already deployed on Cloudflare Workers with production content from Sanity and a separately hosted Sanity Studio. Preserve this file as planning history; do not execute its Vercel, pre-cutover, phase-order, or old content-model steps. Use `README.md`, `PROJECT_STATUS.md`, and `docs/handoff/` for current operations.
+
 ## Objective
 
 Deploy a private reviewable version of the CMS-backed site and prove that hosted publishing updates work.

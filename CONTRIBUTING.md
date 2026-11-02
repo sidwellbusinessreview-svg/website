@@ -1,20 +1,18 @@
 # Contributing
 
-Thank you for helping improve the Sidwell Business Review website. This guide is written for contributors who may be new to Git and Next.js.
-
-Writers and editors do not need repository access to submit articles. Editorial content should eventually move through the publication’s approved editorial workflow and CMS. Repository access is for people maintaining code, configuration, and technical documentation.
+Writers and editors do not need repository access for ordinary publishing. Editorial content belongs in Sanity Studio; repository access is for maintainers of code, configuration, and technical documentation.
 
 ## Before starting
 
-1. Make sure you are working in `/Users/Evan/Documents/GitHub/website`.
-2. Read `README.md`, `AGENTS.md`, `PROJECT_STATUS.md`, and relevant architecture decisions in `docs/DECISIONS.md`.
-3. Pull the current default branch.
-4. Confirm `git status` is clean. Do not discard changes you do not recognize.
+1. Open the `sidwellbusinessreview-svg/website` repository root.
+2. Read `README.md`, `AGENTS.md`, `PROJECT_STATUS.md`, `docs/DECISIONS.md`, and the task-relevant documentation.
+3. Fetch and start from the latest `main`.
+4. Confirm `git status` is clean. Preserve changes you do not recognize.
 5. Use the Node.js major version in `.nvmrc`.
 
-## Branches
+## Branches and local setup
 
-Create a short-lived branch from the current default branch. Use a descriptive name such as:
+Create a short-lived, focused branch from `main`, for example:
 
 ```text
 feature/article-search
@@ -22,54 +20,50 @@ fix/mobile-headline-overflow
 docs/editor-handoff
 ```
 
-Keep one focused change per branch. Do not combine an unrelated redesign, dependency upgrade, and content change in one pull request.
-
-## Local setup
+Install and start the local fixture-backed site:
 
 ```bash
+nvm install
 nvm use
 npm ci
-cp .env.example .env.local
 npm run dev
 ```
 
-The placeholder environment file is currently optional because Phase 1 uses local sample content.
+Copy `.env.example` to `.env.local` only when you need explicit provider, CMS, or Preview configuration. Never commit the populated file. See `docs/CONTENT_PROVIDER.md` before selecting `CONTENT_SOURCE=sanity`.
 
-## Commits
+## Commits and scope
 
-Make small commits with clear, imperative messages:
+Keep one coherent change per branch. Do not mix an unrelated redesign, dependency upgrade, migration, and documentation cleanup. Use clear imperative commit messages, such as:
 
 ```text
 fix: prevent article image overflow
-docs: add account ownership guidance
+docs: clarify account recovery
 feat: improve contributor archive filtering
 ```
 
-Never commit secrets, populated environment files, generated build output, test artifacts, or unrelated local changes.
+Never commit secrets, generated build output, test artifacts, migration source evidence, or unrelated local changes.
 
-## Required verification
+## Verification
 
-Code changes must be verified before review:
+For code or configuration changes, run:
 
 ```bash
-npm run lint
-npm run typecheck
-npm run build
+npm run verify
 ```
 
-Also open the affected routes locally and test the behavior at desktop and mobile widths. Confirm keyboard focus, links, images, and the browser console remain healthy.
+Run `npm run test:e2e` for changes to routes, navigation, rendering, layout, accessibility, interaction, or browser configuration. Run the focused Sanity or Studio checks required by the affected subsystem and report anything omitted.
 
-Documentation-only changes should still run the checks when they affect commands, configuration, or architecture instructions.
+For documentation-only changes, use proportionate checks: review every diff, run `git diff --check`, validate commands and local links, and confirm no secret values entered the change. Do not run a full application suite solely to justify a documentation edit.
 
 ## Pull requests
 
 A pull request should explain:
 
-- What changed and why
-- Which routes or components are affected
-- How the change was tested
-- Screenshots for visible changes
-- Known limitations or follow-up work
-- Whether environment variables or service settings changed
+- what changed and why;
+- which routes, workflows, or documents are affected;
+- how the change was verified;
+- screenshots for visible changes;
+- known limitations and human follow-up;
+- whether environment-variable names or external service settings changed.
 
-Request review from an appropriate technical maintainer. Do not merge when required checks fail, when secrets may be present, or when the change bypasses the content-provider boundary without a documented architecture decision.
+Request review from an appropriate technical maintainer. Do not merge when required checks fail, secrets may be present, or the change bypasses the content-provider boundary or recovery safeguards.

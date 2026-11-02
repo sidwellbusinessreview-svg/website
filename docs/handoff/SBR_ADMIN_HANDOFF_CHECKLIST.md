@@ -1,60 +1,45 @@
 # Sidwell Business Review — Admin Handoff Checklist
 
-Use this when responsibility passes to a new Editor-in-Chief or technical lead.
+Use this when responsibility passes to a new Editor-in-Chief, faculty adviser, or technical maintainer. Record completion dates and responsible people in the approved private operations register, never in this public file.
 
-## Sanity
+## Service access to verify
 
-The successor should be able to:
+### Sanity
 
-- sign in to the Sanity organization/project;
-- open the hosted Studio;
-- manage project members;
-- access project API settings and webhooks;
-- understand that the production dataset is named `production`.
+- Project/dataset: `bumxf5q6` / `production`
+- Hosted Studio: <https://sidwell-business-review.sanity.studio/>
+- Required capabilities: open Studio, edit/save a draft, manage project members, inspect API/CORS settings, and inspect webhook attempts.
 
-Project ID:
+### GitHub
 
-`bumxf5q6`
+- Repository: `sidwellbusinessreview-svg/website`
+- Production branch: `main`
+- Required maintainer capabilities: clone/pull, create and push branches, open/review pull requests, inspect Actions, and merge approved changes.
 
-Hosted Studio:
+Prefer publication/organization ownership. Do not leave repository recovery dependent on one graduating student's account.
 
-https://sidwell-business-review.sanity.studio
+### Cloudflare
 
-## GitHub
+- Worker: `website`
+- Production URL: <https://website.sidwellbusinessreview.workers.dev/>
+- Required capabilities: view builds/deployments, inspect variable and secret names (not values), promote a known Worker version, and review failed builds/runtime logs.
 
-Repository:
+### Google Search Console
 
-`sidwellbusinessreview-svg/website`
+- Property: the canonical production origin currently documented in `../SEO_AND_DISCOVERY.md`.
+- Required capabilities: inspect indexing/crawl status, view the accepted sitemap, and manage authorized users.
+- Do not repeatedly request indexing to work around quota limits.
 
-The successor should have enough repository access to:
+### Publication-controlled identity and storage
 
-- pull the code;
-- create branches;
-- merge approved changes;
-- push to `main` when appropriate;
-- review deployment-related commits.
+- Confirm the durable recovery identity is controlled under school/publication policy.
+- Confirm approved recovery methods and billing contacts are current.
+- Confirm maintainers know where the private ownership register and Sanity dataset exports are stored.
+- Do not store passwords, tokens, recovery codes, or private contacts in this repository.
 
-Prefer organization/shared publication ownership rather than leaving the repository dependent on one graduating student's personal account.
+## Production configuration names
 
-## Cloudflare
-
-Worker name:
-
-`website`
-
-Production URL:
-
-https://website.sidwellbusinessreview.workers.dev
-
-The successor should be able to:
-
-- view deployments;
-- view build configuration;
-- manage runtime variables/secrets;
-- promote Worker versions;
-- inspect failed builds.
-
-## Production build variables
+Build/public variables:
 
 - `CONTENT_SOURCE=sanity`
 - `NEXT_PUBLIC_SITE_URL=https://website.sidwellbusinessreview.workers.dev`
@@ -63,43 +48,53 @@ The successor should be able to:
 - `NEXT_PUBLIC_SANITY_API_VERSION=2026-03-01`
 - `NEXT_PUBLIC_SANITY_STUDIO_URL=https://sidwell-business-review.sanity.studio`
 
-## Runtime secrets
+Server-only secrets:
 
 - `SANITY_API_READ_TOKEN`
 - `SANITY_PREVIEW_SECRET`
 - `SANITY_REVALIDATE_SECRET`
 
-Do not record their actual values in this handbook.
-
-If a secret is lost, rotate/replace it rather than trying to expose an old hidden value.
+Verify names and presence only. If a secret is unavailable, rotate it through the owning service and update every legitimate consumer; never attempt to reveal the old value.
 
 ## Revalidation webhook
 
-Sanity has a production webhook that calls:
+The production Sanity webhook calls:
 
-`POST https://website.sidwellbusinessreview.workers.dev/api/revalidate/sanity`
+```text
+POST https://website.sidwellbusinessreview.workers.dev/api/revalidate/sanity
+Authorization: Bearer <SANITY_REVALIDATE_SECRET>
+```
 
-Authentication uses:
+It should cover published changes for `article`, `contributor`, and `siteSettings` in the `production` dataset. Draft/version events should remain disabled. A revalidation-secret rotation requires updating both Sanity and Cloudflare.
 
-`Authorization: Bearer <SANITY_REVALIDATE_SECRET>`
+The supplied log showed 16 successful attempts on October 19, 2026. Do not infer current secret custody or later publishing activity from that historical result.
 
-The webhook should apply to the `production` dataset and published changes for:
+## Onboard a maintainer or editor
 
-- `article`
-- `contributor`
-- `siteSettings`
+1. Obtain approval for the person's role and duration.
+2. Invite their individual account to only the services they need.
+3. Grant the minimum useful role.
+4. Have them sign in and perform a non-destructive capability check; a Studio editor may create/save and then remove an unpublished test draft only when authorized.
+5. Review the Editor handbook, secret rules, publishing approval, and escalation contacts.
+6. Record the verifier, date, and granted scope in the private register.
 
-Draft/version events should not be enabled.
+## Offboard access
 
-## Annual handoff procedure
+1. Confirm the incoming maintainer can operate the service before removing the outgoing maintainer.
+2. Remove the outgoing person's Sanity, GitHub, Cloudflare, Search Console, and private-storage access as applicable.
+3. Transfer billing/recovery responsibilities where applicable.
+4. Rotate secrets only when custody or trust boundaries changed, exposure is suspected, or policy requires it.
+5. Verify Preview, webhook delivery, and production after any rotation.
+6. Record completion without recording secret values.
 
-1. Add the successor to Sanity.
-2. Add the successor to GitHub/repository ownership.
-3. Add the successor to Cloudflare.
-4. Confirm the successor can open Studio and edit a draft.
-5. Confirm the successor can see Cloudflare deployments.
-6. Confirm the successor can access the GitHub repository.
-7. Review this handbook together.
-8. Remove access for people who no longer need administrative privileges.
-9. Rotate sensitive secrets if ownership or trust boundaries changed.
-10. Confirm at least two current students have administrative access so the site is not dependent on one person.
+## Handoff acceptance
+
+- At least two currently authorized maintainers can access each critical service where plan and policy permit.
+- No critical service depends solely on a graduating student's personal account.
+- One maintainer can identify and promote the last known good Cloudflare version.
+- One maintainer can locate the latest dataset export and its verification record.
+- One maintainer can inspect webhook attempts and follow the stale-content procedure.
+- One editor can Preview a saved draft without exposing it publicly.
+- Departed members have been removed.
+
+These checks remain incomplete until a human records evidence in the private register.

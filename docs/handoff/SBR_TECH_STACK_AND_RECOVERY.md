@@ -1,124 +1,106 @@
 # Sidwell Business Review — Technical Stack and Recovery Notes
 
-## Architecture
+## Current architecture
 
-Public website:
-- Next.js 16
-- TypeScript
-- Tailwind CSS
-- Cloudflare Workers
+- Public application: Next.js 16, React 19, TypeScript, Tailwind CSS v4.
+- Hosting: Cloudflare Workers through OpenNext.
+- Worker/origin: `website` / <https://website.sidwellbusinessreview.workers.dev/>.
+- Source: `sidwellbusinessreview-svg/website`, production branch `main`.
+- CMS: Sanity project `bumxf5q6`, dataset `production`, API `2026-03-01`.
+- Studio: <https://sidwell-business-review.sanity.studio/>.
 
-Worker name:
-`website`
+Studio is intentionally separate from the public Next.js app; `/studio` must remain a public 404. Cloudflare builds production from `main`. Sanity Studio has its own deployment lifecycle.
 
-Production origin:
-https://website.sidwellbusinessreview.workers.dev
+Production uses `CONTENT_SOURCE=sanity`. The non-secret provider choice is compiled into the server bundle so build-time routes and OpenNext runtime requests use the same source. `CONTENT_SOURCE=local` is an explicit fixture-backed recovery mode, not an automatic failover.
 
-CMS:
-- Sanity
-- Project ID: `bumxf5q6`
-- Dataset: `production`
-- API version: `2026-03-01`
+Main CMS types are Article, Contributor, and fixed Publication Settings (`siteSettings`). The launch model excludes Issues, Categories, Tags, Contributor portraits/biographies/roles, read time, and an embedded Studio. Leadership belongs only in Publication Settings.
 
-Hosted Studio:
-https://sidwell-business-review.sanity.studio
+Article dates use canonical `publicationMonth` (`YYYY-MM`) and display Month Year; do not restore exact-day publishing. Articles keep a structured Source registry and body-order Footnote occurrences. Public Note numbers come from each occurrence, not Source-array order or typed `[n]` markers.
 
-The Studio is intentionally separate from the public Next.js application.
+## Revalidation and Preview
 
-There should be no public `/studio` CMS route in the deployed Next.js site.
+Publishing calls `POST /api/revalidate/sanity` with a bearer value matching `SANITY_REVALIDATE_SECRET`. The endpoint invalidates the fixed shared `content` tag; public reads also revalidate after 300 seconds. Successful delivery is not proof that a specific page has already refreshed.
 
-## Source repository
+Public reads are published-only and token-free. Draft Preview uses a server-only Viewer token, `drafts`, no CDN, and no store. The public browser must never receive a Sanity token.
 
-GitHub:
-`sidwellbusinessreview-svg/website`
+If Preview points to localhost, confirm the Studio deployment's `SANITY_STUDIO_PREVIEW_ORIGIN` is the production Worker origin and redeploy Studio. If Presentation cannot connect, check the current Worker, Viewer token, Draft Mode endpoint, exact Sanity CORS origins, and Preview banner/Visual Editing bridge before changing code.
 
-Production branch:
-`main`
+## Application rollback
 
-Cloudflare automatically builds production from `main`.
+Application rollback changes code/deployment; it does not roll back Sanity content.
 
-## Content-source model
+1. Record the failing production symptoms, current commit, Worker version, and relevant logs.
+2. Identify the last known good reviewed commit and Cloudflare Worker version. Do not guess based only on age.
+3. Prefer promoting the known-good Worker version when an authorized Cloudflare administrator can do so. Otherwise, create a reviewed revert commit/PR from `main`; do not force-push or rewrite shared history.
+4. Confirm required variables/secrets still exist for the version being promoted. A historical binary can still fail against missing current configuration.
+5. Verify Homepage, one Article, About, Search, a Contributor page, robots, sitemap, feed, and Studio Preview after promotion.
+6. Preserve failure evidence and open a follow-up fix; do not merge the broken change again without reproducing the cause.
 
-The application supports:
-- `CONTENT_SOURCE=local`
-- `CONTENT_SOURCE=sanity`
+Select `CONTENT_SOURCE=local` only when leadership explicitly accepts fixture content as the temporary public result. It requires a rebuild and is not appropriate for recovering deleted or incorrect Sanity records.
 
-Production must use:
-`CONTENT_SOURCE=sanity`
+## Sanity content recovery
 
-The production configuration deliberately compiles the non-secret content-source selection into the server bundle so OpenNext runtime requests do not fall back to fixture content.
+Sanity content recovery is separate from application rollback. Promoting an older Worker does not restore Articles, Contributors, assets, or Publication Settings.
 
-## Article date model
+1. Stop further destructive editing and record the affected document IDs/types and times without copying private content into public logs.
+2. Inspect Sanity document history for a narrow document-level recovery when available.
+3. Locate the latest target-matching dataset export and its manifest/checksum in approved private storage. The repository does not prove that such a backup exists.
+4. Before any broad restore, import the export into a new disposable dataset and verify expected document counts, references, assets, and representative content.
+5. Compare the restore candidate with current production changes made after the export. A broad replacement can erase legitimate newer work.
+6. Restore or migrate production only with explicit authorization, a written target/impact plan, and a fresh pre-change export.
+7. Re-run the authenticated content/page audits and public smoke checks after recovery.
 
-The canonical Sanity field is:
-`publicationMonth`
+Create an export before approved high-risk changes with a dated filename in approved private storage:
 
-Do not restore old `publicationDate`-based publishing behavior.
+```bash
+npx sanity dataset export production /approved/private/path/sbr-production-YYYY-MM-DD.tar.gz
+```
 
-## Content model
+Record the project ID, dataset, timestamp, file checksum, creator, and storage location separately. An export file is not a verified backup until an authorized maintainer has restored it to a disposable dataset and recorded the result. Never run a production import/replace from this handbook alone.
 
-Main document types:
-- Article
-- Contributor
-- Publication Settings (`siteSettings` internally)
+## Missing or rotated secrets
 
-Removed concepts that should not be casually reintroduced:
-- Issues
-- Categories
-- Tags
-- Contributor portraits
-- Contributor biographies
-- Contributor role fields
-- read-time field
-- embedded public-site Studio
+Do not try to display an old hidden value.
 
-Editors-in-Chief/leadership are configured in Publication Settings, not on Contributor records.
+1. Identify the secret by name and its legitimate consumers.
+2. Revoke/rotate it in the owning service.
+3. Update each approved secret store. For `SANITY_REVALIDATE_SECRET`, update both Sanity's webhook and Cloudflare.
+4. Promote/redeploy the Worker version created by the change when required.
+5. Test only the affected path: Preview for Viewer/Preview credentials; one approved publish observation for revalidation.
+6. Review access/audit logs and record the incident or scheduled rotation without recording the value.
 
-## Sources and Footnotes
+Never install `SANITY_API_WRITE_TOKEN` in the public Worker.
 
-Articles maintain a Source registry and inline Footnote occurrences.
+## Common recovery checks
 
-Public Notes are generated from citation occurrences.
+### Public site shows fixture content
 
-Do not replace this with legacy `[n]` text markers.
+1. Confirm the approved deployment has `CONTENT_SOURCE=sanity` at build time.
+2. Confirm the current code includes the compiled provider selection.
+3. Confirm the promoted Worker is the intended successful version.
+4. Do not edit Sanity content to hide a deployment/configuration problem.
 
-## Preview security
+### Published content appears stale
 
-Public reads are published-only.
+Use the timed procedure in `SBR_LAUNCH_AND_MAINTENANCE_CHECKLIST.md`. Compare webhook acceptance, `npm run sanity:check-cache`, the exact public URL, and the 300-second fallback before rotating secrets or republishing.
 
-Draft preview uses a server-only Sanity Viewer token.
+### Worker exceeds size limits
 
-The public browser must never receive the Sanity read token.
+Do not re-embed Studio. That architecture previously exceeded the Cloudflare free compressed Worker limit.
 
-## Revalidation
+### Administrator is unavailable
 
-Sanity publishing triggers:
-`POST /api/revalidate/sanity`
+Use the publication's approved recovery identity and private ownership register. If no authorized person can recover a service, document the access blocker and contact that service's official account-recovery channel; do not create a replacement production project or copy credentials between people.
 
-Authentication:
-`Authorization: Bearer <SANITY_REVALIDATE_SECRET>`
+## Backup and access acceptance
 
-The endpoint invalidates the shared content cache tag.
+The following require human evidence and must not be inferred from code:
 
-## If the public site shows filler/sample content
+- two current authorized maintainers for GitHub, Cloudflare, and Sanity where policy/plan permit;
+- current publication-controlled recovery and billing contacts;
+- location, checksum, and target metadata for the latest dataset export;
+- successful restore of a recent export into a disposable dataset;
+- identification/promotion ability for a last known good Worker version;
+- current onboarding/offboarding review and removal of departed members.
 
-Check:
-1. Cloudflare production build has `CONTENT_SOURCE=sanity`.
-2. Current code on `main` includes the production content-source fix.
-3. Sanity queries use `publicationMonth`.
-4. The deployed Worker is the newest successful version.
-
-## If Studio preview points to localhost
-
-Redeploy Studio with:
-`SANITY_STUDIO_PREVIEW_ORIGIN=https://website.sidwellbusinessreview.workers.dev`
-
-## If a Cloudflare build becomes too large
-
-Do not re-embed Sanity Studio into the Next.js app. That previously caused the Worker to exceed the free compressed-size limit.
-
-## If a secret is lost
-
-Rotate it instead of trying to expose the old hidden value.
-
-Never place a write-capable Sanity token in the public website deployment.
+Track these in the private operations register using `docs/ACCOUNT_OWNERSHIP_TEMPLATE.md` as a blank template.
