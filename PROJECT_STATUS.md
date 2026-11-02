@@ -4,7 +4,7 @@
 
 - **Implemented on a review branch; not merged or deployed:** November 2, 2026. The Publication Settings `contactTarget` field keeps its stored name but is now explicitly titled and described as a publication-controlled email and uses Sanity's required email validation, matching the existing application schema and footer `mailto:` behavior.
 - An anonymous read-only query confirmed the current published `siteSettings.contactTarget` is a valid email address, so the stricter Studio rule preserves current published settings. No Sanity document or production setting was changed.
-- The static fallback `editors@sidwellbusinessreview.org` remains unchanged because publication control of that address is unverified. Confirming or replacing the fallback is a human ownership decision; no personal or inferred address was substituted.
+- The static fallback is now `sidwellbusinessreview@gmail.com`, matching the confirmed, approved publication contact. No personal or inferred address was substituted.
 - Focused coverage verifies valid email acceptance, rejection of malformed values/internal paths, adapter preservation of the published email shape, Studio email-rule registration, and footer `mailto:` rendering. `npm test -- src/content/validation.test.ts src/content/sanity/adapters.test.ts src/sanity/schemaTypes/schema.test.ts src/components/site-footer.test.tsx` passed 94 tests; targeted ESLint, `npm run typecheck`, `npm run sanity:typegen`, and `git diff --check` also passed.
 
 ## Consolidated operations and launch-readiness documentation
