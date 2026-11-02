@@ -85,13 +85,13 @@ Build Studio without deploying it:
 npm run studio:build
 ```
 
-Deploy source changes to the existing hosted Studio only through the reviewed workflow:
+Deploy source changes to the existing hosted Studio only through the reviewed workflow, with the production Preview origin set explicitly:
 
 ```bash
-npm run studio:deploy
+SANITY_STUDIO_PREVIEW_ORIGIN=https://website.sidwellbusinessreview.workers.dev npm run studio:deploy
 ```
 
-The hosted Studio is a separate deployment from the Cloudflare Worker. A public application rebuild is required when `NEXT_PUBLIC_SANITY_STUDIO_URL` or other build variables change.
+Do not omit `SANITY_STUDIO_PREVIEW_ORIGIN` for a hosted deployment. If neither it nor a suitable Studio-build `NEXT_PUBLIC_SITE_URL` is present, the Studio configuration falls back to `http://localhost:3000`, causing hosted Preview to target localhost. The hosted Studio is a separate deployment from the Cloudflare Worker. A public application rebuild is required when `NEXT_PUBLIC_SANITY_STUDIO_URL` or other build variables change.
 
 ## Invite, review, and revoke access
 
