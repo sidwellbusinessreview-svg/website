@@ -11,7 +11,7 @@ import { validateUniqueStaff } from "./documents/siteSettings";
 import { isSupportedImageAsset } from "./shared/mediaValidation";
 import { pairContributorVersions } from "../components/ContributorStateList";
 
-type RawField = { name: string; type: string; readOnly?: boolean; initialValue?: unknown; description?: string; validation?: (rule: { max: (limit: number) => unknown; custom: (...args: never[]) => unknown }) => unknown; components?: { input?: unknown }; fields?: RawField[]; of?: Array<{ type: string; to?: Array<{ type: string }>; fields?: RawField[] }>; options?: { dateFormat?: string } };
+type RawField = { name: string; title?: string; type: string; readOnly?: boolean; initialValue?: unknown; description?: string; validation?: (rule: { required?: () => unknown; email?: () => unknown; max: (limit: number) => unknown; custom: (...args: never[]) => unknown }) => unknown; components?: { input?: unknown }; fields?: RawField[]; of?: Array<{ type: string; to?: Array<{ type: string }>; fields?: RawField[] }>; options?: { dateFormat?: string } };
 const fieldsFor = (name: string) => ((schemaTypes.find((type) => type.name === name) as { fields?: RawField[] } | undefined)?.fields ?? []);
 const action = (name: string, label = name): DocumentActionComponent => Object.assign(() => ({ label, onHandle: () => undefined }), { action: name }) as DocumentActionComponent;
 const props = (draft: object | null, published: object | null) => ({ id: "test", type: "article", draft, published, liveEdit: false, onComplete: () => undefined } as never);
@@ -37,6 +37,23 @@ describe("simplified Sanity editor model", () => {
   it.each(["masthead", "author", "issue", "category", "tag"])("has no legacy %s schema file", (type) => expect(existsSync(`src/sanity/schemaTypes/documents/${type}.ts`)).toBe(false));
   it("keeps the contributor form role-free with hidden migration identity", () => { const fields = fieldsFor("contributor"); expect(fields.map(({ name }) => name)).toEqual(["name", "slug", "graduationYear", "active", "migrationSourceId", "importBatchId"]); expect(fields.filter(({ name }) => ["migrationSourceId", "importBatchId"].includes(name)).every(({ readOnly }) => readOnly)).toBe(true); });
   it("places About and leadership fields on Publication Settings", () => expect(fieldsFor("siteSettings").map(({ name }) => name)).toEqual(expect.arrayContaining(["aboutTitle", "aboutBody", "editorsInChief", "editors", "facultyAdviser"])));
+  it("labels and validates the Publication Settings contact target as email-only", () => {
+    const field = fieldsFor("siteSettings").find(({ name }) => name === "contactTarget");
+    expect(field).toMatchObject({ title: "Contact email", description: expect.stringMatching(/valid publication-controlled email address/i) });
+    const rule = {
+      required: vi.fn(),
+      email: vi.fn(),
+      max: vi.fn(),
+      custom: vi.fn(),
+    };
+    rule.required.mockReturnValue(rule);
+    rule.email.mockReturnValue(rule);
+    rule.max.mockReturnValue(rule);
+    expect(field?.validation?.(rule)).toBe(rule);
+    expect(rule.required).toHaveBeenCalledOnce();
+    expect(rule.email).toHaveBeenCalledOnce();
+    expect(rule.max).toHaveBeenCalledWith(200);
+  });
   it("keeps leadership contextual and supports multiple ordered Editors-in-Chief", () => {
     const field = fieldsFor("siteSettings").find(({ name }) => name === "editorsInChief") as RawField & { validation?: Array<{ _rules?: Array<{ flag?: string; constraint?: number }> }> };
     expect(field.of?.[0].fields?.map(({ name }) => name)).toEqual(["contributor", "displayedRole"]);

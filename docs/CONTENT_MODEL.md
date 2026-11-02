@@ -14,7 +14,7 @@ This provider-independent contract is the Phase 11B source of truth. Sanity reco
 | tagline, location | String | No | Public when approved | Optional brand text |
 | logoMode | `text` or `image` | Yes | Controls logo fallback | `text` |
 | textWordmark / logoImage / logoImageAlt | Conditional | Yes when selected | Accessible logo | Existing site config maps here |
-| contactLabel / contactTarget | String | Yes | Publication-owned contact only | No student personal contact |
+| contactLabel / contactTarget | String | Yes | Valid publication-controlled email address | No student personal contact or path |
 | socialLinks | List | No | Approved publication accounts | Empty at launch |
 | defaultSeo | Object | No | Global title/description/image defaults | Provider mapping |
 | homepageTagline | String | No | Optional short homepage line | Replaces the retired recent-story count and homepage-introduction fields |

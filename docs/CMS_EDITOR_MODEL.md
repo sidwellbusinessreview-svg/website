@@ -22,6 +22,8 @@ Contributors default to active. Use **Archive contributor** for ordinary offboar
 
 Publication Settings combines global site settings, the public About mission/body, and text-only Editors-in-Chief, Editors, and Faculty Adviser sections. Each staff entry references a Contributor and may supply an optional About-only displayed label. Editors-in-Chief is an ordered list supporting one or more unique Contributors; Faculty Adviser allows one. No staff entry has an image, portrait, avatar, or initials field. Contributor records do not store publication roles. There is no separate About or Masthead CMS document; the public About route remains `/about`.
 
+The Contact group stores a link label and a valid publication-controlled email address. The frontend renders that address as `mailto:`; paths and arbitrary URLs are not valid contact targets.
+
 ## Durable fixed pages
 
 Publication Settings uses fixed document ID `siteSettings`. Its permanent Structure entry inspects the current draft/published pair with an exact uncached raw query. Existing records open normally. If neither variant exists, the pane offers revision inspection or explicitly confirmed clean draft creation at that same fixed ID. Generic mutations never write directly to `drafts.*`. The pane verifies creation through the exact raw query before navigation and never restores or publishes old content automatically. Publication Settings cannot be deleted, duplicated, copied, or unpublished.
