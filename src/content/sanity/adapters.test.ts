@@ -150,6 +150,19 @@ describe("Sanity domain adapters", () => {
       logo: { mode: "text" },
     });
   });
+  it("preserves a valid published contact email and rejects path-shaped contact values", () => {
+    const rawSettings = {
+      publicationName: "Sidwell Business Review",
+      shortName: "SBR",
+      description: "A sufficiently detailed publication description for validation.",
+      affiliationText: "A student publication",
+      tagline: "Business reporting",
+      contactLabel: "Contact the editors",
+    };
+    expect(mapSiteSettings({ ...rawSettings, contactTarget: "sidwellbusinessreview@gmail.com" }))
+      .toMatchObject({ contact: { email: "sidwellbusinessreview@gmail.com" } });
+    expect(mapSiteSettings({ ...rawSettings, contactTarget: "/contact" })).toBeUndefined();
+  });
   it("fails closed when a required Contributor reference is missing", () => expect(mapArticle(rawArticle({ contributors: [null] }))).toBeUndefined());
   it("provides actionable developer diagnostics for invalid published records", () => {
     expect(getArticleValidationFailures(rawArticle({ contributors: [], summary: "short", body: [] }))).toEqual(expect.arrayContaining([

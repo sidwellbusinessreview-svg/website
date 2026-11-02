@@ -1,11 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { siteConfig } from "@/config/site";
 import { articles, contributors } from "./data";
-import { articleContentBlockSchema, articleSchema } from "./schemas";
+import { articleContentBlockSchema, articleSchema, siteSettingsSchema } from "./schemas";
 import { type ContentSource, validateContentSource } from "./validation";
 const validSource = (): ContentSource => structuredClone({ articles, contributors, siteSettings: siteConfig });
 const expectProblem = (change: (source: ContentSource) => void, expected: RegExp) => { const source = validSource(); change(source); expect(() => validateContentSource(source, new Date("2026-07-16T12:00:00Z"))).toThrow(expected); };
 describe("runtime content validation", () => {
+  it("accepts a valid publication contact email", () => {
+    expect(siteSettingsSchema.safeParse({
+      ...siteConfig,
+      contact: { ...siteConfig.contact, email: "sidwellbusinessreview@gmail.com" },
+    }).success).toBe(true);
+  });
+  it.each(["not-an-email", "/contact", "https://example.com/contact"])("rejects invalid contact target %s", (email) => {
+    expect(siteSettingsSchema.safeParse({
+      ...siteConfig,
+      contact: { ...siteConfig.contact, email },
+    }).success).toBe(false);
+  });
   it.each([{ type: "paragraph", text: "Paragraph" }, { type: "heading", level: 2, text: "Heading" }, { type: "bulletedList", items: ["Item"] }, { type: "numberedList", items: ["Item"] }, { type: "quote", text: "Quote" }, { type: "image", src: "https://example.com/a.jpg", alt: "Alt" }, { type: "callout", text: "Callout" }, { type: "divider" }, { type: "link", text: "More", href: "https://example.com", label: "Source" }])("accepts $type", (block) => expect(articleContentBlockSchema.safeParse(block).success).toBe(true));
   it("accepts rich nested list items without raw HTML", () => {
     expect(articleContentBlockSchema.safeParse({

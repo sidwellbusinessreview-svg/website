@@ -7,7 +7,7 @@ export const siteConfig = {
   tagline: "Business, markets, and ideas—examined by students.",
   contact: {
     label: "Contact the editors",
-    email: "editors@sidwellbusinessreview.org",
+    email: "sidwellbusinessreview@gmail.com",
   },
   socialLinks: [] as Array<{
     label: string;

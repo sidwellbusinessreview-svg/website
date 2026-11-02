@@ -42,6 +42,10 @@ In the **Homepage** group, edit **Purpose statement headline** and **Purpose sta
 
 Leadership is stored there rather than inside Contributor records.
 
+### Update the public contact link
+
+In **Publication Settings → Contact and social**, enter a valid publication-controlled email in **Contact email**. The footer creates a `mailto:` link from this value. Do not enter an internal path, website URL, or a student's personal address.
+
 ## 2. Preview
 
 The hosted Studio preview should load the live website rather than localhost.
