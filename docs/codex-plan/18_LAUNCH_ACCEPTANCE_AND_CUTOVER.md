@@ -1,5 +1,7 @@
 # Phase 18: Launch Acceptance and Production Cutover
 
+> **Historical plan — not current operating instructions (November 1, 2026).** The site is already deployed on Cloudflare Workers with production content from Sanity and a separately hosted Sanity Studio. Preserve this file as planning history; do not execute its Vercel, pre-cutover, phase-order, or old content-model steps. Use `README.md`, `PROJECT_STATUS.md`, and `docs/handoff/` for current operations.
+
 ## Objective
 
 Decide whether the website is ready for public launch, then switch Production from local content to Sanity only after all blocking checks pass.

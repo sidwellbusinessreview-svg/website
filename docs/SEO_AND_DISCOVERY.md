@@ -1,83 +1,79 @@
 # SEO and discovery
 
-This phase makes published local content discoverable without tying routes to a specific CMS or final production domain.
+## Current production origin
 
-## Site URL
-
-Set `NEXT_PUBLIC_SITE_URL` to the public origin in preview or production:
+The production origin is:
 
 ```text
-NEXT_PUBLIC_SITE_URL=https://example.org
+https://website.sidwellbusinessreview.workers.dev
 ```
 
-Do not add a trailing path. When the variable is blank, the application safely uses `http://localhost:3000`. The final production domain is intentionally not hardcoded.
+Cloudflare must set `NEXT_PUBLIC_SITE_URL` to that origin without a trailing path. The value controls Next.js `metadataBase`, canonical URLs, sitemap entries, RSS links, and JSON-LD entity URLs. Local development safely falls back to `http://localhost:3000`.
 
-The configured origin controls:
+Changing the production origin—including a future custom-domain move—requires a reviewed deployment and a coordinated Search Console, canonical, sitemap, Studio Preview, CORS, and redirect plan. Do not change it merely because indexing is slow.
 
-- Next.js `metadataBase`
-- Canonical absolute URLs
-- Sitemap URLs
-- RSS links
-- JSON-LD entity URLs
+## Implementation review — November 1, 2026
 
-## Page metadata
+Repository and read-only production checks found no demonstrated technical indexing blocker:
 
-Shared metadata helpers live in `src/lib/metadata.ts`. Public pages define:
+- the Homepage, `/robots.txt`, `/sitemap.xml`, and `/feed.xml` returned HTTP 200;
+- the Homepage canonical used the configured Cloudflare origin and included the Google verification token;
+- a representative Article used its canonical URL and `article` Open Graph type;
+- a query Search page used `noindex, follow` and canonical `/search`;
+- robots allowed public pages, disallowed search-result crawling, and linked the canonical sitemap;
+- the sitemap contained 21 canonical public URLs: 4 static pages, 7 published Articles, and 10 Contributor profiles;
+- sitemap and feed are built through published content-provider access functions, so drafts remain excluded.
 
-- A specific title and description
-- A canonical path
-- Open Graph metadata
-- Twitter/social-card metadata
+The accepted launch model has no Issues, Categories, or Tags. They do not belong in the sitemap or discovery documentation.
 
-Article pages also provide article publication date, authors, and featured-image metadata. Search result URLs are marked `noindex,follow` and canonically point to `/search` so arbitrary queries do not create duplicate indexed pages.
+## Page metadata and structured data
 
-## Structured data
+Shared metadata helpers live in `src/lib/metadata.ts`. Public pages define a title, description, canonical path, Open Graph metadata, and social-card metadata. Search queries are `noindex,follow` and canonicalize to `/search` so arbitrary queries do not become duplicate indexed pages.
 
-The root layout emits an `Organization` record using only configured publication and school information.
+Article pages emit `NewsArticle` and `BreadcrumbList` JSON-LD with the canonical Article and Contributor URLs. The root layout emits an `Organization` record using publication settings/fallbacks. Do not add unverified awards, ownership claims, founding dates, addresses, or other facts.
 
-Article pages emit:
+## Sitemap, robots, and RSS
 
-- `NewsArticle`
-- `BreadcrumbList`
+- `/sitemap.xml` lists the Homepage, Latest, Archive, About, published Articles, and published Contributor profiles.
+- `/robots.txt` allows public pages, disallows `/search`, and points to the sitemap.
+- `/feed.xml` provides RSS 2.0 for published Articles and uses the same 300-second public-content cache window.
 
-Do not add awards, addresses, ownership claims, founding dates, or other facts unless the content model contains verified values.
+Do not add drafts, Preview URLs, Studio paths, removed content types, or query-string variants.
 
-## Sitemap and robots
+## Search indexing evidence
 
-- `/sitemap.xml` lists public static pages, published articles, issues, and authors.
-- `/robots.txt` allows public pages, points to the sitemap, and discourages crawling search-result URLs.
+As of November 1, 2026, the supplied Google Search Console evidence says:
 
-Both use the public content-access functions, so draft articles are excluded.
+- the sitemap was accepted;
+- Google had discovered 21 pages;
+- Homepage inspection still reported **Discovered – currently not indexed**;
+- the live URL test succeeded;
+- repeated manual indexing requests returned **Quota Exceeded**;
+- Crawl Stats previously recorded one successful HTTP 200 HTML discovery request, without retaining an example URL.
 
-## RSS
+This evidence shows discovery and a successful live fetch, but not selection for indexing. It does not justify changing canonical URLs, robots, or sitemap behavior, and it does not prove a crawl or rendering defect. Do not attempt to bypass indexing quotas.
 
-`/feed.xml` provides a maintainable RSS 2.0 feed for published articles. It contains title, URL, summary, publication date, and byline information already present in the content model.
+## Search Console follow-up
 
-The feed escapes XML-sensitive text and never imports raw sample data. A future CMS adapter can preserve the route by implementing the existing content-access functions.
+1. Leave the accepted sitemap submitted at its canonical URL; do not resubmit it repeatedly without a configuration change.
+2. After Google has had additional time, inspect the Homepage and one representative Article URL.
+3. Record the inspection date, coverage status, selected canonical, last crawl (if shown), and screenshot in the private operations record.
+4. Run **Test live URL** only when diagnosing a current page response or after a meaningful deployment.
+5. If indexing remains absent, compare several Article URLs—not only the Homepage—and review Crawl Stats, Page Indexing reasons, rendered HTML, and the selected canonical before proposing code changes.
+6. Request indexing only when the quota permits and only for important canonical pages. Do not automate or repeat requests to evade the limit.
+7. Recheck the sitemap after future publishing to confirm the approved Article URL appears and returns HTTP 200.
 
-## Search indexing
+## Low-risk discoverability work
 
-Local search is implemented in `src/content/search.ts` and exposed through `searchArticles` in the content-access layer.
+Continue publishing original, complete Articles; keep titles and summaries descriptive; maintain clear internal links through Homepage, Latest, Archive, bylines, and Contributor profiles; and verify each new canonical URL in the sitemap after publishing. These editorial and operational steps are preferable to speculative metadata changes.
 
-Current ranking weights prioritize:
+A memorable custom domain may improve long-term publication continuity, but the repository contains no evidence that the publication owns one. Domain selection, ownership, billing, redirects, DNS, Search Console verification, and recovery must be approved and recorded before any code or hosting change. The current Workers origin remains authoritative until then.
 
-1. Headline
-2. Summary
-3. Contributor
-4. Publication date
-5. Article body text
-6. Structured article body
-
-Search is case-insensitive and public results exclude drafts. A future CMS-backed search implementation should preserve the `searchArticles` result contract and public-only behavior.
-
-## Required checks
-
-After changing metadata, URLs, search fields, sitemap, robots, or RSS:
+## Required checks after SEO code changes
 
 ```bash
 npm run verify
 npm run test:e2e
-npm run build
 ```
 
-Also inspect `/robots.txt`, `/sitemap.xml`, `/feed.xml`, one static page’s metadata, and one article page’s metadata using the configured deployment origin.
+Also inspect the deployed `/robots.txt`, `/sitemap.xml`, `/feed.xml`, one static page's canonical metadata, and one Article's metadata using the configured production origin.

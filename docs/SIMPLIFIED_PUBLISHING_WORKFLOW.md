@@ -60,7 +60,7 @@ Use **Archive contributor**. Do not delete a contributor merely because they gra
 
 ## Test safely
 
-Use the development dataset. Give test slugs an obvious prefix and keep the article as a draft unless the test explicitly requires publication. Before removing test content, confirm it is not referenced. Export or record anything that might need recovery; never run destructive cleanup against production without explicit confirmation.
+This project intentionally uses the `production` dataset for Studio and public content; there is no routine development dataset. Avoid test records. When an authorized workflow check genuinely needs one, use an obvious slug, keep it unpublished, avoid real/private student data, and remove it only after confirming it is unreferenced. Never publish or mutate production merely to manufacture an infrastructure test, and never run destructive cleanup without explicit confirmation and the documented export/dry-run gates.
 
 Article list panes can be searched by title, subtitle, summary, Contributor, or publication month and sorted by publication month, title, or update time. Search and sorting are view-only and never publish, unpublish, or edit an Article.
 

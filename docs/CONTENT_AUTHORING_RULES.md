@@ -8,7 +8,7 @@ Adding a footnote opens a compact Source picker beside the toolbar button. Choos
 
 ## Contributor identity
 
-Contributor identity is text-only. Do not upload or store Contributor portraits, avatars, initials artwork, other identity images, or publication roles. Article bylines contain linked names in editorial order, Contributor profiles contain name plus optional graduation year, and About staff entries contain linked names plus optional About-only displayed labels. Current leadership, including Editor-in-Chief, is configured on the About page through Contributor references. Article photography and publication-logo assets follow the separate editorial-image rules below.
+Contributor identity is text-only. Do not upload or store Contributor portraits, avatars, initials artwork, other identity images, or publication roles. Article bylines contain linked names in editorial order, Contributor profiles contain name plus optional graduation year, and About staff entries contain linked names plus optional About-only displayed labels. Current leadership, including Editor-in-Chief, is configured in Publication Settings for the About page through Contributor references. Article photography and publication-logo assets follow the separate editorial-image rules below.
 
 ## Required article metadata
 

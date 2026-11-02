@@ -35,12 +35,12 @@ Preview requires an expiring Sanity preview URL secret from an authenticated Stu
 
 The enable route strips secret parameters, permits only local public-page paths, disables caching, and discourages indexing. Exiting preview leaves the Presentation iframe, disables Draft Mode, and navigates the top-level browser to the current public page when safe. It removes preview-secret parameters and falls back to Homepage for Studio, API, external, protocol-relative, or non-page destinations. Shared Presentation links are disabled.
 
-Draft Mode is a browser-session setting for the localhost origin, not a setting for one tab. Enabling or exiting Preview therefore affects every localhost tab in the same browser session. Use a Guest or Private browser window for a trustworthy simultaneous view of the public site.
+Draft Mode is a browser-session setting for the frontend origin, not a setting for one tab. Enabling or exiting Preview therefore affects every tab for that origin in the same browser session, including all localhost tabs during local development. Use a Guest or Private browser window for a trustworthy simultaneous public view.
 
 - **Invalid preview request:** reopen Preview; the generated secret may have expired.
 - **Preview unavailable:** ask an administrator to check the server-only Viewer token and Sanity target.
 - **Draft not visible:** save, refresh, and confirm required slug/references exist.
 - **Public page shows a draft:** exit preview and retry in a clean browser. Stop publishing if it remains visible.
 - **Preview returns after exiting inside Studio:** the exit control must navigate the top-level window away from Presentation. Confirm the resulting URL is the clean public page path and the banner stays absent after refresh.
-- **Presentation says it cannot connect:** confirm Draft Mode is active, the preview banner appears, and the frontend renders the Visual Editing bridge. Then align `NEXT_PUBLIC_SITE_URL` and Sanity CORS with credentials.
-- **Hosted Studio cannot open Preview:** confirm `NEXT_PUBLIC_SITE_URL` points to the public frontend, its Draft Mode endpoint is reachable, and Sanity CORS/trusted origins are exact. Local Studio defaults to the public site at `http://localhost:3000`.
+- **Presentation says it cannot connect:** confirm Draft Mode is active, the preview banner appears, and the frontend renders the Visual Editing bridge. Then align the Studio deployment's `SANITY_STUDIO_PREVIEW_ORIGIN`, the public deployment's `NEXT_PUBLIC_SITE_URL`, and exact credentialed Sanity CORS origins.
+- **Hosted Studio cannot open Preview:** confirm its built `SANITY_STUDIO_PREVIEW_ORIGIN` points to the public frontend, the Draft Mode endpoint is reachable, and trusted origins are exact. Local Studio defaults to `http://localhost:3000`.

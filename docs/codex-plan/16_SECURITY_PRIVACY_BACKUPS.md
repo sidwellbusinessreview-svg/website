@@ -1,5 +1,7 @@
 # Phase 16: Security, Privacy, Access, and Backups
 
+> **Historical plan — not current operating instructions (November 1, 2026).** The site is already deployed on Cloudflare Workers with production content from Sanity and a separately hosted Sanity Studio. Preserve this file as planning history; do not execute its Vercel, pre-cutover, phase-order, or old content-model steps. Use `README.md`, `PROJECT_STATUS.md`, and `docs/handoff/` for current operations.
+
 ## Objective
 
 Make the project safe enough for real student content and sustainable account ownership.
