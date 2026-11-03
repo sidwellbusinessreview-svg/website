@@ -1,5 +1,13 @@
 # Project status
 
+## Scoped Studio dependency security remediation
+
+- **Implemented on a review branch; not merged or deployed:** November 2, 2026. Parent-scoped npm overrides replace only the vulnerable Sanity CLI/build copies: `adm-zip` 0.5.10 → 0.6.1 and `undici` 7.28.0 → 7.30.1 under `@module-federation/dts-plugin`; `js-yaml` 3.13.1 → 3.15.2 and `smol-toml` 1.5.2 → 1.9.1 under `@vercel/frameworks`; and jsdom's affected undici 7.x resolution with 7.30.1. Unrelated undici 6.29.1 consumers remain unchanged. Next.js, React, Sanity, ESLint, and the standalone Studio architecture remain on their existing versions.
+- **Audit result:** during the November 2 verification run, `npm audit` moved from 41 findings (5 high, 36 moderate) to 32 moderate findings, and `npm audit --omit=dev` moved from 26 findings (5 high, 21 moderate) to 19 moderate findings. All targeted vulnerable instances and all high findings are removed. Remaining advisories are the intentionally deferred `minimatch` paths through Sanity CLI and ESLint tooling and `uuid@10.0.0` through `sanity → @sanity/cli → typeid-js`.
+- **Dependency-resolution gate:** a clean `npm ci` installed 1,363 packages and audited 1,370. The lockfile changes only update or deduplicate the four approved leaf packages. The existing `@portabletext/editor` peer warning against pinned React 19.2.4 and deprecated `uuid@10` warning remain; neither was introduced or expanded by this patch.
+- **Verification:** `npm run verify` passed lint, typecheck, content validation, 388 tests with 1 skipped, and the 23-page production build. `npm run studio:build` passed. `npm run test:e2e` passed 46 tests with the 4 Sanity-provider tests skipped under local-provider configuration. Token-free `sanity:check-target`, `sanity:check`, `sanity:check-provider`, and `sanity:check-cache` completed against the documented public production target. `git diff --check` passed. Generated Next server traces contain none of `adm-zip`, `js-yaml`, `smol-toml`, or `undici`.
+- **Manual acceptance still required:** an authenticated maintainer must verify hosted Studio Article editing, Source/Footnote behavior, draft saving, publishing through the normal editorial workflow, and Presentation Preview before any Studio deployment. No production Sanity content, Worker, or Studio deployment was changed during this work.
+
 ## Contact reliability correction
 
 - **Implemented on a review branch; not merged or deployed:** November 2, 2026. The Publication Settings `contactTarget` field keeps its stored name but is now explicitly titled and described as a publication-controlled email and uses Sanity's required email validation, matching the existing application schema and footer `mailto:` behavior.
