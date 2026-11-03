@@ -1,5 +1,13 @@
 # Architecture decision log
 
+### ADR-021: Use parent-scoped overrides for four patched Studio build leaves
+
+- **Status:** Accepted for review; deployment pending
+- **Date:** 2026-11-02
+- **Context:** The dependency graph had not changed since ADR-020, but newly published or expanded advisories increased the audit from 15 findings to 41 full / 26 production-classified findings, including five high findings. The vulnerable copies remained pinned below patched releases by `@module-federation/dts-plugin`, `@vercel/frameworks`, and jsdom. Current compatible parent releases did not resolve every high advisory without a broad Sanity transition.
+- **Decision:** Make a narrow exception to ADR-020's no-override posture. Scope exact overrides to the owning parents: `adm-zip@0.6.1` and `undici@7.30.1` under `@module-federation/dts-plugin`; `js-yaml@3.15.2` and `smol-toml@1.9.1` under `@vercel/frameworks`; and `undici@7.30.1` under jsdom. Do not use a global undici override, change unrelated 6.x consumers, patch `minimatch` or `uuid`, or change Next.js, React, Sanity, ESLint, or Studio architecture versions.
+- **Consequences:** The scoped resolution removes all high findings and reduces the audit to 32 moderate findings full / 19 production-classified without the broad Sanity/editor transition rejected in ADR-020. The public Next server traces do not include the targeted packages, but the overrides affect Studio CLI/build behavior and therefore require a clean install, full application verification, standalone Studio build, browser regression coverage, read-only provider checks, and authenticated hosted Studio editing/publishing/Preview acceptance before deployment.
+
 ### ADR-020: Apply targeted compatible dependency remediations and defer the Sanity toolchain transition
 
 - **Status:** Accepted
